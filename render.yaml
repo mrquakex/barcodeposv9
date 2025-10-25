@@ -19,7 +19,7 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: FRONTEND_URL
-        value: https://barcodepos-frontend.onrender.com
+        value: https://www.barcodepos.trade,https://barcodepos.trade,https://barcodepos-frontend.onrender.com
 
   # Frontend
   - type: web
@@ -31,6 +31,10 @@ services:
     rootDir: frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
     envVars:
       - key: VITE_API_URL
         value: https://barcodepos-backend.onrender.com/api
