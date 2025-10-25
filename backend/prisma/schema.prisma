@@ -1,0 +1,351 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// Kullanıcı Modeli (Admin, Kasiyer, Yönetici)
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("CASHIER")
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sales          Sale[]
+  stockMovements StockMovement[]
+  expenses       Expense[]
+  activityLogs   ActivityLog[]
+  
+  @@map("users")
+}
+
+// Kategori Modeli
+model Category {
+  id        String    @id @default(uuid())
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  products  Product[]
+  
+  @@map("categories")
+}
+
+// Ürün Modeli
+model Product {
+  id          String    @id @default(uuid())
+  barcode     String    @unique
+  name        String
+  description String?
+  price       Float
+  cost        Float     @default(0)
+  stock       Int       @default(0)
+  unit        String    @default("Adet")
+  taxRate     Float     @default(18)
+  minStock    Int       @default(5)
+  imageUrl    String?
+  categoryId  String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  category          Category?    @relation(fields: [categoryId], references: [id])
+  saleItems         SaleItem[]
+  purchaseOrderItems PurchaseOrderItem[]
+  stockMovements    StockMovement[]
+  
+  @@map("products")
+}
+
+// Müşteri Modeli
+model Customer {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?  @unique
+  phone     String?
+  address   String?
+  debt      Float    @default(0)
+  credit    Float    @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  sales     Sale[]
+  
+  @@map("customers")
+}
+
+// Satış Modeli
+model Sale {
+  id            String       @id @default(uuid())
+  saleNumber    String       @unique
+  totalAmount   Float
+  discountAmount Float       @default(0)
+  taxAmount     Float        @default(0)
+  netAmount     Float
+  paymentMethod String       @default("CASH")
+  isPaid        Boolean      @default(true)
+  notes         String?
+  userId        String
+  customerId    String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  
+  user          User         @relation(fields: [userId], references: [id])
+  customer      Customer?    @relation(fields: [customerId], references: [id])
+  saleItems     SaleItem[]
+  
+  @@map("sales")
+}
+
+// Satış Detay Modeli
+model SaleItem {
+  id        String   @id @default(uuid())
+  quantity  Int
+  unitPrice Float
+  taxRate   Float
+  total     Float
+  saleId    String
+  productId String
+  createdAt DateTime @default(now())
+  
+  sale      Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id])
+  
+  @@map("sale_items")
+}
+
+// Market Ayarları
+model Settings {
+  id           String   @id @default(uuid())
+  storeName    String   @default("Market")
+  storeAddress String?
+  storePhone   String?
+  storeEmail   String?
+  storeTax     String?
+  logoUrl      String?
+  currency     String   @default("TL")
+  theme        String   @default("light")
+  receiptFooter String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  @@map("settings")
+}
+
+// Tedarikçi Modeli
+model Supplier {
+  id              String   @id @default(uuid())
+  name            String
+  contactPerson   String?
+  email           String?  @unique
+  phone           String?
+  address         String?
+  taxNumber       String?
+  paymentTerms    String?  // "30 gün", "Peşin" vb
+  balance         Float    @default(0) // Bakiye (borç)
+  isActive        Boolean  @default(true)
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  purchaseOrders  PurchaseOrder[]
+  payments        SupplierPayment[]
+  
+  @@map("suppliers")
+}
+
+// Satın Alma Siparişi
+model PurchaseOrder {
+  id              String   @id @default(uuid())
+  orderNumber     String   @unique
+  supplierId      String
+  totalAmount     Float
+  paidAmount      Float    @default(0)
+  status          String   @default("PENDING") // PENDING, APPROVED, RECEIVED, CANCELLED
+  orderDate       DateTime @default(now())
+  expectedDate    DateTime?
+  receivedDate    DateTime?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  supplier        Supplier @relation(fields: [supplierId], references: [id])
+  items           PurchaseOrderItem[]
+  
+  @@map("purchase_orders")
+}
+
+// Satın Alma Sipariş Detayı
+model PurchaseOrderItem {
+  id              String   @id @default(uuid())
+  purchaseOrderId String
+  productId       String
+  quantity        Int
+  unitCost        Float
+  total           Float
+  receivedQty     Int      @default(0)
+  createdAt       DateTime @default(now())
+  
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  product         Product  @relation(fields: [productId], references: [id])
+  
+  @@map("purchase_order_items")
+}
+
+// Tedarikçi Ödemeleri
+model SupplierPayment {
+  id              String   @id @default(uuid())
+  supplierId      String
+  amount          Float
+  paymentMethod   String   @default("CASH")
+  paymentDate     DateTime @default(now())
+  notes           String?
+  createdAt       DateTime @default(now())
+  
+  supplier        Supplier @relation(fields: [supplierId], references: [id])
+  
+  @@map("supplier_payments")
+}
+
+// Stok Hareketleri
+model StockMovement {
+  id              String   @id @default(uuid())
+  productId       String
+  type            String   // IN (giriş), OUT (çıkış), TRANSFER, ADJUSTMENT
+  quantity        Int
+  previousStock   Int
+  newStock        Int
+  referenceType   String?  // SALE, PURCHASE, TRANSFER, ADJUSTMENT
+  referenceId     String?
+  notes           String?
+  userId          String?
+  branchId        String?
+  createdAt       DateTime @default(now())
+  
+  product         Product  @relation(fields: [productId], references: [id])
+  user            User?    @relation(fields: [userId], references: [id])
+  branch          Branch?  @relation(fields: [branchId], references: [id])
+  
+  @@map("stock_movements")
+}
+
+// Gider Kategorileri
+model ExpenseCategory {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  expenses        Expense[]
+  
+  @@map("expense_categories")
+}
+
+// Giderler
+model Expense {
+  id              String   @id @default(uuid())
+  categoryId      String
+  amount          Float
+  description     String
+  paymentMethod   String   @default("CASH")
+  expenseDate     DateTime @default(now())
+  receiptNumber   String?
+  userId          String
+  branchId        String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  category        ExpenseCategory @relation(fields: [categoryId], references: [id])
+  user            User     @relation(fields: [userId], references: [id])
+  branch          Branch?  @relation(fields: [branchId], references: [id])
+  
+  @@map("expenses")
+}
+
+// Kampanyalar
+model Campaign {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  type            String   // DISCOUNT, BUY_X_GET_Y, COMBO, COUPON
+  discountType    String?  // PERCENTAGE, FIXED
+  discountValue   Float?
+  startDate       DateTime
+  endDate         DateTime
+  minPurchase     Float?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  coupons         Coupon[]
+  
+  @@map("campaigns")
+}
+
+// Kuponlar
+model Coupon {
+  id              String   @id @default(uuid())
+  code            String   @unique
+  campaignId      String?
+  discountType    String   // PERCENTAGE, FIXED
+  discountValue   Float
+  maxUses         Int?
+  usedCount       Int      @default(0)
+  minPurchase     Float?
+  startDate       DateTime
+  endDate         DateTime
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  campaign        Campaign? @relation(fields: [campaignId], references: [id])
+  
+  @@map("coupons")
+}
+
+// Şubeler
+model Branch {
+  id              String   @id @default(uuid())
+  name            String
+  address         String?
+  phone           String?
+  email           String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  stockMovements  StockMovement[]
+  expenses        Expense[]
+  activityLogs    ActivityLog[]
+  
+  @@map("branches")
+}
+
+// Aktivite Logları
+model ActivityLog {
+  id              String   @id @default(uuid())
+  userId          String?
+  action          String   // CREATE, UPDATE, DELETE, LOGIN, LOGOUT
+  module          String   // USER, PRODUCT, SALE, etc.
+  description     String
+  ipAddress       String?
+  userAgent       String?
+  branchId        String?
+  createdAt       DateTime @default(now())
+  
+  user            User?    @relation(fields: [userId], references: [id])
+  branch          Branch?  @relation(fields: [branchId], references: [id])
+  
+  @@map("activity_logs")
+}
+

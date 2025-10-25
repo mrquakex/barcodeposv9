@@ -1,0 +1,12 @@
+{
+  "name": "BarcodePOS - Market Yönetim Sistemi",
+  "short_name": "BarcodePOS",
+  "description": "Profesyonel market yönetim ve barkodlu satış sistemi",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "orientation": "portrait",
+  "icons": []
+}
+

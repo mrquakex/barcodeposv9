@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: barcodepos_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: barcodeposv9
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - barcodepos_network
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: barcodepos_backend
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/barcodeposv9?schema=public"
+      JWT_SECRET: "barcodeposv9-super-secret-jwt-key-2025"
+      JWT_EXPIRES_IN: "7d"
+      PORT: 5000
+      NODE_ENV: "production"
+      FRONTEND_URL: "http://localhost:3000"
+    ports:
+      - "5000:5000"
+    networks:
+      - barcodepos_network
+
+  # Frontend (React)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: barcodepos_frontend
+    restart: always
+    depends_on:
+      - backend
+    environment:
+      VITE_API_URL: "http://localhost:5000/api"
+    ports:
+      - "3000:80"
+    networks:
+      - barcodepos_network
+
+volumes:
+  postgres_data:
+
+networks:
+  barcodepos_network:
+    driver: bridge
+
