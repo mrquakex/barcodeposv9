@@ -21,6 +21,12 @@ import financeRoutes from './routes/finance.routes';
 import campaignRoutes from './routes/campaign.routes';
 import branchRoutes from './routes/branch.routes';
 import activityRoutes from './routes/activity.routes';
+import prisma from './lib/prisma';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
+
 // Temporarily disabled for production deploy
 // import aiRoutes from './routes/ai.routes';
 // import gdprRoutes from './routes/gdpr.routes';
@@ -113,8 +119,32 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
-httpServer.listen(PORT, () => {
-  console.log(`🚀 Server is running on http://localhost:${PORT}`);
-  console.log(`✅ Basic POS system ready!`);
-});
+// Auto-seed database if empty
+async function initializeDatabase() {
+  try {
+    const userCount = await prisma.user.count();
+    
+    if (userCount === 0) {
+      console.log('📦 Database is empty. Running seed...');
+      await execAsync('npx tsx prisma/seed.ts');
+      console.log('✅ Database seeded successfully!');
+    } else {
+      console.log(`✅ Database already initialized (${userCount} users found)`);
+    }
+  } catch (error) {
+    console.error('❌ Database initialization error:', error);
+  }
+}
+
+// Start server
+async function startServer() {
+  await initializeDatabase();
+  
+  httpServer.listen(PORT, () => {
+    console.log(`🚀 Server is running on http://localhost:${PORT}`);
+    console.log(`✅ Basic POS system ready!`);
+  });
+}
+
+startServer();
 
