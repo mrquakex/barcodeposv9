@@ -36,6 +36,9 @@ const app = express();
 const httpServer = createServer(app);
 const PORT = process.env.PORT || 5000;
 
+// Trust proxy for Render.com
+app.set('trust proxy', 1);
+
 // Security & Performance Middleware
 app.use(helmet({
   contentSecurityPolicy: false, // Disable for development
