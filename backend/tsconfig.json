@@ -19,6 +19,25 @@
     "sourceMap": false
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "src/graphql/**/*",
+    "src/services/ai.service.ts",
+    "src/services/analytics.service.ts",
+    "src/services/encryption.service.ts",
+    "src/services/gamification.service.ts",
+    "src/services/gdpr.service.ts",
+    "src/services/websocket.service.ts",
+    "src/services/monitoring.service.ts",
+    "src/services/cache.service.ts",
+    "src/services/permissions.service.ts",
+    "src/controllers/ai.controller.ts",
+    "src/routes/ai.routes.ts",
+    "src/routes/analytics.routes.ts",
+    "src/routes/gamification.routes.ts",
+    "src/routes/gdpr.routes.ts",
+    "src/middleware/permissions.middleware.ts"
+  ]
 }
 
