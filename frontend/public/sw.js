@@ -1,6 +1,6 @@
-const CACHE_NAME = 'barcodepos-v2';
-const RUNTIME_CACHE = 'barcodepos-runtime-v2';
-const API_CACHE = 'barcodepos-api-v2';
+const CACHE_NAME = 'barcodepos-v3';
+const RUNTIME_CACHE = 'barcodepos-runtime-v3';
+const API_CACHE = 'barcodepos-api-v3';
 
 const urlsToCache = [
   '/',
@@ -38,13 +38,19 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // API requests - Network-first, fallback to cache
+  // Skip caching for non-GET requests (POST, PUT, DELETE, etc.)
+  if (request.method !== 'GET') {
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  // API requests - Network-first, fallback to cache (only for GET)
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
       caches.open(API_CACHE).then((cache) => {
         return fetch(request)
           .then((response) => {
-            // Cache successful responses
+            // Cache successful GET responses only
             if (response.status === 200) {
               cache.put(request, response.clone());
             }
@@ -59,7 +65,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets - Cache-first
+  // Static assets - Cache-first (only GET requests)
   event.respondWith(
     caches.match(request).then((cachedResponse) => {
       if (cachedResponse) {
@@ -68,8 +74,8 @@ self.addEventListener('fetch', (event) => {
 
       return caches.open(RUNTIME_CACHE).then((cache) => {
         return fetch(request).then((response) => {
-          // Cache successful responses
-          if (response.status === 200) {
+          // Cache successful GET responses only
+          if (response.status === 200 && request.method === 'GET') {
             cache.put(request, response.clone());
           }
           return response;
