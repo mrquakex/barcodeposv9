@@ -30,7 +30,7 @@ prisma/dev.db-journal
 Thumbs.db
 
 # Prisma
-backend/prisma/migrations/
+# backend/prisma/migrations/
 
 # Logs
 logs/
