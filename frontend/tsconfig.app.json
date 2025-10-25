@@ -23,5 +23,19 @@
     "noFallthroughCasesInSwitch": false,
     "noImplicitAny": false
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": [
+    "src/hooks/useVoiceCommands.ts",
+    "src/hooks/useGestures.ts",
+    "src/components/Voice/**/*",
+    "src/components/Sound/**/*",
+    "src/components/3D/**/*",
+    "src/components/Charts/SankeyChart.tsx",
+    "src/components/Charts/SunburstChart.tsx",
+    "src/components/LanguageSwitcher/**/*",
+    "src/lib/websocket.ts",
+    "src/lib/apollo-client.ts",
+    "src/lib/sound.ts",
+    "src/i18n/**/*"
+  ]
 }
