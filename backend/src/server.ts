@@ -21,13 +21,14 @@ import financeRoutes from './routes/finance.routes';
 import campaignRoutes from './routes/campaign.routes';
 import branchRoutes from './routes/branch.routes';
 import activityRoutes from './routes/activity.routes';
-import aiRoutes from './routes/ai.routes';
-import gdprRoutes from './routes/gdpr.routes';
-import analyticsRoutes from './routes/analytics.routes';
-import gamificationRoutes from './routes/gamification.routes';
-import { websocketService } from './services/websocket.service';
-import { createApolloServer } from './graphql';
-import { monitoringService } from './services/monitoring.service';
+// Temporarily disabled for production deploy
+// import aiRoutes from './routes/ai.routes';
+// import gdprRoutes from './routes/gdpr.routes';
+// import analyticsRoutes from './routes/analytics.routes';
+// import gamificationRoutes from './routes/gamification.routes';
+// import { websocketService } from './services/websocket.service';
+// import { createApolloServer } from './graphql';
+// import { monitoringService } from './services/monitoring.service';
 
 dotenv.config();
 
@@ -58,11 +59,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Initialize WebSocket
-websocketService.initialize(httpServer);
+// Initialize WebSocket (temporarily disabled)
+// websocketService.initialize(httpServer);
 
-// Initialize GraphQL Server
-createApolloServer(app);
+// Initialize GraphQL Server (temporarily disabled)
+// createApolloServer(app);
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -80,22 +81,26 @@ app.use('/api/finance', financeRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/branches', branchRoutes);
 app.use('/api/activity-logs', activityRoutes);
-app.use('/api/ai', aiRoutes);
-app.use('/api/gdpr', gdprRoutes);
-app.use('/api/analytics', analyticsRoutes);
-app.use('/api/gamification', gamificationRoutes);
+// Temporarily disabled routes
+// app.use('/api/ai', aiRoutes);
+// app.use('/api/gdpr', gdprRoutes);
+// app.use('/api/analytics', analyticsRoutes);
+// app.use('/api/gamification', gamificationRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
-  const health = monitoringService.getHealth();
-  res.json(health);
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
 });
 
-// Metrics endpoint (admin only)
-app.get('/metrics', (req, res) => {
-  const metrics = monitoringService.getMetrics();
-  res.json(metrics);
-});
+// Metrics endpoint (temporarily disabled)
+// app.get('/metrics', (req, res) => {
+//   const metrics = monitoringService.getMetrics();
+//   res.json(metrics);
+// });
 
 // Error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -107,6 +112,6 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
 httpServer.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
-  console.log(`🔌 WebSocket is ready on ws://localhost:${PORT}`);
+  console.log(`✅ Basic POS system ready!`);
 });
 
