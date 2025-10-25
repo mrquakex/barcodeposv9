@@ -7,7 +7,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc && prisma generate",
     "start": "node dist/server.js",
-    "render-build": "npm install && npx prisma generate && npx prisma migrate deploy && npm run build",
+    "render-build": "npm install && npx prisma generate && npx prisma migrate resolve --rolled-back 20251025173012_init || true && npx prisma migrate resolve --rolled-back 20251025175111_add_enterprise_modules || true && npx prisma migrate deploy && npm run build",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
