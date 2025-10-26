@@ -11,3 +11,4 @@ router.post('/movements', authorize('ADMIN', 'MANAGER'), createStockMovement);
 
 export default router;
 
+

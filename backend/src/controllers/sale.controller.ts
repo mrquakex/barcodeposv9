@@ -233,3 +233,4 @@ export const deleteSale = async (req: Request, res: Response) => {
   }
 };
 
+

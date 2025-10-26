@@ -60,3 +60,4 @@ const SalesReport: React.FC = () => {
 
 export default SalesReport;
 
+

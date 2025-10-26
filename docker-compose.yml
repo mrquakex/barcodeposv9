@@ -61,3 +61,4 @@ networks:
   barcodepos_network:
     driver: bridge
 
+

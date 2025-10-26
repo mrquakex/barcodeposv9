@@ -11,3 +11,4 @@ router.put('/', authorize('ADMIN', 'MANAGER'), updateSettings);
 
 export default router;
 
+

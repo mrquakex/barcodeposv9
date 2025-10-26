@@ -77,3 +77,4 @@ export const createStockMovement = async (req: AuthRequest, res: Response) => {
   }
 };
 
+

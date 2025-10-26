@@ -24,3 +24,4 @@ EXPOSE 5000
 # Start command
 CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
 
+

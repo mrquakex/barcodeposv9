@@ -60,3 +60,4 @@ Write-Host "`n👤 Demo Hesaplar:" -ForegroundColor Cyan
 Write-Host "   Admin: admin@barcodepos.com / admin123" -ForegroundColor White
 Write-Host "   Kasiyer: kasiyer@barcodepos.com / kasiyer123" -ForegroundColor White
 
+

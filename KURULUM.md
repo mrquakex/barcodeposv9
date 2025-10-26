@@ -249,3 +249,4 @@ Kurulum tamamlandıktan sonra:
 2. Demo hesaplardan biriyle giriş yapın
 3. Sistemi keşfetmeye başlayın!
 
+

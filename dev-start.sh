@@ -78,3 +78,4 @@ trap "echo 'Stopping services...'; kill $BACKEND_PID $FRONTEND_PID; docker-compo
 # Wait for background processes
 wait
 
+

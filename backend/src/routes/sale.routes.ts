@@ -18,3 +18,4 @@ router.delete('/:id', authorize('ADMIN', 'MANAGER'), deleteSale);
 
 export default router;
 
+

@@ -78,3 +78,4 @@ const StockMovements: React.FC = () => {
 
 export default StockMovements;
 
+

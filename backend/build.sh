@@ -12,3 +12,4 @@ npx prisma migrate deploy
 
 echo "✅ Build completed!"
 
+

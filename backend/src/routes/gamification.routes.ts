@@ -59,3 +59,4 @@ router.get('/quests', async (req: Request, res: Response) => {
 
 export default router;
 
+

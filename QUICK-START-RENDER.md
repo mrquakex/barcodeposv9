@@ -88,3 +88,4 @@ VITE_API_URL=<Backend URL'inizi yapıştırın>
 
 **Detaylı Rehber:** `DEPLOYMENT-RENDER.md` dosyasına bakın
 
+

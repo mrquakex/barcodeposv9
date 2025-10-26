@@ -358,3 +358,4 @@ Sistem tamamen çalışır durumda, hatasız, profesyonel, enterprise seviyede b
 
 🎉 **TEBRIKLER! Dünya standartlarında, eşsiz bir enterprise POS sistemi tamamlandı!** 🎉
 
+

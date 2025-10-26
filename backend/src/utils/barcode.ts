@@ -42,3 +42,4 @@ export function validateEAN13(barcode: string): boolean {
   return calculateEAN13CheckDigit(barcode12) === checkDigit;
 }
 
+

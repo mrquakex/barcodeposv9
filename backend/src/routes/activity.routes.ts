@@ -10,3 +10,4 @@ router.get('/', getAllActivityLogs);
 
 export default router;
 
+

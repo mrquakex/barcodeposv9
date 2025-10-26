@@ -65,3 +65,4 @@ const ActivityLogs: React.FC = () => {
 
 export default ActivityLogs;
 
+

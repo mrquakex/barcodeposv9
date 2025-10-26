@@ -262,3 +262,4 @@ const POS: React.FC = () => {
 
 export default POS;
 
+
