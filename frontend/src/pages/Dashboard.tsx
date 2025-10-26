@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import StatCard from '../components/ui/StatCard';
 import QuickActions from '../components/Dashboard/QuickActions';
@@ -7,11 +8,12 @@ import RecentActivity from '../components/Dashboard/RecentActivity';
 import { DashboardStats } from '../types';
 import api from '../lib/api';
 import { formatCurrency } from '../lib/utils';
-import { TrendingUp, Package, Users, AlertCircle, DollarSign, Brain, Sparkles } from 'lucide-react';
+import { TrendingUp, Package, Users, AlertCircle, AlertTriangle, DollarSign, Brain, Sparkles, BarChart3 } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import toast from 'react-hot-toast';
 
 const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
