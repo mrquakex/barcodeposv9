@@ -10,7 +10,79 @@ export const chatWithAI = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Mesaj gerekli' });
     }
 
-    const response = await geminiService.chat(message);
+    // Sistem verilerini topla (AI için context)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const [recentSales, products, customers, topProducts] = await Promise.all([
+      // Son 30 günün satışları
+      prisma.sale.findMany({
+        where: {
+          createdAt: { gte: thirtyDaysAgo },
+        },
+        include: {
+          items: {
+            include: {
+              product: true,
+            },
+          },
+          customer: true,
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 100,
+      }),
+      // Toplam ürün sayısı
+      prisma.product.count(),
+      // Toplam müşteri sayısı
+      prisma.customer.count(),
+      // En çok satan ürünler (son 30 gün)
+      prisma.saleItem.groupBy({
+        by: ['productId'],
+        _sum: {
+          quantity: true,
+        },
+        orderBy: {
+          _sum: {
+            quantity: 'desc',
+          },
+        },
+        take: 5,
+      }),
+    ]);
+
+    // Satış özeti oluştur
+    const totalRevenue = recentSales.reduce((sum, sale) => sum + sale.totalAmount, 0);
+    const averageSale = recentSales.length > 0 ? totalRevenue / recentSales.length : 0;
+    
+    // En çok satan ürünlerin detaylarını al
+    const topProductDetails = await Promise.all(
+      topProducts.map(async (item) => {
+        const product = await prisma.product.findUnique({
+          where: { id: item.productId },
+        });
+        return {
+          name: product?.name,
+          totalSold: item._sum.quantity,
+        };
+      })
+    );
+
+    // AI için context hazırla
+    const context = {
+      summary: {
+        totalSales: recentSales.length,
+        totalRevenue: totalRevenue.toFixed(2),
+        averageSale: averageSale.toFixed(2),
+        totalProducts: products,
+        totalCustomers: customers,
+        period: 'Son 30 gün',
+      },
+      topProducts: topProductDetails,
+      recentSalesCount: recentSales.length,
+    };
+
+    // AI'ye context ile birlikte mesaj gönder
+    const response = await geminiService.chat(message, context);
 
     res.json({
       success: true,
