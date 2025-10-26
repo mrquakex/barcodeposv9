@@ -146,7 +146,7 @@ export const getProductByBarcode = async (req: Request, res: Response) => {
 
 export const createProduct = async (req: Request, res: Response) => {
   try {
-    const { barcode, name, description, price, cost, stock, unit, taxRate, minStock, categoryId, imageUrl } = req.body;
+    const { barcode, name, description, sellPrice, buyPrice, stock, unit, taxRate, minStock, categoryId, imageUrl } = req.body;
 
     // Barkod kontrolü
     let finalBarcode = barcode;
@@ -168,8 +168,8 @@ export const createProduct = async (req: Request, res: Response) => {
         barcode: finalBarcode,
         name,
         description,
-        price: parseFloat(price),
-        cost: cost ? parseFloat(cost) : 0,
+        sellPrice: parseFloat(sellPrice),
+        buyPrice: buyPrice ? parseFloat(buyPrice) : 0,
         stock: stock ? parseInt(stock) : 0,
         unit: unit || 'Adet',
         taxRate: taxRate ? parseFloat(taxRate) : 18,
@@ -192,15 +192,15 @@ export const createProduct = async (req: Request, res: Response) => {
 export const updateProduct = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, description, price, cost, stock, unit, taxRate, minStock, categoryId, imageUrl, isActive } = req.body;
+    const { name, description, sellPrice, buyPrice, stock, unit, taxRate, minStock, categoryId, imageUrl, isActive, isFavorite } = req.body;
 
     // Update data objesini dinamik olarak oluştur
     const updateData: any = {};
     
     if (name !== undefined) updateData.name = name;
     if (description !== undefined) updateData.description = description;
-    if (price !== undefined) updateData.price = parseFloat(price);
-    if (cost !== undefined) updateData.cost = parseFloat(cost);
+    if (sellPrice !== undefined) updateData.sellPrice = parseFloat(sellPrice);
+    if (buyPrice !== undefined) updateData.buyPrice = parseFloat(buyPrice);
     if (stock !== undefined) updateData.stock = parseInt(stock);
     if (unit !== undefined) updateData.unit = unit;
     if (taxRate !== undefined) updateData.taxRate = parseFloat(taxRate);
@@ -211,6 +211,7 @@ export const updateProduct = async (req: Request, res: Response) => {
     }
     if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
     if (isActive !== undefined) updateData.isActive = isActive;
+    if (isFavorite !== undefined) updateData.isFavorite = isFavorite;
 
     const product = await prisma.product.update({
       where: { id },
@@ -322,8 +323,8 @@ export const bulkUpsertProducts = async (req: Request, res: Response) => {
             where: { id: existingProduct.id },
             data: {
               name: productData.name,
-              price: productData.price,
-              cost: productData.cost,
+              sellPrice: productData.sellPrice || productData.price,
+              buyPrice: productData.buyPrice || productData.cost,
               stock: productData.stock,
               unit: productData.unit || 'ADET',
               taxRate: productData.taxRate || 18,
@@ -339,8 +340,8 @@ export const bulkUpsertProducts = async (req: Request, res: Response) => {
             data: {
               barcode: productData.barcode || generateEAN13(),
               name: productData.name,
-              price: productData.price,
-              cost: productData.cost || 0,
+              sellPrice: productData.sellPrice || productData.price,
+              buyPrice: productData.buyPrice || productData.cost || 0,
               stock: productData.stock || 0,
               unit: productData.unit || 'ADET',
               taxRate: productData.taxRate || 18,

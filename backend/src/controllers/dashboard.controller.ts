@@ -19,7 +19,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
       },
     });
 
-    const todayRevenue = todaySales.reduce((sum, sale) => sum + sale.netAmount, 0);
+    const todayRevenue = todaySales.reduce((sum, sale) => sum + sale.total, 0);
 
     // Bu ayki satışlar
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -34,7 +34,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
       },
     });
 
-    const monthRevenue = monthSales.reduce((sum, sale) => sum + sale.netAmount, 0);
+    const monthRevenue = monthSales.reduce((sum, sale) => sum + sale.total, 0);
 
     // Toplam sayılar
     const totalProducts = await prisma.product.count({ where: { isActive: true } });
@@ -101,7 +101,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         },
       });
 
-      const revenue = sales.reduce((sum, sale) => sum + sale.netAmount, 0);
+      const revenue = sales.reduce((sum, sale) => sum + sale.total, 0);
 
       last7Days.push({
         date: date.toISOString().split('T')[0],
@@ -144,7 +144,7 @@ export const getRecentSales = async (req: Request, res: Response) => {
             name: true,
           },
         },
-        saleItems: {
+        items: {
           include: {
             product: {
               select: {
