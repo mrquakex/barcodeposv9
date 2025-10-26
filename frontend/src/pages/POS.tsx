@@ -118,19 +118,21 @@ const POS: React.FC = () => {
           });
           scannerRef.current = scanner;
 
-          // MOBİL UYUMLU config
+          // YÜKSEK KALİTE & HIZ config (mobil optimize)
           const config = {
-            fps: 10,
-            qrbox: { width: 250, height: 150 },
+            fps: 20, // 10 → 20 FPS (2x daha hızlı!)
+            qrbox: { width: 300, height: 180 }, // 250x150 → 300x180 (daha büyük tarama alanı)
             aspectRatio: 1.777778,
+            disableFlip: false,
           };
 
-          // ARKA KAMERA ID'sini bul
+          // ARKA KAMERA ID'sini bul (yüksek çözünürlüklü olanı seç)
           let cameraId = 'environment';
           try {
             const devices = await Html5Qrcode.getCameras();
             console.log('📸 Bulunan kameralar:', devices);
             
+            // Arka kamerayı bul (label'dan)
             const backCamera = devices.find(device => 
               device.label.toLowerCase().includes('back') || 
               device.label.toLowerCase().includes('rear') ||
@@ -141,6 +143,7 @@ const POS: React.FC = () => {
               cameraId = backCamera.id;
               console.log('✅ Arka kamera bulundu:', backCamera.label);
             } else if (devices.length > 0) {
+              // Son kamera genellikle arka kamera (en iyi çözünürlük)
               cameraId = devices[devices.length - 1].id;
               console.log('✅ Kamera seçildi:', devices[devices.length - 1].label);
             }
@@ -420,48 +423,38 @@ const POS: React.FC = () => {
           {/* Barcode Scanner */}
           <Card className="border-2 border-blue-200 dark:border-blue-900 shadow-lg">
             <CardContent className="pt-6">
-              <form onSubmit={handleBarcodeSubmit} className="flex flex-col sm:flex-row gap-3">
-                {/* Mobilde: Önce kamera butonu (büyük) */}
+              <form onSubmit={handleBarcodeSubmit} className="flex flex-col gap-3">
+                {/* SADECE MOBİL: Kamera butonu (büyük, öncelikli) */}
                 <button
                   type="button"
                   onClick={() => setShowCamera(true)}
-                  className="sm:hidden w-full h-16 bg-gradient-to-br from-blue-600 to-slate-700 hover:from-blue-700 hover:to-slate-800 text-white rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3 font-black text-lg"
+                  className="md:hidden w-full h-20 bg-gradient-to-br from-blue-600 to-slate-700 hover:from-blue-700 hover:to-slate-800 text-white rounded-xl shadow-2xl hover:shadow-3xl transition-all flex items-center justify-center gap-4 font-black text-xl"
                 >
-                  <Camera className="w-7 h-7" />
+                  <Camera className="w-9 h-9" />
                   📸 KAMERA İLE OKUT
                 </button>
 
-                {/* Desktop & Mobil: Barkod input */}
-                <div className="relative flex-1">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-md">
-                    <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                {/* Barkod input - Desktop tam genişlik, Mobil ikinci sırada */}
+                <div className="relative w-full">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-md">
+                    <Zap className="w-6 h-6 text-white" />
                   </div>
-              <Input
-                ref={barcodeInputRef}
-                type="text"
+                  <Input
+                    ref={barcodeInputRef}
+                    type="text"
                     inputMode="numeric"
                     placeholder="Barkod giriniz..."
-                value={barcode}
-                onChange={(e) => setBarcode(e.target.value)}
-                disabled={loading}
-                    className="pl-16 sm:pl-20 pr-6 h-14 sm:h-16 text-base sm:text-lg font-semibold tracking-wide border-2 border-slate-300 focus:border-blue-600 dark:border-slate-700 shadow-sm"
+                    value={barcode}
+                    onChange={(e) => setBarcode(e.target.value)}
+                    disabled={loading}
+                    className="pl-20 pr-6 h-16 text-lg font-semibold tracking-wide border-2 border-slate-300 focus:border-blue-600 dark:border-slate-700 shadow-sm"
                   />
                   {loading && (
                     <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                      <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 animate-spin" />
+                      <Clock className="w-6 h-6 text-blue-600 animate-spin" />
                     </div>
                   )}
                 </div>
-
-                {/* Desktop: Kamera butonu (yanında) */}
-                <button
-                  type="button"
-                  onClick={() => setShowCamera(true)}
-                  className="hidden sm:flex h-16 px-6 bg-gradient-to-br from-blue-600 to-slate-700 hover:from-blue-700 hover:to-slate-800 text-white rounded-lg shadow-lg hover:shadow-xl transition-all items-center gap-2 font-bold"
-                >
-                  <Camera className="w-6 h-6" />
-                  Kamera
-                </button>
             </form>
           </CardContent>
         </Card>
@@ -515,7 +508,7 @@ const POS: React.FC = () => {
           </CardHeader>
             <CardContent className="flex-1 overflow-y-auto min-h-0">
               {viewMode === 'grid' ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                   {filteredProducts.map((product) => (
                     <motion.button
                       key={product.id}
@@ -1099,7 +1092,7 @@ const POS: React.FC = () => {
                   📸 KIRMIZI LAZER İÇİNE GETİRİN
                 </p>
                 <p className="text-sm text-blue-100 text-center font-bold">
-                  📱 Mobil Optimize • 9 Format • Arka Kamera • Otomatik
+                  ⚡ 20 FPS Yüksek Hız • 9 Format • HD Tarama • Otomatik
                 </p>
               </div>
               

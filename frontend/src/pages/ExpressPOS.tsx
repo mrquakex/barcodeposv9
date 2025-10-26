@@ -352,11 +352,12 @@ const ExpressPOS: React.FC = () => {
           });
           scannerRef.current = scanner;
 
-          // MOBİL UYUMLU config (basit ve stabil)
+          // YÜKSEK KALİTE & HIZ config (mobil optimize)
           const config = {
-            fps: 10, // Mobilde 10 FPS daha stabil
-            qrbox: { width: 250, height: 150 }, // Orta boyut (mobil uyumlu)
+            fps: 20, // 10 → 20 FPS (2x daha hızlı!)
+            qrbox: { width: 300, height: 180 }, // 250x150 → 300x180 (daha büyük tarama alanı)
             aspectRatio: 1.777778,
+            disableFlip: false,
           };
 
           // ARKA KAMERA ID'sini bul
@@ -1458,7 +1459,7 @@ const ExpressPOS: React.FC = () => {
                   📸 KIRMIZI LAZER İÇİNE GETİRİN
                 </p>
                 <p className="text-sm text-blue-100 text-center font-bold">
-                  📱 Mobil Optimize • 9 Format • Arka Kamera • Otomatik
+                  ⚡ 20 FPS Yüksek Hız • 9 Format • HD Tarama • Otomatik
                 </p>
               </div>
               
