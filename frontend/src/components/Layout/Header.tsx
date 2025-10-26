@@ -18,10 +18,11 @@ const Header: React.FC = () => {
   }, []);
 
   return (
-    <header className="h-20 border-b-2 border-slate-200 dark:border-slate-800 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-950 dark:to-blue-950/30 px-6 flex items-center justify-between shadow-md">
-      <div className="flex items-center gap-6">
+    <header className="h-16 md:h-20 border-b-2 border-slate-200 dark:border-slate-800 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-950 dark:to-blue-950/30 px-3 md:px-6 flex items-center justify-between shadow-md">
+      <div className="flex items-center gap-3 md:gap-6">
         <div>
-          <div className="flex items-center gap-2 mb-1">
+          {/* Desktop: Full welcome message */}
+          <div className="hidden md:flex items-center gap-2 mb-1">
             <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 to-slate-700 bg-clip-text text-transparent flex items-center gap-2">
               Hoş Geldiniz
             </h2>
@@ -29,7 +30,20 @@ const Header: React.FC = () => {
               ENTERPRISE
             </span>
           </div>
-          <div className="flex items-center gap-4 text-sm">
+          
+          {/* Mobile: Only clock (compact) */}
+          <div className="md:hidden flex items-center gap-2">
+            <Clock className="w-5 h-5 text-blue-600" />
+            <span className="text-lg font-black text-slate-900 dark:text-white tabular-nums">
+              {currentTime.toLocaleTimeString('tr-TR', { 
+                hour: '2-digit', 
+                minute: '2-digit'
+              })}
+            </span>
+          </div>
+          
+          {/* Desktop: Date & Time */}
+          <div className="hidden md:flex items-center gap-4 text-sm">
             <div className="flex items-center gap-1.5 text-muted-foreground font-semibold">
               <Calendar className="w-4 h-4 text-blue-600" />
               <span>
@@ -66,18 +80,20 @@ const Header: React.FC = () => {
         <div className="relative">
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
-            className="flex items-center gap-3 px-4 py-2 rounded-xl bg-gradient-to-br from-blue-50 to-slate-50 dark:from-blue-950/30 dark:to-slate-950/30 border-2 border-blue-200 dark:border-blue-900 shadow-md hover:shadow-lg transition-all hover:scale-[1.02]"
+            className="flex items-center gap-2 md:gap-3 px-2 md:px-4 py-1.5 md:py-2 rounded-xl bg-gradient-to-br from-blue-50 to-slate-50 dark:from-blue-950/30 dark:to-slate-950/30 border-2 border-blue-200 dark:border-blue-900 shadow-md hover:shadow-lg transition-all hover:scale-[1.02]"
           >
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-md">
-              <span className="text-white font-black text-base">
+            <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-md">
+              <span className="text-white font-black text-sm md:text-base">
                 {user?.name.charAt(0).toUpperCase()}
               </span>
             </div>
-            <div className="flex flex-col items-start">
+            {/* Desktop: Show name & role */}
+            <div className="hidden md:flex flex-col items-start">
               <p className="text-sm font-black text-slate-900 dark:text-white">{user?.name}</p>
               <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">{user?.role}</p>
             </div>
-            <ChevronDown className={`w-4 h-4 text-slate-600 dark:text-slate-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
+            {/* Mobile: Only icon */}
+            <ChevronDown className={`w-3 md:w-4 h-3 md:h-4 text-slate-600 dark:text-slate-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
           </button>
 
           {/* Dropdown Menu */}
@@ -103,9 +119,9 @@ const Header: React.FC = () => {
           size="icon"
           onClick={toggleTheme}
           title={theme === 'dark' ? 'Aydınlık Tema' : 'Karanlık Tema'}
-          className="w-10 h-10 hover:bg-blue-50 dark:hover:bg-blue-950/20 rounded-xl"
+          className="w-8 h-8 md:w-10 md:h-10 hover:bg-blue-50 dark:hover:bg-blue-950/20 rounded-xl"
         >
-          {theme === 'dark' ? <Sun className="w-6 h-6 text-blue-600" /> : <Moon className="w-6 h-6 text-slate-700" />}
+          {theme === 'dark' ? <Sun className="w-5 md:w-6 h-5 md:h-6 text-blue-600" /> : <Moon className="w-5 md:w-6 h-5 md:h-6 text-slate-700" />}
         </Button>
       </div>
     </header>
