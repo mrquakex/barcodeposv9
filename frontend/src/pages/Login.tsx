@@ -1,85 +1,98 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { LogIn, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
-
-/* ============================================
-   TEMPORARY LOGIN - FLUENT VERSION COMING
-   Basic login for development
-   ============================================ */
+import FluentButton from '../components/fluent/FluentButton';
+import FluentInput from '../components/fluent/FluentInput';
+import FluentCard from '../components/fluent/FluentCard';
+import toast from 'react-hot-toast';
 
 const Login: React.FC = () => {
-  const [email, setEmail] = useState('admin@pos.com');
-  const [password, setPassword] = useState('admin123');
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
+  const [email, setEmail] = useState('admin@barcodepos.com');
+  const [password, setPassword] = useState('admin123');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setIsLoading(true);
 
     try {
       await login(email, password);
-      // Will navigate to dashboard once it's built
-      // navigate('/dashboard');
-    } catch (error) {
-      console.error('Login error:', error);
+      toast.success('Welcome back!');
+      navigate('/dashboard');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Login failed');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="fluent-card p-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary/10 p-4">
+      <FluentCard elevation="depth16" className="w-full max-w-md">
+        <div className="p-8">
+          {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="fluent-title-large text-foreground mb-2">BarcodePOS</h1>
-            <p className="fluent-body text-foreground-secondary">Fluent Design Rebuild in Progress</p>
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
+              <LogIn className="w-8 h-8 text-primary" />
+            </div>
+            <h1 className="fluent-title text-foreground mb-2">BarcodePOS</h1>
+            <p className="fluent-body text-foreground-secondary">
+              Sign in to your account
+            </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="fluent-body-small text-foreground-secondary block mb-2">
-                Email
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2.5 bg-input border border-border rounded text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                required
-              />
-            </div>
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <FluentInput
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              required
+            />
 
-            <div>
-              <label className="fluent-body-small text-foreground-secondary block mb-2">
-                Password
-              </label>
-              <input
-                type="password"
+            <div className="relative">
+              <FluentInput
+                label="Password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2.5 bg-input border border-border rounded text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Enter your password"
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-9 text-foreground-secondary hover:text-foreground transition-colors"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
 
-            <button
+            <FluentButton
               type="submit"
-              disabled={loading}
-              className="w-full px-4 py-2.5 bg-primary text-primary-foreground rounded hover:bg-primary-hover active:bg-primary-pressed transition-colors fluent-motion-fast disabled:opacity-50"
+              appearance="primary"
+              size="large"
+              className="w-full"
+              isLoading={isLoading}
             >
-              {loading ? 'Signing in...' : 'Sign In'}
-            </button>
+              Sign In
+            </FluentButton>
           </form>
 
-          <div className="mt-8 text-center text-foreground-secondary fluent-caption">
-            <p>🚧 System rebuild in progress</p>
-            <p className="mt-2">New pages will be added incrementally</p>
+          {/* Footer */}
+          <div className="mt-6 text-center">
+            <p className="fluent-caption text-foreground-secondary">
+              Demo: admin@barcodepos.com / admin123
+            </p>
           </div>
         </div>
-      </div>
+      </FluentCard>
     </div>
   );
 };

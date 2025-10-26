@@ -1,75 +1,54 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  darkMode: ["class"],
+  darkMode: ['class'],
   content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    './index.html',
+    './src/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     extend: {
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-        },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
-        },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
-        },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
-        },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
+        background: 'hsl(var(--fluent-color-canvas))',
+        'background-alt': 'hsl(var(--fluent-color-alt-canvas))',
+        card: 'hsl(var(--fluent-color-card-bg))',
+        foreground: 'hsl(var(--fluent-color-text-primary))',
+        'foreground-secondary': 'hsl(var(--fluent-color-text-secondary))',
+        'foreground-tertiary': 'hsl(var(--fluent-color-text-tertiary))',
+        primary: 'hsl(var(--fluent-color-primary))',
+        'primary-hover': 'hsl(var(--fluent-color-primary-hover))',
+        'primary-pressed': 'hsl(var(--fluent-color-primary-pressed))',
+        'primary-background': 'hsl(var(--fluent-color-primary-background))',
+        success: 'hsl(var(--fluent-color-success))',
+        warning: 'hsl(var(--fluent-color-warning))',
+        destructive: 'hsl(var(--fluent-color-error))',
+        border: 'hsl(var(--fluent-color-border-default))',
+        'border-subtle': 'hsl(var(--fluent-color-border-subtle))',
+        'border-strong': 'hsl(var(--fluent-color-border-strong))',
+        input: 'hsl(var(--fluent-color-card-bg))',
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        sm: 'var(--radius-sm)',
+        DEFAULT: 'var(--radius-md)',
+        md: 'var(--radius-md)',
+        lg: 'var(--radius-lg)',
+        xl: 'var(--radius-xl)',
       },
-      keyframes: {
-        float: {
-          '0%, 100%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(-20px)' },
-        },
-        shake: {
-          '0%, 100%': { transform: 'translateX(0)' },
-          '10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-5px)' },
-          '20%, 40%, 60%, 80%': { transform: 'translateX(5px)' },
-        },
-        gradient: {
-          '0%, 100%': { backgroundPosition: '0% 50%' },
-          '50%': { backgroundPosition: '100% 50%' },
-        },
+      boxShadow: {
+        'fluent-4': 'var(--fluent-shadow-4)',
+        'fluent-8': 'var(--fluent-shadow-8)',
+        'fluent-16': 'var(--fluent-shadow-16)',
+        'fluent-64': 'var(--fluent-shadow-64)',
       },
-      animation: {
-        float: 'float 6s ease-in-out infinite',
-        shake: 'shake 0.5s ease-in-out',
-        gradient: 'gradient 3s ease infinite',
+      fontFamily: {
+        sans: 'var(--font-fluent)',
+        mono: 'var(--font-fluent-mono)',
+      },
+      transitionDuration: {
+        fast: 'var(--transition-fast)',
+        normal: 'var(--transition-normal)',
+        slow: 'var(--transition-slow)',
       },
     },
   },
   plugins: [],
 }
-
-
