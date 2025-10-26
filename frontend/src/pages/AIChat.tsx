@@ -31,7 +31,7 @@ const AIChat: React.FC = () => {
     {
       id: '1',
       role: 'assistant',
-      content: `Merhaba ${user?.name}! 👋 Ben BarcodePOS AI asistanınızım.\n\n✅ Sistem verilerinize tam erişimim var!\n\n✨ Yapabileceklerim:\n📊 Son 30 günün satış analizleri\n📈 Gerçek ciro ve trend raporları\n📦 En çok satan ürünler ve stok önerileri\n💡 İş geliştirme stratejileri\n🎯 Kişiselleştirilmiş tavsiyeler\n\nNe öğrenmek istersiniz?`,
+      content: `Merhaba ${user?.name}, ben BarcodePOS AI Asistanınızım.\n\nSistem verilerinize tam erişimim var ve gerçek zamanlı analizler yapabiliyorum.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nUZMANLIK ALANLARIM:\n\n• Satış Analizi ve Trend Raporları\n  Son 30 günün detaylı performans verileri\n\n• Ürün ve Stok Yönetimi\n  En çok satanlar, kritik stok seviyeleri, sipariş önerileri\n\n• Finansal Analiz\n  Ciro, kar marjı, nakit akışı ve gelir projeksiyonları\n\n• Stratejik İş Geliştirme\n  Büyüme fırsatları, müşteri segmentasyonu, pazarlama önerileri\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nSize nasıl yardımcı olabilirim?`,
       timestamp: new Date(),
     },
   ]);
@@ -315,14 +315,14 @@ const AIChat: React.FC = () => {
                   }`} />
                   
                   <div className="relative">
-                    <p className="text-sm md:text-base font-semibold leading-relaxed whitespace-pre-wrap">
+                    <p className="text-base md:text-lg font-medium leading-relaxed whitespace-pre-wrap tracking-wide" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', lineHeight: '1.8' }}>
                       {message.content}
                     </p>
-                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/20 dark:border-slate-700/50">
-                      <p className={`text-xs font-bold ${
+                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/20 dark:border-slate-700/50">
+                      <p className={`text-xs font-semibold tracking-wider uppercase ${
                         message.role === 'user' 
-                          ? 'text-white/80' 
-                          : 'text-slate-500 dark:text-slate-400'
+                          ? 'text-white/70' 
+                          : 'text-slate-400 dark:text-slate-500'
                       }`}>
                         {message.timestamp.toLocaleTimeString('tr-TR', {
                           hour: '2-digit',
@@ -330,7 +330,7 @@ const AIChat: React.FC = () => {
                         })}
                       </p>
                       {message.role === 'assistant' && (
-                        <Sparkles className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                        <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 opacity-60" />
                       )}
                     </div>
                   </div>
@@ -367,14 +367,14 @@ const AIChat: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-purple-600/5 dark:from-blue-600/10 dark:to-purple-600/10 rounded-3xl" />
                 <div className="relative flex items-center gap-3">
                   <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
-                  <span className="text-sm font-bold text-slate-700 dark:text-slate-300">AI düşünüyor...</span>
+                  <span className="text-base font-medium text-slate-700 dark:text-slate-300 tracking-wide">AI yanıt hazırlıyor</span>
                   <motion.div
                     animate={{ opacity: [0.3, 1, 0.3] }}
                     transition={{ duration: 1.5, repeat: Infinity }}
                     className="flex gap-1"
                   >
                     {[1, 2, 3].map((i) => (
-                      <div key={i} className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+                      <div key={i} className="w-2 h-2 rounded-full bg-blue-600" />
                     ))}
                   </motion.div>
                 </div>
@@ -395,7 +395,7 @@ const AIChat: React.FC = () => {
           >
             <div className="flex items-center gap-2 mb-4">
               <Zap className="w-4 h-4 text-blue-600" />
-              <p className="text-sm font-black text-slate-700 dark:text-slate-300">Hızlı Başlangıç</p>
+              <p className="text-sm font-bold tracking-wide text-slate-700 dark:text-slate-300 uppercase">Hızlı Başlangıç</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
               {quickActions.map((action, index) => (
@@ -427,7 +427,7 @@ const AIChat: React.FC = () => {
                       >
                         <action.icon className="w-8 h-8 md:w-10 md:h-10 text-blue-600 dark:text-blue-400" />
                       </motion.div>
-                      <p className="text-xs md:text-sm font-black text-center text-slate-700 dark:text-slate-300">{action.label}</p>
+                      <p className="text-sm font-semibold text-center text-slate-700 dark:text-slate-300 tracking-wide">{action.label}</p>
                     </div>
                   </div>
                 </motion.button>
@@ -446,8 +446,8 @@ const AIChat: React.FC = () => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Mesajınızı yazın... (Enter ile gönder)"
-                className="relative w-full px-5 py-4 rounded-2xl bg-white dark:bg-slate-800 border-2 border-blue-200/50 dark:border-slate-700/50 focus:border-blue-500 dark:focus:border-blue-600 focus:outline-none resize-none font-semibold text-slate-900 dark:text-white placeholder-slate-400 shadow-xl focus:shadow-2xl transition-all"
+                placeholder="Sorunuzu yazın..."
+                className="relative w-full px-5 py-4 rounded-2xl bg-white dark:bg-slate-800 border-2 border-blue-200/50 dark:border-slate-700/50 focus:border-blue-500 dark:focus:border-blue-600 focus:outline-none resize-none font-medium text-base tracking-wide text-slate-900 dark:text-white placeholder-slate-400 shadow-xl focus:shadow-2xl transition-all"
                 rows={2}
                 disabled={loading}
               />
@@ -483,9 +483,9 @@ const AIChat: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="text-xs text-center mt-3 text-slate-500 dark:text-slate-400 font-semibold"
+            className="text-xs text-center mt-3 text-slate-400 dark:text-slate-500 font-medium tracking-wide"
           >
-            💡 Tüm verilerinizi anlayabiliyorum • Shift+Enter ile yeni satır
+            Tüm sistem verilerinizi anlayabiliyorum • Enter ile gönder • Shift+Enter ile yeni satır
           </motion.p>
         </div>
       </div>
