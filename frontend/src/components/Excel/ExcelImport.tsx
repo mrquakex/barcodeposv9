@@ -16,6 +16,8 @@ const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<any[]>([]);
   const [allProducts, setAllProducts] = useState<any[]>([]);
+  const [progress, setProgress] = useState(0);
+  const [progressText, setProgressText] = useState('');
 
   // Tüm özel karakterleri ve tırnakları temizle
   const cleanValue = (value: any): string => {
@@ -44,6 +46,9 @@ const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
     const num = parseFloat(str);
     return isNaN(num) ? 0 : num;
   };
+
+  // Rate limiting için bekleme fonksiyonu
+  const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
@@ -146,10 +151,16 @@ const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
       console.log(`✓ ${existingProducts.length} mevcut ürün bulundu`);
 
       console.log(`🚀 ${allProducts.length} ürün içe aktarılıyor...`);
+      setProgressText('İçe aktarma başlıyor...');
       
       // Her ürünü API'ye gönder
       for (let i = 0; i < allProducts.length; i++) {
         const item = allProducts[i];
+        
+        // İlerleme durumunu güncelle
+        const currentProgress = Math.round(((i + 1) / allProducts.length) * 100);
+        setProgress(currentProgress);
+        setProgressText(`${i + 1} / ${allProducts.length} ürün işleniyor... (${addedCount} eklendi, ${updatedCount} güncellendi)`);
         
         // Her 50 üründe bir ilerleme göster
         if (i % 50 === 0) {
@@ -228,6 +239,11 @@ const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
           console.error(`Error importing ${item.name}:`, itemError);
           errorCount++;
         }
+        
+        // Rate limiting için her 10 üründen sonra kısa bir bekleme
+        if ((i + 1) % 10 === 0) {
+          await delay(100); // 100ms bekleme
+        }
       }
       
       console.log(`✅ İçe aktarma tamamlandı: ${addedCount} yeni eklendi, ${updatedCount} güncellendi, ${errorCount} hata`);
@@ -242,9 +258,13 @@ const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
       
       setPreview([]);
       setAllProducts([]);
+      setProgress(0);
+      setProgressText('');
       onImportComplete();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'İçe aktarma başarısız!');
+      setProgress(0);
+      setProgressText('');
     } finally {
       setLoading(false);
     }
@@ -413,6 +433,28 @@ const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
                   ℹ️ İlk 10 ürün önizleniyor. Tüm ürünler içe aktarılacak.
                 </p>
               </div>
+
+              {/* Progress Bar */}
+              {loading && progress > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-2"
+                >
+                  <div className="flex items-center justify-between text-sm font-semibold">
+                    <span className="text-blue-700 dark:text-blue-400">{progressText}</span>
+                    <span className="text-blue-700 dark:text-blue-400">{progress}%</span>
+                  </div>
+                  <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${progress}%` }}
+                      transition={{ duration: 0.3 }}
+                      className="h-full bg-gradient-to-r from-blue-600 to-slate-700 rounded-full"
+                    />
+                  </div>
+                </motion.div>
+              )}
 
               <Button
                 onClick={handleImport}
