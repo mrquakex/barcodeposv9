@@ -31,6 +31,7 @@ import {
   Users,
   Package,
 } from 'lucide-react';
+import { Html5Qrcode } from 'html5-qrcode';
 import api from '../lib/api';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
@@ -88,7 +89,7 @@ interface Sale {
 const ExpressPOS: React.FC = () => {
   const { user } = useAuthStore();
   const barcodeInputRef = useRef<HTMLInputElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
   
   // State
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -182,29 +183,81 @@ const ExpressPOS: React.FC = () => {
 
   // Kamera ile barkod okuma
   useEffect(() => {
-    let stream: MediaStream | null = null;
-
-    const startCamera = async () => {
-      if (showCamera && videoRef.current) {
+    const startScanner = async () => {
+      if (showCamera) {
         try {
-          stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { facingMode: 'environment' } 
-          });
-          videoRef.current.srcObject = stream;
+          const scanner = new Html5Qrcode('barcode-scanner');
+          scannerRef.current = scanner;
+
+          const config = {
+            fps: 10,
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0,
+          };
+
+          await scanner.start(
+            { facingMode: 'environment' },
+            config,
+            async (decodedText) => {
+              // Barkod okundu! 🎉
+              console.log('✅ Barkod okundu:', decodedText);
+              playSound('beep');
+              
+              // Ürünü bul ve sepete ekle
+              try {
+                const response = await api.get(`/products/barcode/${decodedText}`);
+                const product = response.data.product;
+
+                if (product.stock <= 0) {
+                  toast.error('❌ Ürün stokta yok!');
+                  playSound('error');
+                  return;
+                }
+
+                addToCart(product);
+                toast.success(`✅ ${product.name} sepete eklendi!`);
+                
+                // Kamerayı kapat
+                setShowCamera(false);
+              } catch (error: any) {
+                toast.error('❌ Ürün bulunamadı!');
+                playSound('error');
+              }
+            },
+            (errorMessage) => {
+              // Okuma hatası (normal, sürekli okuyor)
+              console.log('Scanning...', errorMessage);
+            }
+          );
+
+          toast.success('📸 Kamera açıldı! Barkodu kameranın ortasına getirin.');
         } catch (error) {
-          console.error('Camera error:', error);
-          toast.error('❌ Kamera açılamadı!');
+          console.error('Scanner error:', error);
+          toast.error('❌ Kamera açılamadı! İzin verdiğinizden emin olun.');
           setShowCamera(false);
         }
       }
     };
 
-    startCamera();
+    const stopScanner = async () => {
+      if (scannerRef.current && scannerRef.current.isScanning) {
+        try {
+          await scannerRef.current.stop();
+          scannerRef.current.clear();
+        } catch (error) {
+          console.error('Stop scanner error:', error);
+        }
+      }
+    };
+
+    if (showCamera) {
+      startScanner();
+    } else {
+      stopScanner();
+    }
 
     return () => {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
+      stopScanner();
     };
   }, [showCamera]);
 
@@ -1030,17 +1083,24 @@ const ExpressPOS: React.FC = () => {
                 </button>
               </div>
               
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="w-full h-96 bg-black rounded-xl"
+              {/* Scanner Container */}
+              <div 
+                id="barcode-scanner" 
+                className="w-full rounded-xl overflow-hidden shadow-2xl"
+                style={{ minHeight: '400px' }}
               />
               
-              <p className="mt-4 text-sm text-slate-600 dark:text-slate-400 text-center font-semibold">
-                Barkodu kameranın ortasına getirin. (ESC ile kapat)
-              </p>
+              <div className="mt-4 space-y-2">
+                <p className="text-sm text-slate-600 dark:text-slate-400 text-center font-semibold">
+                  📸 Barkodu kırmızı çerçevenin içine getirin
+                </p>
+                <p className="text-xs text-blue-600 dark:text-blue-400 text-center font-bold">
+                  Desteklenen formatlar: EAN-13, UPC-A, Code-128, QR Code
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-500 text-center font-semibold">
+                  ESC ile kapat
+                </p>
+              </div>
             </motion.div>
           </motion.div>
         )}
