@@ -169,7 +169,7 @@ const Dashboard: React.FC = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <Card className="border-2 border-slate-200 dark:border-slate-800 shadow-lg">
+          <Card className="border-2 border-slate-300 dark:border-slate-800 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-950/20 dark:to-blue-950/20 border-b-2">
               <CardTitle className="text-xl font-black text-slate-900 dark:text-white">📊 Satış Adetleri</CardTitle>
             </CardHeader>
