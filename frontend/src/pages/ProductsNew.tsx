@@ -908,7 +908,7 @@ const ProductsNew: React.FC = () => {
           )}
 
           {/* Pagination Controls */}
-          {filteredProducts.length > 0 && totalPages > 1 && (
+          {filteredProducts.length > 0 && (
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t pt-6">
               {/* Page Info */}
               <div className="flex items-center gap-4">
@@ -934,7 +934,8 @@ const ProductsNew: React.FC = () => {
                 </select>
               </div>
 
-              {/* Pagination Buttons */}
+              {/* Pagination Buttons - Sadece 1'den fazla sayfa varsa göster */}
+              {totalPages > 1 && (
               <div className="flex items-center gap-2">
                 {/* Previous Button */}
                 <Button
@@ -986,6 +987,7 @@ const ProductsNew: React.FC = () => {
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>
+              )}
             </div>
           )}
             </CardContent>

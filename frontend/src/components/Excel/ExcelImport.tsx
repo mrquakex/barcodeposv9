@@ -124,12 +124,26 @@ const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
     setLoading(true);
     let successCount = 0;
     let errorCount = 0;
+    let addedCount = 0;
+    let updatedCount = 0;
 
     try {
       // Kategorileri bir kez fetch et (optimizasyon)
       const categoriesResponse = await api.get('/categories');
       const categories = categoriesResponse.data.categories;
       const categoryMap = new Map(); // Cache için
+
+      // Mevcut ürünleri bir kez fetch et (UPSERT için)
+      console.log('📦 Mevcut ürünler yükleniyor...');
+      const existingProductsResponse = await api.get('/products');
+      const existingProducts = existingProductsResponse.data.products || [];
+      const productMap = new Map(); // Barkod -> Ürün mapping
+      existingProducts.forEach((p: any) => {
+        if (p.barcode) {
+          productMap.set(p.barcode, p);
+        }
+      });
+      console.log(`✓ ${existingProducts.length} mevcut ürün bulundu`);
 
       console.log(`🚀 ${allProducts.length} ürün içe aktarılıyor...`);
       
@@ -178,7 +192,7 @@ const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
             }
           }
 
-          await api.post('/products', {
+          const productData = {
             barcode: item.barcode || undefined,
             name: item.name,
             price: cleanNumeric(item.price),
@@ -189,7 +203,26 @@ const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
             minStock: Math.floor(cleanNumeric(item.minStock)) || 5,
             description: item.description || item.stockCode || '',
             categoryId,
-          });
+          };
+
+          // Barkoda göre ürün var mı cache'ten kontrol et (UPSERT)
+          const existingProduct = item.barcode ? productMap.get(item.barcode) : null;
+
+          if (existingProduct) {
+            // Ürün varsa GÜNCELLE
+            await api.put(`/products/${existingProduct.id}`, productData);
+            // Cache'i güncelle
+            productMap.set(item.barcode, { ...existingProduct, ...productData });
+            updatedCount++;
+          } else {
+            // Ürün yoksa YENİ EKLE
+            const response = await api.post('/products', productData);
+            // Yeni ürünü cache'e ekle
+            if (item.barcode && response.data.product) {
+              productMap.set(item.barcode, response.data.product);
+            }
+            addedCount++;
+          }
           successCount++;
         } catch (itemError: any) {
           console.error(`Error importing ${item.name}:`, itemError);
@@ -197,14 +230,14 @@ const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
         }
       }
       
-      console.log(`✅ İçe aktarma tamamlandı: ${successCount} başarılı, ${errorCount} hata`);
+      console.log(`✅ İçe aktarma tamamlandı: ${addedCount} yeni eklendi, ${updatedCount} güncellendi, ${errorCount} hata`);
       
       if (successCount > 0 && errorCount === 0) {
-        toast.success(`✓ Tüm ürünler başarıyla eklendi! (${successCount} ürün)`);
+        toast.success(`✓ İşlem başarılı! ${addedCount} yeni ürün eklendi, ${updatedCount} ürün güncellendi`);
       } else if (successCount > 0 && errorCount > 0) {
-        toast.success(`✓ ${successCount} ürün eklendi, ${errorCount} ürün eklenemedi`);
+        toast.success(`✓ ${addedCount} eklendi, ${updatedCount} güncellendi, ${errorCount} hata`);
       } else {
-        toast.error(`✗ ${errorCount} ürün eklenemedi! Konsolu kontrol edin.`);
+        toast.error(`✗ ${errorCount} ürün işlenemedi! Konsolu kontrol edin.`);
       }
       
       setPreview([]);
