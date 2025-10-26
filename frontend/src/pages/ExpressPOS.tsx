@@ -596,25 +596,33 @@ const ExpressPOS: React.FC = () => {
             disableFlip: false,
           };
 
-          // ARKA KAMERA ID'sini bul - ULTRA FAST!
-          let cameraId = 'environment'; // Default (en hızlı)
-          
-          // Kamera listesini paralel al (blocking değil)
-          Html5Qrcode.getCameras().then(devices => {
+          // ARKA KAMERA ID'sini bul - HIZLI AMA GÜVENLE!
+          let cameraId = 'environment'; // Default
+          try {
+            const devices = await Html5Qrcode.getCameras();
             console.log('📸 Bulunan kameralar:', devices);
+            
+            // Arka kamerayı bul (environment)
             const backCamera = devices.find(device => 
               device.label.toLowerCase().includes('back') || 
               device.label.toLowerCase().includes('rear') ||
               device.label.toLowerCase().includes('arka')
             );
+            
             if (backCamera) {
+              cameraId = backCamera.id;
+              console.log('✅ Arka kamera bulundu:', backCamera.label);
               setCameraInfo(prev => ({ ...prev, deviceName: backCamera.label }));
             } else if (devices.length > 0) {
+              // Arka kamera yoksa, son kamerayı kullan
+              cameraId = devices[devices.length - 1].id;
+              console.log('✅ Kamera seçildi:', devices[devices.length - 1].label);
               setCameraInfo(prev => ({ ...prev, deviceName: devices[devices.length - 1].label }));
             }
-          }).catch(() => {
+          } catch (e) {
+            console.warn('⚠️ Kamera listesi alınamadı, default kullanılıyor:', e);
             setCameraInfo(prev => ({ ...prev, deviceName: 'Arka Kamera' }));
-          });
+          }
 
           // 🎯 FULL HD VIDEO CONSTRAINTS (videoConstraints içinde olmalı!)
           const fullHDConfig = {
