@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import POS from './pages/POS';
 import ProductsNew from './pages/ProductsNew';
+import ProductDetail from './pages/ProductDetail';
 import Customers from './pages/Customers';
 import CustomerDetail from './pages/CustomerDetail';
 import Reports from './pages/Reports';
@@ -39,6 +40,7 @@ const App: React.FC = () => {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="pos" element={<POS />} />
             <Route path="products" element={<ProductsNew />} />
+            <Route path="products/:id" element={<ProductDetail />} />
             <Route path="categories" element={<Categories />} />
             <Route path="sales" element={<Sales />} />
             <Route path="customers" element={<Customers />} />
