@@ -562,20 +562,15 @@ const ExpressPOS: React.FC = () => {
             } 
           });
           
-          // Stream'i kaydet (torch için gerekli)
-          videoStreamRef.current = stream;
-          
-          // Torch desteğini kontrol et
+          // Torch kontrolü (NON-BLOCKING - paralel)
           const track = stream.getVideoTracks()[0];
           const capabilities = track.getCapabilities() as any;
-          if (capabilities.torch) {
+          if (capabilities?.torch) {
             setIsTorchSupported(true);
-            console.log('✅ Torch destekleniyor!');
           }
           
           // Stream'i kapat (html5-qrcode kendi açacak)
           stream.getTracks().forEach(track => track.stop());
-          console.log('✅ Kamera izni alındı!');
 
           const scanner = new Html5Qrcode('barcode-scanner', {
             verbose: false, // Çok fazla log basmasın
@@ -601,33 +596,25 @@ const ExpressPOS: React.FC = () => {
             disableFlip: false,
           };
 
-          // ARKA KAMERA ID'sini bul
-          let cameraId = 'environment'; // Default
-          try {
-            const devices = await Html5Qrcode.getCameras();
+          // ARKA KAMERA ID'sini bul - ULTRA FAST!
+          let cameraId = 'environment'; // Default (en hızlı)
+          
+          // Kamera listesini paralel al (blocking değil)
+          Html5Qrcode.getCameras().then(devices => {
             console.log('📸 Bulunan kameralar:', devices);
-            
-            // Arka kamerayı bul (environment)
             const backCamera = devices.find(device => 
               device.label.toLowerCase().includes('back') || 
               device.label.toLowerCase().includes('rear') ||
               device.label.toLowerCase().includes('arka')
             );
-            
             if (backCamera) {
-              cameraId = backCamera.id;
-              console.log('✅ Arka kamera bulundu:', backCamera.label);
               setCameraInfo(prev => ({ ...prev, deviceName: backCamera.label }));
             } else if (devices.length > 0) {
-              // Arka kamera yoksa, ilk kamerayı kullan
-              cameraId = devices[devices.length - 1].id; // Genellikle son kamera arka kamera
-              console.log('✅ Kamera seçildi:', devices[devices.length - 1].label);
               setCameraInfo(prev => ({ ...prev, deviceName: devices[devices.length - 1].label }));
             }
-          } catch (e) {
-            console.warn('⚠️ Kamera listesi alınamadı, default kullanılıyor:', e);
+          }).catch(() => {
             setCameraInfo(prev => ({ ...prev, deviceName: 'Arka Kamera' }));
-          }
+          });
 
           // 🎯 FULL HD VIDEO CONSTRAINTS (videoConstraints içinde olmalı!)
           const fullHDConfig = {
@@ -778,27 +765,27 @@ const ExpressPOS: React.FC = () => {
             }
           );
 
-          // Video elementinden stream'i al (torch ve zoom için)
+          // Video elementinden stream'i al (torch ve zoom için) - ULTRA FAST!
           setTimeout(async () => {
             const videoElement = document.querySelector('#barcode-scanner video') as HTMLVideoElement;
             if (videoElement && videoElement.srcObject) {
               videoStreamRef.current = videoElement.srcObject as MediaStream;
               console.log('✅ Video stream yakalandı (torch/zoom için)');
               
-              // 🎨 AUTO-APPLY OPTIMAL ANTI-GLARE SETTINGS ON START
+              // 🎨 AUTO-APPLY OPTIMAL ANTI-GLARE SETTINGS ON START (INSTANT!)
               // Default: brightness -1, contrast +1 (optimal for most conditions)
               videoElement.style.filter = 'brightness(0.8) contrast(1.15) saturate(0.9)';
               console.log('🎨 Optimal anti-glare filter applied automatically');
               
-              // 🔍 AUTO-APPLY ZOOM 1.5X ON START (better barcode detection)
-              await applyAutoZoom(1.5);
-              console.log('🔍 Auto-Zoom 1.5x applied on start');
-              
-              toast.success('🤖 AI Otomatik Ayarlar Aktif: Zoom 1.5x + Anti-glare', { duration: 3000 });
+              // 🔍 AUTO-APPLY ZOOM 1.5X ON START (NON-BLOCKING!)
+              applyAutoZoom(1.5).then(() => {
+                console.log('🔍 Auto-Zoom 1.5x applied');
+                toast.success('🤖 AI Ayarlar Aktif', { duration: 1500 });
+              });
             }
-          }, 1500);
+          }, 100); // 🚀 1500ms → 100ms (15x daha hızlı!)
           
-          toast.success('📸 Kamera açıldı! Barkodu göster...', { duration: 2000 });
+          toast.success('📸 Hazır!', { duration: 1000 });
           console.log('✅ Scanner başlatıldı');
         } catch (error: any) {
           console.error('❌ Kamera hatası:', error);
