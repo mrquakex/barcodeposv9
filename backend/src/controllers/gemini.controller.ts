@@ -21,7 +21,7 @@ export const chatWithAI = async (req: Request, res: Response) => {
           createdAt: { gte: thirtyDaysAgo },
         },
         include: {
-          items: {
+          saleItems: {
             include: {
               product: true,
             },
