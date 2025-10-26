@@ -16,6 +16,12 @@ import StockMovements from './pages/StockMovements';
 import StockCount from './pages/StockCount';
 import StockTransfer from './pages/StockTransfer';
 import PurchaseOrders from './pages/PurchaseOrders';
+import Returns from './pages/Returns';
+import Invoices from './pages/Invoices';
+import Expenses from './pages/Expenses';
+import ProfitLoss from './pages/ProfitLoss';
+import CashRegister from './pages/CashRegister';
+import Shifts from './pages/Shifts';
 
 const App: React.FC = () => {
   const { token } = useAuthStore();
@@ -39,6 +45,12 @@ const App: React.FC = () => {
           <Route path="/stock-count" element={<StockCount />} />
           <Route path="/stock-transfer" element={<StockTransfer />} />
           <Route path="/purchase-orders" element={<PurchaseOrders />} />
+          <Route path="/returns" element={<Returns />} />
+          <Route path="/invoices" element={<Invoices />} />
+          <Route path="/expenses" element={<Expenses />} />
+          <Route path="/profit-loss" element={<ProfitLoss />} />
+          <Route path="/cash-register" element={<CashRegister />} />
+          <Route path="/shifts" element={<Shifts />} />
           {/* More pages will be added here */}
         </Route>
 
