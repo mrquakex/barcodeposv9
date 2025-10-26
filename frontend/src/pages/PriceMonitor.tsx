@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
 import { Scan, TrendingUp, TrendingDown, Package, RefreshCw, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import PriceChanges from '@/components/Dashboard/PriceChanges';
+import PriceChanges from '../components/Dashboard/PriceChanges';
 
 export default function PriceMonitor() {
   const [activeTab, setActiveTab] = useState<'monitor' | 'history'>('monitor');
