@@ -31,7 +31,7 @@ import {
   Users,
   Package,
 } from 'lucide-react';
-import { Html5Qrcode } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import api from '../lib/api';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
@@ -189,10 +189,28 @@ const ExpressPOS: React.FC = () => {
           const scanner = new Html5Qrcode('barcode-scanner');
           scannerRef.current = scanner;
 
+          // Mobil için optimize edilmiş config
           const config = {
             fps: 10,
-            qrbox: { width: 250, height: 250 },
-            aspectRatio: 1.0,
+            qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+              // Mobilde tam genişlik, masaüstünde sabit
+              const minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
+              const qrboxSize = Math.floor(minEdgeSize * 0.8); // %80 alan
+              return {
+                width: qrboxSize,
+                height: Math.floor(qrboxSize * 0.6), // Barkod için yatay dikdörtgen
+              };
+            },
+            aspectRatio: 1.777778, // 16:9 mobil kameralar için
+            formatsToSupport: [
+              Html5QrcodeSupportedFormats.EAN_13,
+              Html5QrcodeSupportedFormats.EAN_8,
+              Html5QrcodeSupportedFormats.UPC_A,
+              Html5QrcodeSupportedFormats.UPC_E,
+              Html5QrcodeSupportedFormats.CODE_128,
+              Html5QrcodeSupportedFormats.CODE_39,
+              Html5QrcodeSupportedFormats.QR_CODE,
+            ],
           };
 
           await scanner.start(
@@ -1053,55 +1071,52 @@ const ExpressPOS: React.FC = () => {
         </motion.div>
       </div>
 
-      {/* KAMERA MODAL */}
+      {/* KAMERA MODAL - MOBİL OPTİMİZE */}
       <AnimatePresence>
         {showCamera && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={() => setShowCamera(false)}
+            className="fixed inset-0 bg-black z-50 flex flex-col"
           >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl p-6 max-w-2xl w-full"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-                  <Camera className="w-6 h-6 text-blue-600" />
-                  BARKOD OKUYUCU
-                </h3>
-                <button
-                  onClick={() => setShowCamera(false)}
-                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-              
-              {/* Scanner Container */}
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-slate-700 p-4 flex items-center justify-between">
+              <h3 className="text-xl font-black text-white flex items-center gap-2">
+                <Camera className="w-6 h-6" />
+                BARKOD OKUYUCU
+              </h3>
+              <button
+                onClick={() => setShowCamera(false)}
+                className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+              >
+                <X className="w-6 h-6 text-white" />
+              </button>
+            </div>
+
+            {/* Scanner Container - FULL SCREEN */}
+            <div className="flex-1 relative">
               <div 
                 id="barcode-scanner" 
-                className="w-full rounded-xl overflow-hidden shadow-2xl"
-                style={{ minHeight: '400px' }}
+                className="w-full h-full"
               />
-              
-              <div className="mt-4 space-y-2">
-                <p className="text-sm text-slate-600 dark:text-slate-400 text-center font-semibold">
-                  📸 Barkodu kırmızı çerçevenin içine getirin
-                </p>
-                <p className="text-xs text-blue-600 dark:text-blue-400 text-center font-bold">
-                  Desteklenen formatlar: EAN-13, UPC-A, Code-128, QR Code
-                </p>
-                <p className="text-xs text-slate-500 dark:text-slate-500 text-center font-semibold">
-                  ESC ile kapat
-                </p>
+            </div>
+            
+            {/* Footer - Talimatlar */}
+            <div className="bg-gradient-to-r from-blue-600 to-slate-700 p-4 space-y-2">
+              <p className="text-sm text-white text-center font-bold">
+                📸 Barkodu KIRMIZI ÇERÇEVE içine getirin
+              </p>
+              <div className="flex flex-wrap justify-center gap-2 text-xs text-blue-100 font-semibold">
+                <span>✓ EAN-13</span>
+                <span>✓ UPC-A</span>
+                <span>✓ Code-128</span>
+                <span>✓ QR Code</span>
               </div>
-            </motion.div>
+              <p className="text-xs text-blue-200 text-center font-semibold">
+                Işık iyi olmalı • Yaklaşık 15-20 cm mesafe • Hareketsiz tutun
+              </p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
