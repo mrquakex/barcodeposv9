@@ -262,26 +262,26 @@ const ProductsNew: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between"
+        className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4"
       >
           <div>
-          <h1 className="text-4xl font-black bg-gradient-to-r from-blue-600 to-slate-700 bg-clip-text text-transparent flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 shadow-lg">
-              <Package className="w-8 h-8 text-white" />
+          <h1 className="text-2xl md:text-4xl font-black bg-gradient-to-r from-blue-600 to-slate-700 bg-clip-text text-transparent flex items-center gap-3">
+            <div className="p-2 md:p-3 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 shadow-lg">
+              <Package className="w-6 md:w-8 h-6 md:h-8 text-white" />
             </div>
               Ürün Yönetimi
             </h1>
-          <p className="text-muted-foreground mt-2 text-lg">
+          <p className="text-muted-foreground mt-2 text-sm md:text-lg">
             Enterprise seviye stok ve ürün takip sistemi
             </p>
           </div>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={() => setShowExcelImport(true)} className="gap-2">
+        <div className="flex items-center gap-2 md:gap-3">
+          <Button variant="outline" onClick={() => setShowExcelImport(true)} className="flex-1 md:flex-none gap-2 h-12 md:h-auto">
               <FileSpreadsheet className="w-4 h-4" />
-            Import
+            <span className="hidden sm:inline">Import</span>
             </Button>
           <ExcelExport data={products} filename="urunler" />
-          <Button onClick={() => setShowModal(true)} className="gap-2 bg-gradient-to-r from-blue-700 to-slate-700 hover:from-blue-600 hover:to-slate-600">
+          <Button onClick={() => setShowModal(true)} className="flex-1 md:flex-none gap-2 h-12 md:h-auto bg-gradient-to-r from-blue-700 to-slate-700 hover:from-blue-600 hover:to-slate-600">
               <Plus className="w-4 h-4" />
               Yeni Ürün
             </Button>
@@ -289,7 +289,7 @@ const ProductsNew: React.FC = () => {
       </motion.div>
 
       {/* Stats Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard
           title="Toplam Ürün"
           value={stats.total}
@@ -332,19 +332,19 @@ const ProductsNew: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 flex items-center justify-between"
+          className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3 md:p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3"
         >
           <div className="flex items-center gap-3">
             <CheckCircle2 className="w-5 h-5 text-blue-600" />
-            <span className="font-semibold text-blue-900 dark:text-blue-100">
+            <span className="font-semibold text-sm md:text-base text-blue-900 dark:text-blue-100">
               {selectedProducts.length} ürün seçildi
             </span>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => setSelectedProducts([])}>
+            <Button variant="outline" size="sm" onClick={() => setSelectedProducts([])} className="flex-1 md:flex-none h-12 md:h-auto">
               Seçimi Kaldır
             </Button>
-            <Button variant="destructive" size="sm" onClick={handleBulkDelete}>
+            <Button variant="destructive" size="sm" onClick={handleBulkDelete} className="flex-1 md:flex-none h-12 md:h-auto">
               <Trash2 className="w-4 h-4 mr-2" />
               Toplu Sil
             </Button>
@@ -355,31 +355,31 @@ const ProductsNew: React.FC = () => {
       {/* Add/Edit Modal */}
       <AnimatePresence>
         {showModal && (
-          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-0 md:p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
+              className="bg-white dark:bg-gray-900 rounded-none md:rounded-3xl shadow-2xl w-full h-full md:h-auto max-w-4xl md:max-h-[90vh] overflow-hidden"
             >
-              <div className="sticky top-0 bg-gradient-to-r from-blue-700 to-slate-700 px-8 py-6 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
-                    <Package className="w-6 h-6 text-white" />
+              <div className="sticky top-0 bg-gradient-to-r from-blue-700 to-slate-700 px-4 md:px-8 py-4 md:py-6 flex items-center justify-between">
+                <div className="flex items-center gap-3 md:gap-4">
+                  <div className="w-10 md:w-12 h-10 md:h-12 rounded-full bg-white/20 flex items-center justify-center">
+                    <Package className="w-5 md:w-6 h-5 md:h-6 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-2xl font-bold text-white">
+                    <h2 className="text-xl md:text-2xl font-bold text-white">
                       {editingId ? 'Ürün Düzenle' : 'Yeni Ürün Ekle'}
                     </h2>
-                    <p className="text-blue-100 text-sm">Ürün bilgilerini doldurun</p>
+                    <p className="text-blue-100 text-xs md:text-sm">Ürün bilgilerini doldurun</p>
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" onClick={resetForm} className="text-white hover:bg-white/20">
-                  <X className="w-6 h-6" />
+                <Button variant="ghost" size="icon" onClick={resetForm} className="text-white hover:bg-white/20 h-10 w-10 md:h-auto md:w-auto">
+                  <X className="w-5 md:w-6 h-5 md:h-6" />
                 </Button>
               </div>
 
-              <form onSubmit={handleSubmit} className="p-8 space-y-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <form onSubmit={handleSubmit} className="p-4 md:p-8 space-y-4 md:space-y-6 overflow-y-auto max-h-[calc(100vh-120px)] md:max-h-[calc(90vh-120px)]">
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="name" className="text-base font-semibold">Ürün Adı *</Label>
@@ -530,11 +530,11 @@ const ProductsNew: React.FC = () => {
                   />
                 </div>
 
-                <div className="flex justify-end gap-3 pt-6 border-t">
-                  <Button type="button" variant="outline" onClick={resetForm} className="min-w-[120px]">
+                <div className="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t">
+                  <Button type="button" variant="outline" onClick={resetForm} className="w-full sm:min-w-[120px] h-12 md:h-auto">
                     İptal
                   </Button>
-                  <Button type="submit" className="min-w-[120px] bg-gradient-to-r from-blue-700 to-slate-700 hover:from-blue-600 hover:to-slate-600">
+                  <Button type="submit" className="w-full sm:min-w-[120px] h-12 md:h-auto bg-gradient-to-r from-blue-700 to-slate-700 hover:from-blue-600 hover:to-slate-600">
                     {editingId ? '✓ Güncelle' : '+ Kaydet'}
                   </Button>
         </div>
@@ -586,40 +586,43 @@ const ProductsNew: React.FC = () => {
       <Card>
         <CardHeader>
           <div className="space-y-4">
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
               <div className="flex-1 relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder="Ürün adı, barkod veya kategori ara..."
+                  inputMode="search"
+                  placeholder="Ürün ara..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-12 h-12"
                 />
               </div>
-              <Button
-                variant={showFilters ? 'default' : 'outline'}
-                onClick={() => setShowFilters(!showFilters)}
-                className="gap-2"
-              >
-                <Filter className="w-4 h-4" />
-                Filtreler
-              </Button>
-              <div className="flex gap-1 border rounded-lg p-1">
+              <div className="flex gap-2">
                 <Button
-                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                  variant={showFilters ? 'default' : 'outline'}
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="flex-1 sm:flex-none gap-2 h-12"
+                >
+                  <Filter className="w-4 h-4" />
+                  Filtreler
+                </Button>
+                <div className="hidden sm:flex gap-1 border rounded-lg p-1">
+                  <Button
+                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
                   size="icon"
                   onClick={() => setViewMode('grid')}
                 >
                   <Grid3x3 className="w-4 h-4" />
                 </Button>
                 <Button
-                  variant={viewMode === 'list' ? 'default' : 'ghost'}
+                    variant={viewMode === 'list' ? 'default' : 'ghost'}
                   size="icon"
                   onClick={() => setViewMode('list')}
                 >
                   <List className="w-4 h-4" />
                 </Button>
+              </div>
               </div>
             </div>
 
@@ -713,7 +716,7 @@ const ProductsNew: React.FC = () => {
               </Button>
             </div>
           ) : viewMode === 'grid' ? (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {paginatedProducts.map((product, index) => (
             <motion.div
               key={product.id}
