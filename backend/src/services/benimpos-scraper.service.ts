@@ -75,7 +75,7 @@ class BenimPOSScraperService {
       });
 
       // Wait a bit (anti-bot)
-      await this.page.waitForTimeout(1000 + Math.random() * 2000);
+      await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
 
       // Fill login form
       console.log('✍️  Login formu doldruluyor...');
@@ -89,7 +89,7 @@ class BenimPOSScraperService {
       await this.page.type('input[type="password"], input[name="password"]', config.password, { delay: 100 });
 
       // Wait a bit
-      await this.page.waitForTimeout(500 + Math.random() * 1000);
+      await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
 
       // Click submit button
       console.log('🚀 Login formu gönderiliyor...');
@@ -122,7 +122,7 @@ class BenimPOSScraperService {
       });
 
       // Wait for products to load
-      await page.waitForTimeout(2000);
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Get HTML content
       const html = await page.content();

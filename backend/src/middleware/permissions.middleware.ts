@@ -84,4 +84,29 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
+/**
+ * Role-based permission check
+ */
+export function checkPermission(roles: string[]) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const userRole = (req as any).userRole;
+
+    if (!userRole) {
+      return res.status(401).json({
+        success: false,
+        error: 'Unauthorized',
+      });
+    }
+
+    if (!roles.includes(userRole)) {
+      return res.status(403).json({
+        success: false,
+        error: 'Forbidden: Insufficient permissions',
+      });
+    }
+
+    next();
+  };
+}
+
 

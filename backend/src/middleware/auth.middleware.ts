@@ -25,6 +25,7 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
 
 // Alias for backwards compatibility
 export const authenticateToken = authenticate;
+export const authMiddleware = authenticate;
 
 export const authorize = (...roles: string[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
