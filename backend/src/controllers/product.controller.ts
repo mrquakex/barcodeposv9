@@ -114,7 +114,7 @@ export const createProduct = async (req: Request, res: Response) => {
         unit: unit || 'Adet',
         taxRate: taxRate ? parseFloat(taxRate) : 18,
         minStock: minStock ? parseInt(minStock) : 5,
-        ...(categoryId && { categoryId }),
+        ...(categoryId && categoryId !== '' && { categoryId }),
         imageUrl,
       },
       include: {
@@ -145,7 +145,10 @@ export const updateProduct = async (req: Request, res: Response) => {
     if (unit !== undefined) updateData.unit = unit;
     if (taxRate !== undefined) updateData.taxRate = parseFloat(taxRate);
     if (minStock !== undefined) updateData.minStock = parseInt(minStock);
-    if (categoryId !== undefined) updateData.categoryId = categoryId; // null olabilir
+    if (categoryId !== undefined) {
+      // Boş string ise null yap
+      updateData.categoryId = categoryId === '' ? null : categoryId;
+    }
     if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
     if (isActive !== undefined) updateData.isActive = isActive;
 
