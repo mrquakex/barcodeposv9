@@ -72,7 +72,7 @@ const Expenses: React.FC = () => {
 
       {showForm && (
         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
-          <Card className="border-2 border-blue-200 dark:border-blue-900 shadow-xl">
+          <Card className="border-2 border-blue-400 dark:border-blue-900 shadow-xl">
             <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-b-2">
               <CardTitle className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
                 <DollarSign className="w-6 h-6 text-blue-600" />
@@ -95,7 +95,7 @@ const Expenses: React.FC = () => {
         </motion.div>
       )}
 
-      <Card className="border-2 border-blue-200 dark:border-blue-900 shadow-xl">
+      <Card className="border-2 border-blue-400 dark:border-blue-900 shadow-xl">
         <CardContent className="pt-6">
           <Table>
             <TableHeader>

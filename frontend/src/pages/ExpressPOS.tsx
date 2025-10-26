@@ -1282,7 +1282,7 @@ const ExpressPOS: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-slate-900 border-b-2 border-slate-200 dark:border-slate-800 shadow-lg"
+        className="bg-white dark:bg-slate-900 border-b-2 border-slate-300 dark:border-slate-800 shadow-lg"
       >
         <div className="flex items-center gap-2 px-3 py-1.5 overflow-x-auto scrollbar-thin">
           {channels.map((channel) => {
@@ -1450,7 +1450,7 @@ const ExpressPOS: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="hidden xl:flex w-64 flex-col bg-white dark:bg-slate-900 border-r-3 border-blue-200 dark:border-slate-800 shadow-xl p-4"
+          className="hidden xl:flex w-64 flex-col bg-white dark:bg-slate-900 border-r-3 border-blue-400 dark:border-slate-800 shadow-xl p-4"
         >
           <h3 className="text-lg font-black text-slate-900 dark:text-white mb-4 flex items-center gap-2">
             <Tag className="w-5 h-5 text-blue-600" />
@@ -1463,7 +1463,7 @@ const ExpressPOS: React.FC = () => {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => addToCart(product)}
-                className="w-full p-3 rounded-xl bg-gradient-to-br from-blue-50 to-slate-50 dark:from-slate-800 dark:to-blue-950 border-2 border-blue-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600 transition-all shadow-md hover:shadow-lg"
+                className="w-full p-3 rounded-xl bg-gradient-to-br from-blue-50 to-slate-50 dark:from-slate-800 dark:to-blue-950 border-2 border-blue-400 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600 transition-all shadow-md hover:shadow-lg"
               >
                 <p className="font-black text-xs text-slate-900 dark:text-white mb-1 line-clamp-2 text-left">
                   {product.name}
@@ -1522,12 +1522,12 @@ const ExpressPOS: React.FC = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Ürün ara..."
-                className="w-full pl-11 pr-4 h-12 md:h-auto md:py-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:outline-none font-semibold shadow-md"
+                className="w-full pl-11 pr-4 h-12 md:h-auto md:py-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:outline-none font-semibold shadow-md"
               />
             </div>
             <button
               onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-              className="hidden md:flex w-12 h-12 items-center justify-center rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-500 transition-all shadow-md"
+              className="hidden md:flex w-12 h-12 items-center justify-center rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 hover:border-blue-500 transition-all shadow-md"
             >
               {viewMode === 'grid' ? <List className="w-5 h-5" /> : <Grid className="w-5 h-5" />}
             </button>
@@ -1548,7 +1548,7 @@ const ExpressPOS: React.FC = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => addToCart(product)}
-                    className={`rounded-xl bg-white dark:bg-slate-800 border-2 md:border-3 border-blue-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-xl transition-all shadow-lg ${
+                    className={`rounded-xl bg-white dark:bg-slate-800 border-2 md:border-3 border-blue-400 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-xl transition-all shadow-lg ${
                       viewMode === 'grid' ? 'p-3 md:p-4 flex flex-col' : 'p-3 flex items-center gap-3'
                     }`}
                   >
@@ -1587,7 +1587,7 @@ const ExpressPOS: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="w-full md:w-80 lg:w-96 flex flex-col bg-white dark:bg-slate-900 md:border-l-3 border-blue-200 dark:border-slate-800 shadow-2xl max-h-[50vh] md:max-h-none"
+          className="w-full md:w-80 lg:w-96 flex flex-col bg-white dark:bg-slate-900 md:border-l-3 border-blue-400 dark:border-slate-800 shadow-2xl max-h-[50vh] md:max-h-none"
         >
           {/* Sepet Header */}
           <div className="p-3 md:p-4 bg-gradient-to-r from-blue-600 to-slate-700 text-white">
@@ -1639,7 +1639,7 @@ const ExpressPOS: React.FC = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 20 }}
-                    className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 shadow-md hover:shadow-lg transition-all"
+                    className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 shadow-md hover:shadow-lg transition-all"
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
@@ -1711,7 +1711,7 @@ const ExpressPOS: React.FC = () => {
           </div>
 
           {/* Toplam ve Ödeme */}
-          <div className="p-4 border-t-3 border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
+          <div className="p-4 border-t-3 border-slate-300 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
             <div className="space-y-2 mb-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-bold text-slate-600 dark:text-slate-400">Ara Toplam:</span>
@@ -1723,7 +1723,7 @@ const ExpressPOS: React.FC = () => {
                   <span className="text-sm font-bold text-green-600">-{totalDiscount.toFixed(2)} ₺</span>
                 </div>
               )}
-              <div className="flex items-center justify-between pt-2 border-t-2 border-slate-200 dark:border-slate-700">
+              <div className="flex items-center justify-between pt-2 border-t-2 border-slate-300 dark:border-slate-700">
                 <span className="text-xl font-black text-slate-900 dark:text-white">TOPLAM:</span>
                 <span className="text-3xl font-black text-blue-600">{totalAmount.toFixed(2)} ₺</span>
               </div>
@@ -2391,7 +2391,7 @@ const ExpressPOS: React.FC = () => {
               </div>
 
               {selectedCustomer && (
-                <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-xl border-2 border-blue-200 dark:border-blue-900">
+                <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-xl border-2 border-blue-400 dark:border-blue-900">
                   <p className="text-sm font-bold text-blue-900 dark:text-blue-100">
                     Seçili: {selectedCustomer.name}
                   </p>
@@ -2409,7 +2409,7 @@ const ExpressPOS: React.FC = () => {
                   <button
                     key={customer.id}
                     onClick={() => selectCustomer(customer)}
-                    className="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600 transition-all text-left"
+                    className="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600 transition-all text-left"
                   >
                     <p className="font-black text-base text-slate-900 dark:text-white">{customer.name}</p>
                     {customer.phone && (
@@ -2480,7 +2480,7 @@ const ExpressPOS: React.FC = () => {
                     max="100"
                     value={discountInput}
                     onChange={(e) => setDiscountInput(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:outline-none font-bold text-lg"
+                    className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:outline-none font-bold text-lg"
                     placeholder="0"
                   />
                 </div>
@@ -2492,7 +2492,7 @@ const ExpressPOS: React.FC = () => {
                   <textarea
                     value={noteInput}
                     onChange={(e) => setNoteInput(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:outline-none font-semibold resize-none"
+                    className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:outline-none font-semibold resize-none"
                     placeholder="Kampanya, özel indirim vb."
                     rows={3}
                   />
@@ -2565,7 +2565,7 @@ const ExpressPOS: React.FC = () => {
                     min="0"
                     value={cashAmount}
                     onChange={(e) => setCashAmount(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:outline-none font-bold text-lg"
+                    className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:outline-none font-bold text-lg"
                     placeholder="0.00"
                   />
                 </div>
@@ -2581,7 +2581,7 @@ const ExpressPOS: React.FC = () => {
                     min="0"
                     value={cardAmount}
                     onChange={(e) => setCardAmount(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:outline-none font-bold text-lg"
+                    className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 focus:border-blue-500 focus:outline-none font-bold text-lg"
                     placeholder="0.00"
                   />
                 </div>
@@ -2665,7 +2665,7 @@ const ExpressPOS: React.FC = () => {
                 {recentSales.map(sale => (
                   <div
                     key={sale.id}
-                    className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700"
+                    className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div>

@@ -175,7 +175,7 @@ const AIInsights: React.FC = () => {
 
       {/* Satış Tahminleri */}
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-        <Card className="border-2 border-blue-200 dark:border-blue-900">
+        <Card className="border-2 border-blue-400 dark:border-blue-900">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${getTrendColor()} flex items-center justify-center`}>
@@ -276,7 +276,7 @@ const AIInsights: React.FC = () => {
         {/* Stok Önerileri */}
         {stockRecommendations.length > 0 && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-            <Card className="border-2 border-blue-200 dark:border-blue-900 h-full">
+            <Card className="border-2 border-blue-400 dark:border-blue-900 h-full">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center">

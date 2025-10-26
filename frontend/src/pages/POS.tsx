@@ -491,7 +491,7 @@ const POS: React.FC = () => {
       {/* Left: Products */}
         <div className="flex-1 flex flex-col gap-4 min-h-0 order-2 md:order-1">
           {/* Barcode Scanner */}
-          <Card className="border-2 border-blue-200 dark:border-blue-900 shadow-lg">
+          <Card className="border-2 border-blue-400 dark:border-blue-900 shadow-lg">
             <CardContent className="pt-6">
               <form onSubmit={handleBarcodeSubmit} className="flex flex-col gap-3">
                 {/* SADECE MOBİL: Kamera butonu (büyük, öncelikli) */}
@@ -588,7 +588,7 @@ const POS: React.FC = () => {
                       className={`p-4 md:p-5 rounded-xl border-2 transition-all text-left shadow-md ${
                         product.stock === 0 
                           ? 'opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800 border-gray-300' 
-                          : 'hover:border-blue-600 hover:shadow-xl bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+                          : 'hover:border-blue-600 hover:shadow-xl bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700'
                       }`}
                       disabled={product.stock === 0}
                     >
@@ -650,7 +650,7 @@ const POS: React.FC = () => {
         {/* Right: Cart & Payment */}
         <div className="w-full md:w-[420px] flex flex-col gap-4 min-h-0 order-1 md:order-2">
           {/* Cart */}
-          <Card className="flex-1 overflow-hidden flex flex-col min-h-0 border-2 border-slate-200 dark:border-slate-700 shadow-xl">
+          <Card className="flex-1 overflow-hidden flex flex-col min-h-0 border-2 border-slate-300 dark:border-slate-700 shadow-xl">
             <CardHeader className="border-b-2 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950/30">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-3">
@@ -693,7 +693,7 @@ const POS: React.FC = () => {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20 }}
-                      className="border-2 rounded-xl p-3 md:p-5 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 hover:border-blue-600 transition-all shadow-md hover:shadow-lg border-slate-200 dark:border-slate-700"
+                      className="border-2 rounded-xl p-3 md:p-5 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 hover:border-blue-600 transition-all shadow-md hover:shadow-lg border-slate-300 dark:border-slate-700"
                     >
                       <div className="flex justify-between items-start mb-3">
                         <div className="flex-1">
@@ -707,7 +707,7 @@ const POS: React.FC = () => {
                           <Trash2 className="w-5 h-5 md:w-5 md:h-5" />
                     </button>
                   </div>
-                      <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-700">
+                      <div className="flex items-center justify-between pt-3 border-t border-slate-300 dark:border-slate-700">
                         <div className="flex items-center gap-2 md:gap-3">
                           <Button
                             size="sm"
@@ -782,7 +782,7 @@ const POS: React.FC = () => {
             </div>
 
 
-                <div className="border-t-2 border-blue-200 dark:border-blue-900 pt-3 flex justify-between items-center bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 p-4 md:p-3 rounded-xl">
+                <div className="border-t-2 border-blue-400 dark:border-blue-900 pt-3 flex justify-between items-center bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 p-4 md:p-3 rounded-xl">
                   <span className="text-lg md:text-xl font-black">TOPLAM:</span>
                   <span className="text-2xl md:text-3xl font-black text-blue-700 dark:text-blue-400">
                     {formatCurrency(netAmount)}
@@ -940,7 +940,7 @@ const POS: React.FC = () => {
 
               <div className="p-6 space-y-6">
                 {/* Total */}
-                <div className="text-center p-8 bg-gradient-to-br from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 rounded-2xl border-2 border-blue-200 dark:border-blue-900 shadow-lg">
+                <div className="text-center p-8 bg-gradient-to-br from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 rounded-2xl border-2 border-blue-400 dark:border-blue-900 shadow-lg">
                   <p className="text-base text-muted-foreground font-semibold mb-3">Ödenecek Tutar</p>
                   <p className="text-6xl font-black text-blue-700 dark:text-blue-400">{formatCurrency(netAmount)}</p>
                 </div>

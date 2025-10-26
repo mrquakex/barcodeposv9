@@ -73,7 +73,7 @@ const Settings: React.FC = () => {
       </motion.div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <Card className="border-2 border-blue-200 dark:border-blue-900 shadow-xl">
+        <Card className="border-2 border-blue-400 dark:border-blue-900 shadow-xl">
           <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-b-2">
             <CardTitle className="flex items-center gap-3 text-xl font-black text-slate-900 dark:text-white">
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-md">

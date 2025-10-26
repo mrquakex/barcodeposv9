@@ -243,7 +243,7 @@ const Customers: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border-2 border-blue-200 dark:border-blue-900"
+            className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border-2 border-blue-400 dark:border-blue-900"
           >
             <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-slate-700 px-6 py-5 flex items-center justify-between rounded-t-3xl">
               <h2 className="text-2xl font-black text-white flex items-center gap-3">
@@ -334,7 +334,7 @@ const Customers: React.FC = () => {
         </div>
       )}
 
-      <Card className="border-2 border-blue-200 dark:border-blue-900 shadow-xl">
+      <Card className="border-2 border-blue-400 dark:border-blue-900 shadow-xl">
         <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-b-2">
           <div className="flex items-center gap-4">
             <div className="flex-1 relative">
@@ -527,7 +527,7 @@ const Customers: React.FC = () => {
                 )}
 
                 {selectedCustomer.debt === 0 && (
-                  <Card className="border-2 border-blue-200 dark:border-blue-900 bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20">
+                  <Card className="border-2 border-blue-400 dark:border-blue-900 bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20">
                     <CardContent className="pt-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -552,7 +552,7 @@ const Customers: React.FC = () => {
                 )}
 
                 {/* Customer Info */}
-                <Card className="border-2 border-blue-200 dark:border-blue-900">
+                <Card className="border-2 border-blue-400 dark:border-blue-900">
                   <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-b-2">
                     <h3 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
                       <FileText className="w-5 h-5 text-blue-600" />
@@ -562,7 +562,7 @@ const Customers: React.FC = () => {
                   <CardContent className="pt-6">
                     <div className="grid gap-4 md:grid-cols-2">
                       {selectedCustomer.email && (
-                        <div className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-2 border-blue-200 dark:border-blue-900">
+                        <div className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-2 border-blue-400 dark:border-blue-900">
                           <Mail className="w-5 h-5 text-blue-600" />
                           <div>
                             <p className="text-xs text-muted-foreground font-semibold">Email</p>
@@ -571,7 +571,7 @@ const Customers: React.FC = () => {
                         </div>
                       )}
                       {selectedCustomer.phone && (
-                        <div className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-2 border-blue-200 dark:border-blue-900">
+                        <div className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-2 border-blue-400 dark:border-blue-900">
                           <Phone className="w-5 h-5 text-blue-600" />
                           <div>
                             <p className="text-xs text-muted-foreground font-semibold">Telefon</p>
@@ -580,7 +580,7 @@ const Customers: React.FC = () => {
                         </div>
                       )}
                       {selectedCustomer.address && (
-                        <div className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-2 border-blue-200 dark:border-blue-900">
+                        <div className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-2 border-blue-400 dark:border-blue-900">
                           <MapPin className="w-5 h-5 text-blue-600" />
                           <div>
                             <p className="text-xs text-muted-foreground font-semibold">Adres</p>
@@ -589,7 +589,7 @@ const Customers: React.FC = () => {
                         </div>
                       )}
                       {selectedCustomer.taxNumber && (
-                        <div className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-2 border-blue-200 dark:border-blue-900">
+                        <div className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-2 border-blue-400 dark:border-blue-900">
                           <FileText className="w-5 h-5 text-blue-600" />
                           <div>
                             <p className="text-xs text-muted-foreground font-semibold">Vergi/TC No</p>
@@ -597,7 +597,7 @@ const Customers: React.FC = () => {
                           </div>
                         </div>
                       )}
-                      <div className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-2 border-blue-200 dark:border-blue-900">
+                      <div className="flex items-center gap-3 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-2 border-blue-400 dark:border-blue-900">
                         <Calendar className="w-5 h-5 text-blue-600" />
                         <div>
                           <p className="text-xs text-muted-foreground font-semibold">Kayıt Tarihi</p>
@@ -615,7 +615,7 @@ const Customers: React.FC = () => {
                 </Card>
 
                 {/* Sales History */}
-                <Card className="border-2 border-slate-200 dark:border-slate-800">
+                <Card className="border-2 border-slate-300 dark:border-slate-800">
                   <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-950/20 dark:to-blue-950/20 border-b-2">
                     <h3 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
                       <Receipt className="w-5 h-5 text-blue-600" />
@@ -629,7 +629,7 @@ const Customers: React.FC = () => {
                           <div key={sale.id} className="space-y-2">
                             <div
                               onClick={() => setExpandedSaleId(expandedSaleId === sale.id ? null : sale.id)}
-                              className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-950/20 dark:to-blue-950/20 border-2 border-slate-200 dark:border-slate-800 hover:shadow-lg transition-all cursor-pointer hover:border-blue-400"
+                              className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-950/20 dark:to-blue-950/20 border-2 border-slate-300 dark:border-slate-800 hover:shadow-lg transition-all cursor-pointer hover:border-blue-400"
                             >
                               <div className="flex-1">
                                 <p className="font-bold text-sm text-slate-900 dark:text-white">{sale.saleNumber}</p>
@@ -661,7 +661,7 @@ const Customers: React.FC = () => {
                                   exit={{ opacity: 0, height: 0 }}
                                   className="overflow-hidden"
                                 >
-                                  <div className="ml-4 p-4 rounded-xl bg-white dark:bg-gray-800 border-2 border-blue-200 dark:border-blue-900 space-y-2">
+                                  <div className="ml-4 p-4 rounded-xl bg-white dark:bg-gray-800 border-2 border-blue-400 dark:border-blue-900 space-y-2">
                                     <p className="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
                                       <Package className="w-4 h-4 text-blue-600" />
                                       Satın Alınan Ürünler
@@ -669,7 +669,7 @@ const Customers: React.FC = () => {
                                     {sale.items.map((item, idx) => (
                                       <div
                                         key={idx}
-                                        className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border border-slate-200 dark:border-slate-700"
+                                        className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border border-slate-300 dark:border-slate-700"
                                       >
                                         <div className="flex-1">
                                           <p className="font-bold text-sm text-slate-900 dark:text-white">{item.product.name}</p>
@@ -769,7 +769,7 @@ const Customers: React.FC = () => {
 
               <div className="p-6 space-y-6">
                 {/* Customer Info */}
-                <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-2 border-blue-200 dark:border-blue-900">
+                <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-2 border-blue-400 dark:border-blue-900">
                   <p className="text-sm font-semibold text-muted-foreground mb-1">Müşteri</p>
                   <p className="text-lg font-bold text-slate-900 dark:text-white">{selectedCustomer.name}</p>
                   <p className="text-sm font-semibold text-red-600 mt-2">
@@ -830,7 +830,7 @@ const Customers: React.FC = () => {
                 {/* Summary */}
                 <div className={`p-4 rounded-xl border-2 ${
                   debtAction === 'add'
-                    ? 'bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-blue-200 dark:border-blue-900'
+                    ? 'bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-blue-400 dark:border-blue-900'
                     : 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-green-200 dark:border-green-900'
                 }`}>
                   <div className="space-y-2">

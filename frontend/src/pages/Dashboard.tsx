@@ -129,7 +129,7 @@ const Dashboard: React.FC = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="border-2 border-blue-200 dark:border-blue-900 shadow-lg">
+          <Card className="border-2 border-blue-400 dark:border-blue-900 shadow-lg">
             <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-b-2">
               <CardTitle className="text-xl font-black text-slate-900 dark:text-white">📈 Son 7 Günlük Satışlar</CardTitle>
             </CardHeader>
@@ -190,7 +190,7 @@ const Dashboard: React.FC = () => {
 
       <div className="grid gap-6 md:grid-cols-3">
         <div className="md:col-span-2">
-          <Card className="border-2 border-blue-200 dark:border-blue-900 shadow-xl">
+          <Card className="border-2 border-blue-400 dark:border-blue-900 shadow-xl">
             <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-b-2">
               <CardTitle className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
                 <TrendingUp className="w-6 h-6 text-blue-600" />
@@ -205,7 +205,7 @@ const Dashboard: React.FC = () => {
                     initial={{ opacity: 0, x: -20 }} 
                     animate={{ opacity: 1, x: 0 }} 
                     transition={{ delay: index * 0.1 }} 
-                    className="flex items-center gap-4 p-5 rounded-xl bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-2 border-blue-200 dark:border-blue-900 hover:shadow-lg transition-all hover:scale-[1.02]"
+                    className="flex items-center gap-4 p-5 rounded-xl bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-2 border-blue-400 dark:border-blue-900 hover:shadow-lg transition-all hover:scale-[1.02]"
                   >
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-md">
                       <span className="text-white font-black text-xl">#{index + 1}</span>
@@ -243,7 +243,7 @@ const Dashboard: React.FC = () => {
         transition={{ delay: 0.6 }}
         className="mt-8"
       >
-        <Card className="border-2 border-blue-200 dark:border-blue-900 shadow-xl">
+        <Card className="border-2 border-blue-400 dark:border-blue-900 shadow-xl">
           <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-b-2">
             <CardTitle className="flex items-center gap-3 text-xl font-black">
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-md">
@@ -254,7 +254,7 @@ const Dashboard: React.FC = () => {
           </CardHeader>
           <CardContent className="space-y-6 pt-6">
             <div className="grid gap-4 md:grid-cols-3">
-              <div className="p-5 rounded-xl bg-gradient-to-br from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-2 border-blue-200 dark:border-blue-800 shadow-md">
+              <div className="p-5 rounded-xl bg-gradient-to-br from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-2 border-blue-400 dark:border-blue-800 shadow-md">
                 <div className="flex items-center gap-3 mb-3">
                   <TrendingUp className="w-6 h-6 text-blue-600" />
                   <h3 className="font-black text-base text-slate-900 dark:text-white">Satış Trendi</h3>

@@ -188,7 +188,7 @@ const Sales: React.FC = () => {
       </div>
 
       {/* Search & Filters */}
-      <Card className="border-2 border-slate-200 dark:border-slate-700">
+      <Card className="border-2 border-slate-300 dark:border-slate-700">
         <CardContent className="pt-6">
           <div className="flex gap-4">
             <div className="flex-1 relative">
@@ -205,7 +205,7 @@ const Sales: React.FC = () => {
       </Card>
 
       {/* Sales Table - Desktop */}
-      <Card className="border-2 border-slate-200 dark:border-slate-700 hidden md:block">
+      <Card className="border-2 border-slate-300 dark:border-slate-700 hidden md:block">
         <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-b-2">
           <CardTitle className="text-xl font-bold flex items-center gap-2">
             <Receipt className="w-6 h-6 text-blue-600" />
@@ -287,7 +287,7 @@ const Sales: React.FC = () => {
                             size="sm"
                             variant="outline"
                             onClick={() => handleViewDetail(sale)}
-                            className="h-9 px-3 font-bold border-2 border-blue-200 hover:bg-blue-50 hover:border-blue-500 hover:text-blue-600"
+                            className="h-9 px-3 font-bold border-2 border-blue-400 hover:bg-blue-50 hover:border-blue-500 hover:text-blue-600"
                           >
                             <Eye className="w-4 h-4 mr-1" />
                             Fiş
@@ -314,7 +314,7 @@ const Sales: React.FC = () => {
       {/* Sales Cards - Mobile */}
       <div className="md:hidden space-y-3">
         {filteredSales.length === 0 ? (
-          <Card className="border-2 border-slate-200 dark:border-slate-700">
+          <Card className="border-2 border-slate-300 dark:border-slate-700">
             <CardContent className="p-12 text-center">
               <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-30" />
               <p className="text-muted-foreground font-semibold">
@@ -328,7 +328,7 @@ const Sales: React.FC = () => {
               key={sale.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl shadow-md p-4"
+              className="bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 rounded-xl shadow-md p-4"
             >
               {/* Header: Tarih & ID */}
               <div className="flex justify-between items-start mb-3 pb-3 border-b-2 border-slate-100 dark:border-slate-700">
@@ -444,7 +444,7 @@ const Sales: React.FC = () => {
               <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
                 {/* Sale Info */}
                 <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-xl border border-blue-200 dark:border-blue-900">
+                  <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-xl border border-blue-400 dark:border-blue-900">
                     <div className="flex items-center gap-2 mb-2">
                       <Calendar className="w-4 h-4 text-blue-600" />
                       <span className="text-xs font-bold text-muted-foreground uppercase">Tarih & Saat</span>
@@ -457,7 +457,7 @@ const Sales: React.FC = () => {
                     </p>
                   </div>
 
-                  <div className="p-4 bg-slate-50 dark:bg-slate-950/20 rounded-xl border border-slate-200 dark:border-slate-700">
+                  <div className="p-4 bg-slate-50 dark:bg-slate-950/20 rounded-xl border border-slate-300 dark:border-slate-700">
                     <div className="flex items-center gap-2 mb-2">
                       <User className="w-4 h-4 text-slate-600" />
                       <span className="text-xs font-bold text-muted-foreground uppercase">Müşteri</span>
@@ -481,7 +481,7 @@ const Sales: React.FC = () => {
                     {(selectedSale.items || []).map((item) => (
                       <div
                         key={item.id}
-                        className="flex items-center gap-4 p-4 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-950/20 dark:to-blue-950/20 rounded-xl border-2 border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all"
+                        className="flex items-center gap-4 p-4 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-950/20 dark:to-blue-950/20 rounded-xl border-2 border-slate-300 dark:border-slate-700 hover:shadow-lg transition-all"
                       >
                         {/* Barcode Image */}
                         <div className="relative w-20 h-20 flex-shrink-0 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 p-2 shadow-lg overflow-hidden">
@@ -532,7 +532,7 @@ const Sales: React.FC = () => {
                 </div>
 
                 {/* Totals */}
-                <div className="space-y-3 p-4 bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 rounded-xl border-2 border-blue-200 dark:border-blue-900">
+                <div className="space-y-3 p-4 bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 rounded-xl border-2 border-blue-400 dark:border-blue-900">
                   {(selectedSale.discountAmount || 0) > 0 && (
                     <div className="flex justify-between text-sm">
                       <span className="font-semibold text-muted-foreground">Ara Toplam:</span>
@@ -553,7 +553,7 @@ const Sales: React.FC = () => {
                   </div>
                   <div className="flex items-center justify-between pt-2">
                     <span className="font-semibold text-muted-foreground">Ödeme Yöntemi:</span>
-                    <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 rounded-lg border border-slate-300 dark:border-slate-700">
                       {getPaymentMethodIcon(selectedSale.paymentMethod)}
                       <span className="font-bold">{getPaymentMethodText(selectedSale.paymentMethod)}</span>
                     </div>

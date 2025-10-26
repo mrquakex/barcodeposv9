@@ -48,11 +48,11 @@ const Finance: React.FC = () => {
           <Card className="border-2 border-red-200 dark:border-red-900 shadow-lg"><CardHeader className="flex flex-row items-center justify-between pb-2"><CardTitle className="text-sm font-bold">Toplam Gider</CardTitle><div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-600 to-orange-700 flex items-center justify-center shadow-md"><TrendingDown className="h-5 w-5 text-white" /></div></CardHeader><CardContent><div className="text-3xl font-black text-red-600">{formatCurrency(summary?.totalExpenses || 0)}</div><p className="text-xs text-muted-foreground font-semibold mt-1">{summary?.expensesCount || 0} gider</p></CardContent></Card>
         </motion.div>
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }}>
-          <Card className="border-2 border-blue-200 dark:border-blue-900 shadow-lg"><CardHeader className="flex flex-row items-center justify-between pb-2"><CardTitle className="text-sm font-bold">Net Kar/Zarar</CardTitle><div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-md"><PiggyBank className="h-5 w-5 text-white" /></div></CardHeader><CardContent><div className={`text-3xl font-black ${(summary?.netProfit || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(summary?.netProfit || 0)}</div><p className="text-xs text-muted-foreground font-semibold mt-1">Son 30 gün</p></CardContent></Card>
+          <Card className="border-2 border-blue-400 dark:border-blue-900 shadow-lg"><CardHeader className="flex flex-row items-center justify-between pb-2"><CardTitle className="text-sm font-bold">Net Kar/Zarar</CardTitle><div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-md"><PiggyBank className="h-5 w-5 text-white" /></div></CardHeader><CardContent><div className={`text-3xl font-black ${(summary?.netProfit || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>{formatCurrency(summary?.netProfit || 0)}</div><p className="text-xs text-muted-foreground font-semibold mt-1">Son 30 gün</p></CardContent></Card>
         </motion.div>
       </div>
 
-      <Card className="border-2 border-blue-200 dark:border-blue-900 shadow-xl">
+      <Card className="border-2 border-blue-400 dark:border-blue-900 shadow-xl">
         <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-b-2">
           <CardTitle className="text-xl font-black text-slate-900 dark:text-white">📊 Nakit Akışı (Son 30 Gün)</CardTitle>
         </CardHeader>

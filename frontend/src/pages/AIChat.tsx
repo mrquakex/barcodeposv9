@@ -151,7 +151,7 @@ const AIChat: React.FC = () => {
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-2xl border-4 border-blue-200 dark:border-blue-900">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-2xl border-4 border-blue-400 dark:border-blue-900">
               <Bot className="w-9 h-9 text-white" />
             </div>
             <div>
@@ -179,7 +179,7 @@ const AIChat: React.FC = () => {
       </motion.div>
 
       {/* Chat Container - Enhanced */}
-      <Card className="flex-1 flex flex-col overflow-hidden shadow-2xl border-3 border-blue-200 dark:border-slate-800">
+      <Card className="flex-1 flex flex-col overflow-hidden shadow-2xl border-3 border-blue-400 dark:border-slate-800">
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-8 space-y-6 bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-950">
           <AnimatePresence>
@@ -193,7 +193,7 @@ const AIChat: React.FC = () => {
                 className={`flex gap-4 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {message.role === 'assistant' && (
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center flex-shrink-0 shadow-xl border-3 border-blue-200 dark:border-blue-900">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center flex-shrink-0 shadow-xl border-3 border-blue-400 dark:border-blue-900">
                     <Bot className="w-7 h-7 text-white" />
                   </div>
                 )}
@@ -202,7 +202,7 @@ const AIChat: React.FC = () => {
                   className={`max-w-[70%] p-5 rounded-2xl shadow-lg ${
                     message.role === 'user'
                       ? 'bg-gradient-to-br from-blue-600 to-slate-700 text-white border-3 border-blue-300'
-                      : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-3 border-blue-100 dark:border-slate-700'
+                      : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-3 border-blue-300 dark:border-slate-700'
                   }`}
                 >
                   <p className="text-sm font-semibold leading-relaxed whitespace-pre-wrap">{message.content}</p>
@@ -215,7 +215,7 @@ const AIChat: React.FC = () => {
                 </div>
 
                 {message.role === 'user' && (
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center flex-shrink-0 shadow-xl border-3 border-blue-200 dark:border-blue-900">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center flex-shrink-0 shadow-xl border-3 border-blue-400 dark:border-blue-900">
                     <User className="w-7 h-7 text-white" />
                   </div>
                 )}
@@ -229,10 +229,10 @@ const AIChat: React.FC = () => {
               animate={{ opacity: 1 }}
               className="flex gap-4"
             >
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center flex-shrink-0 shadow-xl border-3 border-blue-200 dark:border-blue-900">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center flex-shrink-0 shadow-xl border-3 border-blue-400 dark:border-blue-900">
                 <Bot className="w-7 h-7 text-white" />
               </div>
-              <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-lg border-3 border-blue-100 dark:border-slate-700">
+              <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-lg border-3 border-blue-300 dark:border-slate-700">
                 <div className="flex items-center gap-3">
                   <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
                   <span className="text-sm font-bold text-slate-700 dark:text-slate-300">AI düşünüyor...</span>
@@ -246,7 +246,7 @@ const AIChat: React.FC = () => {
 
         {/* Quick Actions - Enhanced */}
         {messages.length === 1 && (
-          <div className="px-8 py-6 border-t-3 border-blue-200 dark:border-slate-800 bg-gradient-to-r from-blue-50 to-slate-50 dark:from-slate-900 dark:to-slate-950">
+          <div className="px-8 py-6 border-t-3 border-blue-400 dark:border-slate-800 bg-gradient-to-r from-blue-50 to-slate-50 dark:from-slate-900 dark:to-slate-950">
             <p className="text-sm font-black mb-4 text-slate-700 dark:text-slate-300">⚡ Hızlı Sorular:</p>
             <div className="grid grid-cols-3 gap-4">
               {quickActions.map((action, index) => (
@@ -254,7 +254,7 @@ const AIChat: React.FC = () => {
                   key={index}
                   onClick={() => handleQuickAction(action.prompt)}
                   disabled={loading}
-                  className="p-4 rounded-xl bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 border-3 border-blue-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600 transition-all group disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:scale-105"
+                  className="p-4 rounded-xl bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 border-3 border-blue-400 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600 transition-all group disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:scale-105"
                 >
                   <action.icon className="w-7 h-7 mx-auto mb-3 text-blue-600 dark:text-blue-400 group-hover:scale-125 transition-transform" />
                   <p className="text-xs font-black text-center text-slate-700 dark:text-slate-300">{action.label}</p>
@@ -265,14 +265,14 @@ const AIChat: React.FC = () => {
         )}
 
         {/* Input - Enhanced */}
-        <div className="p-6 border-t-3 border-blue-200 dark:border-slate-800 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-950 dark:to-slate-900">
+        <div className="p-6 border-t-3 border-blue-400 dark:border-slate-800 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-950 dark:to-slate-900">
           <div className="flex gap-4">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Mesajınızı yazın... (Enter ile gönder)"
-              className="flex-1 px-5 py-4 rounded-xl bg-white dark:bg-slate-800 border-3 border-blue-200 dark:border-slate-700 focus:border-blue-500 focus:outline-none resize-none font-semibold text-slate-900 dark:text-white placeholder-slate-400 shadow-lg"
+              className="flex-1 px-5 py-4 rounded-xl bg-white dark:bg-slate-800 border-3 border-blue-400 dark:border-slate-700 focus:border-blue-500 focus:outline-none resize-none font-semibold text-slate-900 dark:text-white placeholder-slate-400 shadow-lg"
               rows={2}
               disabled={loading}
             />

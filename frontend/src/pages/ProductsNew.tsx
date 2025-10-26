@@ -332,7 +332,7 @@ const ProductsNew: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-xl p-3 md:p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3"
+          className="bg-blue-50 dark:bg-blue-950/20 border border-blue-400 dark:border-blue-800 rounded-xl p-3 md:p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3"
         >
           <div className="flex items-center gap-3">
             <CheckCircle2 className="w-5 h-5 text-blue-600" />

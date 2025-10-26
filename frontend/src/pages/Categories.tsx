@@ -192,7 +192,7 @@ const Categories: React.FC = () => {
             whileHover={{ y: -5 }}
           >
             <Card 
-              className="group relative overflow-hidden border border-slate-200 dark:border-slate-700 hover:border-blue-500 hover:shadow-xl transition-all duration-300 bg-white dark:from-gray-900 cursor-pointer"
+              className="group relative overflow-hidden border border-slate-300 dark:border-slate-700 hover:border-blue-500 hover:shadow-xl transition-all duration-300 bg-white dark:from-gray-900 cursor-pointer"
               onClick={() => navigate(`/products?category=${category.id}`)}
             >
               {/* Background Gradient on Hover */}
@@ -216,7 +216,7 @@ const Categories: React.FC = () => {
                 </div>
 
                 {/* Product Count - Compact */}
-                <div className="flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/30 dark:to-slate-950/30 rounded-lg border border-slate-200 dark:border-slate-700 group-hover:border-blue-400 transition-all">
+                <div className="flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/30 dark:to-slate-950/30 rounded-lg border border-slate-300 dark:border-slate-700 group-hover:border-blue-400 transition-all">
                   <Package className="w-4 h-4 text-blue-600 dark:text-blue-400" strokeWidth={2} />
                   <span className="text-sm font-bold text-blue-700 dark:text-blue-400">
                     {category._count?.products || 0} ürün
@@ -232,7 +232,7 @@ const Categories: React.FC = () => {
                       e.stopPropagation();
                       handleEdit(category);
                     }} 
-                    className="h-7 w-7 rounded-lg bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-blue-50 hover:border-blue-500 hover:text-blue-600"
+                    className="h-7 w-7 rounded-lg bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-slate-300 dark:border-slate-700 shadow-sm hover:bg-blue-50 hover:border-blue-500 hover:text-blue-600"
                     >
                     <Edit className="w-3.5 h-3.5" strokeWidth={2} />
                   </Button>
@@ -243,7 +243,7 @@ const Categories: React.FC = () => {
                       e.stopPropagation();
                       handleDelete(category.id);
                     }} 
-                    className="h-7 w-7 rounded-lg bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-red-50 hover:border-red-500 hover:text-red-600"
+                    className="h-7 w-7 rounded-lg bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-slate-300 dark:border-slate-700 shadow-sm hover:bg-red-50 hover:border-red-500 hover:text-red-600"
                   >
                     <Trash2 className="w-3.5 h-3.5" strokeWidth={2} />
                   </Button>
