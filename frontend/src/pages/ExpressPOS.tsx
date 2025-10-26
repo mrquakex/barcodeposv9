@@ -121,6 +121,7 @@ const ExpressPOS: React.FC = () => {
   });
   const [scanStatus, setScanStatus] = useState<'idle' | 'scanning' | 'success' | 'error'>('idle');
   const [flashEffect, setFlashEffect] = useState<'none' | 'success' | 'error'>('none');
+  const [cameraLoading, setCameraLoading] = useState(false); // Kamera açılış loading durumu
   
   // 🚀 ADVANCED KAMERA CONTROLS
   const [torchEnabled, setTorchEnabled] = useState(false);
@@ -537,10 +538,13 @@ const ExpressPOS: React.FC = () => {
 
     const startScanner = async () => {
       if (showCamera) {
+        setCameraLoading(true); // Loading başlat
+        
         // HTTPS kontrolü
         if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
           toast.error('🔒 Kamera sadece HTTPS bağlantısında çalışır!', { duration: 6000 });
           setShowCamera(false);
+          setCameraLoading(false);
           return;
         }
 
@@ -548,6 +552,7 @@ const ExpressPOS: React.FC = () => {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
           toast.error('❌ Tarayıcınız kamera kullanımını desteklemiyor!', { duration: 6000 });
           setShowCamera(false);
+          setCameraLoading(false);
           return;
         }
 
@@ -790,6 +795,9 @@ const ExpressPOS: React.FC = () => {
                 console.log('🔍 Auto-Zoom 1.5x applied');
                 toast.success('🤖 AI Ayarlar Aktif', { duration: 1500 });
               });
+              
+              // ✅ Loading tamamlandı - kamera hazır!
+              setCameraLoading(false);
             }
           }, 100); // 🚀 1500ms → 100ms (15x daha hızlı!)
           
@@ -815,6 +823,7 @@ const ExpressPOS: React.FC = () => {
           
           toast.error(errorMsg, { duration: 6000 });
           setShowCamera(false);
+          setCameraLoading(false); // Loading bitir
         }
       }
     };
@@ -1794,6 +1803,68 @@ const ExpressPOS: React.FC = () => {
                 id="barcode-scanner" 
                 className="w-full h-full"
               />
+              
+              {/* ⏳ LOADING OVERLAY - Kamera hazırlanıyor */}
+              <AnimatePresence>
+                {cameraLoading && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 bg-gradient-to-br from-blue-600 to-slate-800 flex flex-col items-center justify-center z-50"
+                  >
+                    <motion.div
+                      animate={{
+                        scale: [1, 1.2, 1],
+                        rotate: [0, 360],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                      className="mb-6"
+                    >
+                      <Camera className="w-20 h-20 text-white" />
+                    </motion.div>
+                    <motion.p
+                      animate={{
+                        opacity: [0.5, 1, 0.5],
+                      }}
+                      transition={{
+                        duration: 1.5,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                      className="text-2xl font-black text-white mb-2"
+                    >
+                      Kamera Hazırlanıyor...
+                    </motion.p>
+                    <p className="text-sm text-blue-200">
+                      ⚡ Full HD 1920x1080 • 30 FPS • AI Otomatik Ayarlar
+                    </p>
+                    
+                    {/* Loading dots */}
+                    <div className="flex gap-2 mt-6">
+                      {[0, 1, 2].map((i) => (
+                        <motion.div
+                          key={i}
+                          animate={{
+                            scale: [1, 1.5, 1],
+                            opacity: [0.3, 1, 0.3],
+                          }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                            delay: i * 0.2,
+                          }}
+                          className="w-3 h-3 bg-white rounded-full"
+                        />
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
               
               {/* 🎨 FLASH EFFECTS (Yeşil=Başarılı, Kırmızı=Hata) */}
               <AnimatePresence>
