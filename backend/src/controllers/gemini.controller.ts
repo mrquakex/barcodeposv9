@@ -144,7 +144,7 @@ export const getSuggestedProducts = async (req: Request, res: Response) => {
       customerHistory = await prisma.sale.findMany({
         where: { customerId: customerId as string },
         include: {
-          items: {
+          saleItems: {
             include: {
               product: true,
             },
