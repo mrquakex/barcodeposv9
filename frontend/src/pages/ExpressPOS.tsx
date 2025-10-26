@@ -127,8 +127,10 @@ const ExpressPOS: React.FC = () => {
   const [scanQuality, setScanQuality] = useState<'poor' | 'good' | 'excellent'>('good');
   const [lastScanTime, setLastScanTime] = useState<number>(0);
   const [isTorchSupported, setIsTorchSupported] = useState(false);
-  const [brightnessLevel, setBrightnessLevel] = useState(0); // -2 (dark) to +2 (bright)
-  const [contrastLevel, setContrastLevel] = useState(0); // -2 to +2
+  const [brightnessLevel, setBrightnessLevel] = useState(-1); // -3 to +3 (default -1 for anti-glare)
+  const [contrastLevel, setContrastLevel] = useState(1); // -3 to +3 (default +1 for clarity)
+  const [exposureMode, setExposureMode] = useState<'manual' | 'auto'>('manual');
+  const [whiteBalance, setWhiteBalance] = useState<'auto' | 'daylight' | 'cloudy' | 'tungsten'>('auto');
   const videoStreamRef = useRef<MediaStream | null>(null);
   
   // Channel State - Kurumsal tek renk
@@ -371,70 +373,81 @@ const ExpressPOS: React.FC = () => {
     }
   };
 
-  // 💡 BRIGHTNESS CONTROL (Anti-glare / Parlama önleyici)
+  // 💡 BRIGHTNESS CONTROL (Anti-glare / Parlama önleyici) - ENHANCED
   const handleBrightnessChange = async (newBrightness: number) => {
-    if (!videoStreamRef.current) return;
+    setBrightnessLevel(newBrightness);
     
-    try {
-      const track = videoStreamRef.current.getVideoTracks()[0];
-      const capabilities = track.getCapabilities() as any;
+    // ALWAYS use CSS filter (more reliable and immediate)
+    const videoElement = document.querySelector('#barcode-scanner video') as HTMLVideoElement;
+    if (videoElement) {
+      // Aggressive formula: -3 = 0.4, 0 = 1.0, +3 = 1.6
+      const brightnessValue = 1 + (newBrightness * 0.2);
+      const contrastValue = 1 + (contrastLevel * 0.15);
+      const saturationValue = newBrightness < 0 ? 0.9 : 1.0; // Reduce saturation for anti-glare
       
-      if (capabilities.brightness) {
-        await track.applyConstraints({
-          advanced: [{ brightness: newBrightness }]
-        } as any);
-        setBrightnessLevel(newBrightness);
-        toast.success(`💡 Parlaklık: ${newBrightness > 0 ? '+' : ''}${newBrightness}`, { duration: 1000 });
-      } else {
-        // CSS filter fallback
-        const videoElement = document.querySelector('#barcode-scanner video') as HTMLVideoElement;
-        if (videoElement) {
-          const brightnessValue = 1 + (newBrightness * 0.2); // -2 = 0.6, 0 = 1.0, +2 = 1.4
-          const contrastValue = 1 + (contrastLevel * 0.2);
-          videoElement.style.filter = `brightness(${brightnessValue}) contrast(${contrastValue})`;
-          setBrightnessLevel(newBrightness);
-          toast.success(`💡 Parlaklık: ${newBrightness > 0 ? '+' : ''}${newBrightness} (CSS)`, { duration: 1000 });
+      videoElement.style.filter = `brightness(${brightnessValue}) contrast(${contrastValue}) saturate(${saturationValue})`;
+      console.log(`🎨 Filter applied: brightness(${brightnessValue.toFixed(2)}) contrast(${contrastValue.toFixed(2)})`);
+    }
+    
+    // Also try native API (if supported)
+    if (videoStreamRef.current) {
+      try {
+        const track = videoStreamRef.current.getVideoTracks()[0];
+        const capabilities = track.getCapabilities() as any;
+        
+        if (capabilities.exposureCompensation) {
+          await track.applyConstraints({
+            advanced: [{ exposureCompensation: newBrightness }]
+          } as any);
         }
-      }
-    } catch (error) {
-      console.error('Brightness error:', error);
-      // CSS filter fallback
-      const videoElement = document.querySelector('#barcode-scanner video') as HTMLVideoElement;
-      if (videoElement) {
-        const brightnessValue = 1 + (newBrightness * 0.2);
-        const contrastValue = 1 + (contrastLevel * 0.2);
-        videoElement.style.filter = `brightness(${brightnessValue}) contrast(${contrastValue})`;
-        setBrightnessLevel(newBrightness);
+      } catch (error) {
+        // Silently fail, CSS filter is already applied
       }
     }
   };
 
-  // 🎨 CONTRAST CONTROL
+  // 🎨 CONTRAST CONTROL - ENHANCED
   const handleContrastChange = async (newContrast: number) => {
-    if (!videoStreamRef.current) return;
+    setContrastLevel(newContrast);
     
-    try {
-      const track = videoStreamRef.current.getVideoTracks()[0];
-      const capabilities = track.getCapabilities() as any;
+    // ALWAYS use CSS filter
+    const videoElement = document.querySelector('#barcode-scanner video') as HTMLVideoElement;
+    if (videoElement) {
+      const brightnessValue = 1 + (brightnessLevel * 0.2);
+      const contrastValue = 1 + (newContrast * 0.15);
+      const saturationValue = brightnessLevel < 0 ? 0.9 : 1.0;
       
-      if (capabilities.contrast) {
-        await track.applyConstraints({
-          advanced: [{ contrast: newContrast }]
-        } as any);
-        setContrastLevel(newContrast);
-      } else {
-        // CSS filter fallback
-        const videoElement = document.querySelector('#barcode-scanner video') as HTMLVideoElement;
-        if (videoElement) {
-          const brightnessValue = 1 + (brightnessLevel * 0.2);
-          const contrastValue = 1 + (newContrast * 0.2);
-          videoElement.style.filter = `brightness(${brightnessValue}) contrast(${contrastValue})`;
-          setContrastLevel(newContrast);
-        }
-      }
-    } catch (error) {
-      console.error('Contrast error:', error);
+      videoElement.style.filter = `brightness(${brightnessValue}) contrast(${contrastValue}) saturate(${saturationValue})`;
     }
+  };
+
+  // 🚀 QUICK FIX: Parlamayı Otomatik Gider (One-Click Solution)
+  const handleQuickAntiGlare = () => {
+    // Aggressive anti-glare settings
+    setBrightnessLevel(-2);
+    setContrastLevel(2);
+    
+    const videoElement = document.querySelector('#barcode-scanner video') as HTMLVideoElement;
+    if (videoElement) {
+      // brightness: 0.6 (dark), contrast: 1.3 (high), saturation: 0.85 (reduced)
+      videoElement.style.filter = 'brightness(0.6) contrast(1.3) saturate(0.85)';
+    }
+    
+    toast.success('⚡ Parlama giderildi! Brightness: -2, Contrast: +2', { duration: 2000 });
+  };
+
+  // 🔄 Reset to Optimal (Not normal, but optimal for anti-glare)
+  const handleResetToOptimal = () => {
+    setBrightnessLevel(-1);
+    setContrastLevel(1);
+    
+    const videoElement = document.querySelector('#barcode-scanner video') as HTMLVideoElement;
+    if (videoElement) {
+      // Optimal: slightly dark, slightly high contrast
+      videoElement.style.filter = 'brightness(0.8) contrast(1.15) saturate(0.9)';
+    }
+    
+    toast.success('✨ Optimal ayarlar yüklendi', { duration: 1500 });
   };
 
   // Kamera ile barkod okuma
@@ -679,6 +692,12 @@ const ExpressPOS: React.FC = () => {
             if (videoElement && videoElement.srcObject) {
               videoStreamRef.current = videoElement.srcObject as MediaStream;
               console.log('✅ Video stream yakalandı (torch/zoom için)');
+              
+              // 🎨 AUTO-APPLY OPTIMAL ANTI-GLARE SETTINGS ON START
+              // Default: brightness -1, contrast +1 (optimal for most conditions)
+              videoElement.style.filter = 'brightness(0.8) contrast(1.15) saturate(0.9)';
+              console.log('🎨 Optimal anti-glare filter applied automatically');
+              toast.success('✨ Anti-glare aktif (Otomatik)', { duration: 2000 });
             }
           }, 1000);
           
@@ -1644,8 +1663,8 @@ const ExpressPOS: React.FC = () => {
                   setZoomLevel(1.0);
                   setLastScanTime(0);
                   setScanQuality('good');
-                  setBrightnessLevel(0);
-                  setContrastLevel(0);
+                  setBrightnessLevel(-1);
+                  setContrastLevel(1);
                   if (videoStreamRef.current) {
                     videoStreamRef.current.getTracks().forEach(track => track.stop());
                     videoStreamRef.current = null;
@@ -1794,73 +1813,147 @@ const ExpressPOS: React.FC = () => {
                 </div>
               </div>
               
-              {/* 💡 BRIGHTNESS/CONTRAST CONTROLS - Sol Alt */}
-              <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-md rounded-2xl p-3 shadow-2xl border border-white/10 space-y-3">
-                <div className="text-xs text-white font-black text-center pb-2 border-b border-white/20">
-                  💡 PARLAKLAMA KONTROLİ
+              {/* 💡 ADVANCED BRIGHTNESS CONTROLS - Sol Alt */}
+              <div className="absolute bottom-4 left-4 bg-black/90 backdrop-blur-md rounded-2xl p-4 shadow-2xl border-2 border-blue-500/30 space-y-3 max-w-[280px]">
+                <div className="text-sm text-white font-black text-center pb-2 border-b-2 border-white/20 flex items-center justify-center gap-2">
+                  <span className="text-xl">💡</span>
+                  PARLAMA KONTROLİ
+                </div>
+                
+                {/* Quick Action Buttons */}
+                <div className="grid grid-cols-2 gap-2">
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleQuickAntiGlare}
+                    className="py-2.5 px-3 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white text-xs font-black rounded-xl shadow-lg transition-all flex items-center justify-center gap-1"
+                  >
+                    <span className="text-base">⚡</span>
+                    PARLAMAYI GİDER
+                  </motion.button>
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleResetToOptimal}
+                    className="py-2.5 px-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white text-xs font-black rounded-xl shadow-lg transition-all flex items-center justify-center gap-1"
+                  >
+                    <span className="text-base">✨</span>
+                    OPTİMAL
+                  </motion.button>
                 </div>
                 
                 {/* Brightness Slider */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs text-gray-400 font-bold">
+                <div className="space-y-2 pt-2 border-t border-white/10">
+                  <div className="flex items-center justify-between text-xs text-gray-300 font-bold px-1">
                     <span>🌙 Karanlık</span>
+                    <span className="text-white">Parlaklık</span>
                     <span>☀️ Parlak</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => handleBrightnessChange(Math.max(brightnessLevel - 1, -2))}
-                      disabled={brightnessLevel <= -2}
-                      className="w-8 h-8 rounded-full bg-black/70 border border-white/30 text-white flex items-center justify-center disabled:opacity-30"
+                      onClick={() => handleBrightnessChange(Math.max(brightnessLevel - 1, -3))}
+                      disabled={brightnessLevel <= -3}
+                      className="w-8 h-8 rounded-full bg-black/70 border-2 border-white/30 text-white flex items-center justify-center disabled:opacity-20 hover:bg-black/90 transition-all"
                     >
                       <Minus className="w-4 h-4" />
                     </button>
                     <div className="flex-1 relative">
                       <input
                         type="range"
-                        min="-2"
-                        max="2"
+                        min="-3"
+                        max="3"
                         step="1"
                         value={brightnessLevel}
                         onChange={(e) => handleBrightnessChange(Number(e.target.value))}
-                        className="w-full h-2 bg-gradient-to-r from-gray-700 via-gray-400 to-white rounded-full appearance-none cursor-pointer"
+                        className="w-full h-3 rounded-full appearance-none cursor-pointer"
                         style={{
-                          background: `linear-gradient(to right, #374151 0%, #9ca3af ${((brightnessLevel + 2) / 4) * 100}%, #ffffff ${((brightnessLevel + 2) / 4) * 100}%, #ffffff 100%)`
+                          background: `linear-gradient(to right, 
+                            #1e293b 0%, 
+                            #475569 ${((brightnessLevel + 3) / 6) * 100}%, 
+                            #fbbf24 ${((brightnessLevel + 3) / 6) * 100}%, 
+                            #fbbf24 100%)`
                         }}
                       />
                     </div>
                     <button
-                      onClick={() => handleBrightnessChange(Math.min(brightnessLevel + 1, 2))}
-                      disabled={brightnessLevel >= 2}
-                      className="w-8 h-8 rounded-full bg-black/70 border border-white/30 text-white flex items-center justify-center disabled:opacity-30"
+                      onClick={() => handleBrightnessChange(Math.min(brightnessLevel + 1, 3))}
+                      disabled={brightnessLevel >= 3}
+                      className="w-8 h-8 rounded-full bg-black/70 border-2 border-white/30 text-white flex items-center justify-center disabled:opacity-20 hover:bg-black/90 transition-all"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
                   </div>
-                  <div className="text-center">
-                    <span className={`text-xs font-black ${
-                      brightnessLevel > 0 ? 'text-yellow-400' :
+                  <div className="text-center bg-black/50 rounded-lg py-1.5 px-3">
+                    <span className={`text-sm font-black ${
+                      brightnessLevel <= -2 ? 'text-red-400' :
                       brightnessLevel < 0 ? 'text-blue-400' :
-                      'text-gray-400'
+                      brightnessLevel === 0 ? 'text-gray-400' :
+                      'text-yellow-400'
                     }`}>
                       {brightnessLevel > 0 ? `+${brightnessLevel}` : brightnessLevel} 
-                      {brightnessLevel > 0 ? ' (Karanlıkta)' : 
-                       brightnessLevel < 0 ? ' (Anti-Glare)' : ' (Normal)'}
+                      {brightnessLevel <= -2 ? ' (Max Anti-Glare)' :
+                       brightnessLevel === -1 ? ' (Anti-Glare)' :
+                       brightnessLevel === 0 ? ' (Normal)' :
+                       brightnessLevel === 1 ? ' (Parlak)' :
+                       ' (Max Parlak)'}
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Contrast Slider */}
+                <div className="space-y-2 pt-2 border-t border-white/10">
+                  <div className="flex items-center justify-between text-xs text-gray-300 font-bold px-1">
+                    <span>📉 Düşük</span>
+                    <span className="text-white">Kontrast</span>
+                    <span>📈 Yüksek</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleContrastChange(Math.max(contrastLevel - 1, -3))}
+                      disabled={contrastLevel <= -3}
+                      className="w-8 h-8 rounded-full bg-black/70 border-2 border-white/30 text-white flex items-center justify-center disabled:opacity-20 hover:bg-black/90 transition-all"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    <div className="flex-1 relative">
+                      <input
+                        type="range"
+                        min="-3"
+                        max="3"
+                        step="1"
+                        value={contrastLevel}
+                        onChange={(e) => handleContrastChange(Number(e.target.value))}
+                        className="w-full h-3 rounded-full appearance-none cursor-pointer"
+                        style={{
+                          background: `linear-gradient(to right, 
+                            #64748b 0%, 
+                            #94a3b8 ${((contrastLevel + 3) / 6) * 100}%, 
+                            #06b6d4 ${((contrastLevel + 3) / 6) * 100}%, 
+                            #06b6d4 100%)`
+                        }}
+                      />
+                    </div>
+                    <button
+                      onClick={() => handleContrastChange(Math.min(contrastLevel + 1, 3))}
+                      disabled={contrastLevel >= 3}
+                      className="w-8 h-8 rounded-full bg-black/70 border-2 border-white/30 text-white flex items-center justify-center disabled:opacity-20 hover:bg-black/90 transition-all"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="text-center bg-black/50 rounded-lg py-1.5 px-3">
+                    <span className="text-sm font-black text-cyan-400">
+                      {contrastLevel > 0 ? `+${contrastLevel}` : contrastLevel}
                     </span>
                   </div>
                 </div>
 
-                {/* Reset Button */}
-                {(brightnessLevel !== 0 || contrastLevel !== 0) && (
-                  <button
-                    onClick={() => {
-                      handleBrightnessChange(0);
-                      handleContrastChange(0);
-                    }}
-                    className="w-full py-2 bg-gradient-to-r from-blue-600 to-slate-700 text-white text-xs font-black rounded-lg hover:from-blue-700 hover:to-slate-800 transition-all"
-                  >
-                    ↻ Sıfırla
-                  </button>
-                )}
+                {/* Current Status */}
+                <div className="pt-2 border-t-2 border-white/20">
+                  <div className="bg-gradient-to-r from-green-500/20 to-blue-500/20 rounded-lg p-2 border border-green-500/30">
+                    <p className="text-xs text-green-300 text-center font-bold">
+                      ✅ Otomatik anti-glare aktif
+                    </p>
+                  </div>
+                </div>
               </div>
               
               {/* 🔦 TORCH BUTTON - Sağ Alt */}
