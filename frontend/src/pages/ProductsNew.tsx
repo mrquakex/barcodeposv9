@@ -14,7 +14,7 @@ import { formatCurrency } from '../lib/utils';
 import { 
   Plus, Search, Edit, Trash2, Package, FileSpreadsheet, Sparkles, Grid3x3, List,
   X, Filter, TrendingUp, TrendingDown, AlertCircle, CheckCircle2, Download,
-  BarChart3, ShoppingCart, Eye, MoreVertical
+  BarChart3, ShoppingCart, Eye, MoreVertical, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import StatCard from '../components/ui/StatCard';
@@ -31,6 +31,8 @@ const ProductsNew: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(24);
   const [filters, setFilters] = useState({
     categoryId: '',
     stockStatus: 'all', // all, low, normal, out
@@ -125,6 +127,19 @@ const ProductsNew: React.FC = () => {
       return searchMatch && categoryMatch && stockMatch && priceMatch && statusMatch;
     });
   }, [products, searchQuery, filters]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return filteredProducts.slice(startIndex, endIndex);
+  }, [filteredProducts, currentPage, itemsPerPage]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, filters]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -258,19 +273,19 @@ const ProductsNew: React.FC = () => {
             </h1>
           <p className="text-muted-foreground mt-2 text-lg">
             Enterprise seviye stok ve ürün takip sistemi
-          </p>
-        </div>
+            </p>
+          </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" onClick={() => setShowExcelImport(true)} className="gap-2">
-            <FileSpreadsheet className="w-4 h-4" />
+              <FileSpreadsheet className="w-4 h-4" />
             Import
-          </Button>
+            </Button>
           <ExcelExport data={products} filename="urunler" />
           <Button onClick={() => setShowModal(true)} className="gap-2 bg-gradient-to-r from-blue-700 to-slate-700 hover:from-blue-600 hover:to-slate-600">
-            <Plus className="w-4 h-4" />
-            Yeni Ürün
-          </Button>
-        </div>
+              <Plus className="w-4 h-4" />
+              Yeni Ürün
+            </Button>
+          </div>
       </motion.div>
 
       {/* Stats Cards */}
@@ -333,8 +348,8 @@ const ProductsNew: React.FC = () => {
               <Trash2 className="w-4 h-4 mr-2" />
               Toplu Sil
             </Button>
-          </div>
-        </motion.div>
+        </div>
+      </motion.div>
       )}
 
       {/* Add/Edit Modal */}
@@ -676,7 +691,7 @@ const ProductsNew: React.FC = () => {
                     <Button variant="outline" size="sm" onClick={clearFilters}>
                       Filtreleri Temizle
                     </Button>
-                  </div>
+            </div>
       </motion.div>
               )}
             </AnimatePresence>
@@ -699,7 +714,7 @@ const ProductsNew: React.FC = () => {
             </div>
           ) : viewMode === 'grid' ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredProducts.map((product, index) => (
+          {paginatedProducts.map((product, index) => (
             <motion.div
               key={product.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -733,8 +748,8 @@ const ProductsNew: React.FC = () => {
                           <span className="bg-gray-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
                             Pasif
                           </span>
-                        )}
-                      </div>
+                  )}
+                </div>
 
                       {/* Checkbox */}
                       <div className="absolute top-3 right-3">
@@ -746,7 +761,7 @@ const ProductsNew: React.FC = () => {
                           onClick={(e) => e.stopPropagation()}
                         />
                       </div>
-                    </div>
+                  </div>
 
                     <CardContent className="p-6">
                       <h3 className="font-bold text-lg mb-1 truncate group-hover:text-blue-600 transition-colors">
@@ -758,7 +773,7 @@ const ProductsNew: React.FC = () => {
                       
                       <div className="flex items-baseline justify-between mb-4">
                         <span className="text-3xl font-black bg-gradient-to-r from-blue-700 to-slate-700 bg-clip-text text-transparent">
-                          {formatCurrency(product.price)}
+                        {formatCurrency(product.price)}
                         </span>
                         <span className="text-sm px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full font-semibold">
                           {product.category?.name || '-'}
@@ -828,7 +843,7 @@ const ProductsNew: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredProducts.map((product) => (
+                  {paginatedProducts.map((product) => (
                     <TableRow key={product.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/30">
                       <TableCell>
                         <input
@@ -889,6 +904,88 @@ const ProductsNew: React.FC = () => {
                   ))}
                 </TableBody>
               </Table>
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {filteredProducts.length > 0 && totalPages > 1 && (
+            <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t pt-6">
+              {/* Page Info */}
+              <div className="flex items-center gap-4">
+                <p className="text-sm text-muted-foreground">
+                  <span className="font-semibold text-foreground">{filteredProducts.length}</span> üründen{' '}
+                  <span className="font-semibold text-foreground">{(currentPage - 1) * itemsPerPage + 1}</span>-
+                  <span className="font-semibold text-foreground">{Math.min(currentPage * itemsPerPage, filteredProducts.length)}</span> arası gösteriliyor
+                </p>
+                
+                {/* Items per page selector */}
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 bg-background"
+                >
+                  <option value={12}>12 ürün</option>
+                  <option value={24}>24 ürün</option>
+                  <option value={48}>48 ürün</option>
+                  <option value={96}>96 ürün</option>
+                </select>
+              </div>
+
+              {/* Pagination Buttons */}
+              <div className="flex items-center gap-2">
+                {/* Previous Button */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="h-9 w-9"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+
+                {/* Page Numbers */}
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={currentPage === pageNum ? "default" : "outline"}
+                        size="icon"
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`h-9 w-9 ${currentPage === pageNum ? 'bg-gradient-to-r from-blue-700 to-slate-700 text-white' : ''}`}
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                </div>
+
+                {/* Next Button */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="h-9 w-9"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           )}
             </CardContent>

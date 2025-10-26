@@ -126,31 +126,55 @@ const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
     let errorCount = 0;
 
     try {
+      // Kategorileri bir kez fetch et (optimizasyon)
+      const categoriesResponse = await api.get('/categories');
+      const categories = categoriesResponse.data.categories;
+      const categoryMap = new Map(); // Cache için
+
+      console.log(`🚀 ${allProducts.length} ürün içe aktarılıyor...`);
+      
       // Her ürünü API'ye gönder
-      for (const item of allProducts) {
+      for (let i = 0; i < allProducts.length; i++) {
+        const item = allProducts[i];
+        
+        // Her 50 üründe bir ilerleme göster
+        if (i % 50 === 0) {
+          console.log(`İlerleme: ${i}/${allProducts.length} ürün işlendi`);
+        }
+        
         try {
           // Kategori ID'sini bul veya oluştur (eğer kategori adı varsa)
           let categoryId = null;
           if (item.category) {
-            try {
-              const categoriesResponse = await api.get('/categories');
-              const categories = categoriesResponse.data.categories;
+            const categoryKey = item.category.toLowerCase();
+            
+            // Cache'te var mı kontrol et
+            if (categoryMap.has(categoryKey)) {
+              categoryId = categoryMap.get(categoryKey);
+            } else {
+              // Cache'te yok, kategorilerde ara
               let category = categories.find((cat: any) => 
-                cat.name.toLowerCase() === item.category.toLowerCase()
+                cat.name.toLowerCase() === categoryKey
               );
 
               if (!category) {
                 // Kategori yoksa oluştur
-                const newCategoryResponse = await api.post('/categories', {
-                  name: item.category,
-                  description: item.parentCategory || '',
-                });
-                category = newCategoryResponse.data.category;
+                try {
+                  const newCategoryResponse = await api.post('/categories', {
+                    name: item.category,
+                    description: item.parentCategory || '',
+                  });
+                  category = newCategoryResponse.data.category;
+                  categories.push(category); // Listeye ekle
+                } catch (catError) {
+                  console.error('Category creation error:', catError);
+                }
               }
 
-              categoryId = category.id;
-            } catch (catError) {
-              console.error('Category error:', catError);
+              if (category) {
+                categoryId = category.id;
+                categoryMap.set(categoryKey, categoryId); // Cache'e ekle
+              }
             }
           }
 
@@ -173,12 +197,14 @@ const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
         }
       }
       
-      if (successCount > 0) {
-        toast.success(`✓ ${successCount} ürün başarıyla eklendi!${errorCount > 0 ? ` (${errorCount} hata)` : ''}`);
-        console.log(`İçe aktarma tamamlandı: ${successCount} başarılı, ${errorCount} hata`);
-      }
-      if (errorCount > 0 && successCount === 0) {
-        toast.error(`✗ ${errorCount} ürün eklenemedi!`);
+      console.log(`✅ İçe aktarma tamamlandı: ${successCount} başarılı, ${errorCount} hata`);
+      
+      if (successCount > 0 && errorCount === 0) {
+        toast.success(`✓ Tüm ürünler başarıyla eklendi! (${successCount} ürün)`);
+      } else if (successCount > 0 && errorCount > 0) {
+        toast.success(`✓ ${successCount} ürün eklendi, ${errorCount} ürün eklenemedi`);
+      } else {
+        toast.error(`✗ ${errorCount} ürün eklenemedi! Konsolu kontrol edin.`);
       }
       
       setPreview([]);
