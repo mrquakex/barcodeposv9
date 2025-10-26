@@ -45,25 +45,33 @@ const Dashboard: React.FC = () => {
 
   const fetchDashboardData = async () => {
     try {
-      const [statsRes, chartRes] = await Promise.all([
-        api.get('/dashboard/stats'),
-        api.get('/dashboard/chart'),
-      ]);
+      const response = await api.get('/dashboard/stats');
+      const data = response.data;
 
-      setStats(statsRes.data);
-      setChartData({
-        labels: chartRes.data.labels,
-        datasets: [
-          {
-            label: 'Revenue',
-            data: chartRes.data.revenue,
-            borderColor: 'hsl(207, 100%, 41%)',
-            backgroundColor: 'hsl(207, 100%, 41%, 0.1)',
-            fill: true,
-            tension: 0.4,
-          },
-        ],
+      setStats({
+        totalRevenue: data.monthRevenue || 0,
+        totalSales: data.monthSalesCount || 0,
+        totalProducts: data.totalProducts || 0,
+        lowStockCount: data.lowStockProducts || 0,
+        revenueChange: 0, // TODO: Calculate from previous month
+        salesChange: 0, // TODO: Calculate from previous month
       });
+
+      if (data.last7DaysChart) {
+        setChartData({
+          labels: data.last7DaysChart.map((d: any) => d.date),
+          datasets: [
+            {
+              label: 'Revenue',
+              data: data.last7DaysChart.map((d: any) => d.revenue),
+              borderColor: 'hsl(207, 100%, 41%)',
+              backgroundColor: 'hsl(207, 100%, 41%, 0.1)',
+              fill: true,
+              tension: 0.4,
+            },
+          ],
+        });
+      }
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
     } finally {
