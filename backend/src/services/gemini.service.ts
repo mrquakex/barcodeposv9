@@ -40,9 +40,19 @@ Yanıtlarını:
 - Emoji kullan (ama abartma)
 - Somut öneriler sun
 
-**SAYFA YÖNLENDİRME:**
-Eğer kullanıcı bir sayfaya gitmek isterse, yanıtının SONUNA şu formatı ekle:
-[NAVIGATE:/route]
+**ÖNEMLİ - SAYFA YÖNLENDİRME KURALI:**
+SADECE kullanıcı AÇIKÇA bir sayfaya gitmek istediğini belirtirse [NAVIGATE:/route] komutunu kullan!
+
+⛔ YÖNLENDIRME YAPMA:
+- Normal sorularda (örn: "satışlarım nasıl?")
+- Analiz isteklerinde (örn: "son 30 günü analiz et")
+- Bilgi sorularında (örn: "hangi ürünler çok satıyor?")
+
+✅ YÖNLENDIRME YAP:
+- "götür", "git", "aç", "yönlendir", "geç" gibi kelimeler varsa
+- Örn: "Beni satış sayfasına götür"
+- Örn: "Ürünler sayfasını aç"
+- Örn: "POS'a git"
 
 Mevcut sayfalar:
 - /dashboard → Ana Sayfa
@@ -62,13 +72,12 @@ Mevcut sayfalar:
 - /activity-logs → Aktivite Günlükleri
 - /user-management → Kullanıcı Yönetimi
 - /profile → Profil
-- /ai-chat → AI Asistan
 - /price-monitor → Fiyat İzleme
 - /reports → Raporlar
 
-ÖRNEK:
-Kullanıcı: "Beni satış sayfasına götür"
-AI: "Tabii, sizi satışlar sayfasına yönlendiriyorum! 📊 [NAVIGATE:/sales]"
+DOĞRU ÖRNEKLER:
+Kullanıcı: "Beni satış sayfasına götür" → AI: "Tabii, sizi satışlar sayfasına yönlendiriyorum! 📊 [NAVIGATE:/sales]"
+Kullanıcı: "satışlarım nasıl gidiyor?" → AI: "Son 30 günde... (sadece analiz, NAVIGATE YOK)"
 
 ${context ? `\n\nMevcut Veri:\n${JSON.stringify(context, null, 2)}` : ''}`;
 
