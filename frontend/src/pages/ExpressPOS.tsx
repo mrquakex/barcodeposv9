@@ -123,7 +123,7 @@ const ExpressPOS: React.FC = () => {
   
   // 🚀 ADVANCED KAMERA CONTROLS
   const [torchEnabled, setTorchEnabled] = useState(false);
-  const [zoomLevel, setZoomLevel] = useState(1.0);
+  const [zoomLevel, setZoomLevel] = useState(1.5); // Default 1.5x for better barcode detection
   const [scanQuality, setScanQuality] = useState<'poor' | 'good' | 'excellent'>('good');
   const [lastScanTime, setLastScanTime] = useState<number>(0);
   const [isTorchSupported, setIsTorchSupported] = useState(false);
@@ -132,6 +132,11 @@ const ExpressPOS: React.FC = () => {
   const [exposureMode, setExposureMode] = useState<'manual' | 'auto'>('manual');
   const [whiteBalance, setWhiteBalance] = useState<'auto' | 'daylight' | 'cloudy' | 'tungsten'>('auto');
   const videoStreamRef = useRef<MediaStream | null>(null);
+  
+  // 🤖 AI AUTO-ADJUSTMENT
+  const [autoRetryCount, setAutoRetryCount] = useState(0);
+  const [isAutoAdjusting, setIsAutoAdjusting] = useState(false);
+  const autoRetryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Channel State - Kurumsal tek renk
   const [channels, setChannels] = useState<Channel[]>([
@@ -450,6 +455,81 @@ const ExpressPOS: React.FC = () => {
     toast.success('✨ Optimal ayarlar yüklendi', { duration: 1500 });
   };
 
+  // 🤖 AUTO-ZOOM: Otomatik yakınlaştırma (kamera açıldığında)
+  const applyAutoZoom = async (targetZoom: number) => {
+    if (!videoStreamRef.current) return;
+    
+    try {
+      const track = videoStreamRef.current.getVideoTracks()[0];
+      const capabilities = track.getCapabilities() as any;
+      
+      if (capabilities.zoom) {
+        await track.applyConstraints({
+          advanced: [{ zoom: targetZoom }]
+        } as any);
+        setZoomLevel(targetZoom);
+        console.log(`🔍 Auto-Zoom applied: ${targetZoom}x`);
+      }
+    } catch (error) {
+      console.error('Auto-zoom error:', error);
+    }
+  };
+
+  // 🔄 AUTO-RETRY: Barkod okunamazsa otomatik ayarla ve tekrar dene
+  const handleAutoRetry = async (failedBarcode: string) => {
+    if (autoRetryCount >= 3 || isAutoAdjusting) {
+      console.log('⚠️ Max retry reached or already adjusting');
+      return;
+    }
+    
+    setIsAutoAdjusting(true);
+    setAutoRetryCount(prev => prev + 1);
+    
+    console.log(`🔄 Auto-Retry ${autoRetryCount + 1}/3: Adjusting settings...`);
+    
+    // Progressive enhancement strategy
+    switch (autoRetryCount) {
+      case 0:
+        // Try 1: Increase zoom to 2.0x
+        console.log('🎯 Strategy 1: Zoom 2.0x');
+        await applyAutoZoom(2.0);
+        toast.info('🔍 Zoom artırıldı: 2.0x', { duration: 1500 });
+        break;
+        
+      case 1:
+        // Try 2: Increase zoom to 2.5x + increase contrast
+        console.log('🎯 Strategy 2: Zoom 2.5x + High Contrast');
+        await applyAutoZoom(2.5);
+        handleContrastChange(2);
+        toast.info('🔍 Zoom 2.5x + Kontrast artırıldı', { duration: 1500 });
+        break;
+        
+      case 2:
+        // Try 3: Max zoom 3.0x + aggressive anti-glare
+        console.log('🎯 Strategy 3: Max Zoom 3.0x + Aggressive Anti-Glare');
+        await applyAutoZoom(3.0);
+        handleBrightnessChange(-2);
+        handleContrastChange(2);
+        toast.info('🔍 Maksimum zoom + Anti-glare', { duration: 1500 });
+        break;
+    }
+    
+    // Reset flag after 2 seconds
+    setTimeout(() => {
+      setIsAutoAdjusting(false);
+    }, 2000);
+  };
+
+  // 🧹 Reset auto-retry on successful scan
+  const resetAutoRetry = () => {
+    setAutoRetryCount(0);
+    setIsAutoAdjusting(false);
+    if (autoRetryTimeoutRef.current) {
+      clearTimeout(autoRetryTimeoutRef.current);
+      autoRetryTimeoutRef.current = null;
+    }
+  };
+
   // Kamera ile barkod okuma
   useEffect(() => {
     let isProcessing = false; // Çift okuma önleme
@@ -643,6 +723,9 @@ const ExpressPOS: React.FC = () => {
                 setLastScanTime(scanTime);
                 console.log(`⚡ Tarama süresi: ${scanTime}ms`);
                 
+                // 🧹 RESET AUTO-RETRY (başarılı scan)
+                resetAutoRetry();
+                
                 // 📳 Başarılı vibration (çift titreşim)
                 if (navigator.vibrate) {
                   navigator.vibrate([100, 50, 100]);
@@ -660,7 +743,15 @@ const ExpressPOS: React.FC = () => {
                 toast.dismiss();
                 console.error('❌ Ürün yok (Clean):', cleanBarcode);
                 console.error('❌ Ürün yok (RAW):', decodedText);
-                toast.error(`❌ Ürün bulunamadı: ${cleanBarcode}`, { duration: 5000 });
+                
+                // 🤖 AUTO-RETRY: Otomatik ayarlama ve tekrar deneme
+                if (autoRetryCount < 3) {
+                  toast.warning(`⚙️ Ürün bulunamadı. Otomatik ayarlama (${autoRetryCount + 1}/3)...`, { duration: 2000 });
+                  await handleAutoRetry(cleanBarcode);
+                } else {
+                  toast.error(`❌ Ürün bulunamadı: ${cleanBarcode} (3 deneme yapıldı)`, { duration: 5000 });
+                }
+                
                 playSound('error');
                 
                 // ❌ HATA FEEDBACK
@@ -687,7 +778,7 @@ const ExpressPOS: React.FC = () => {
           );
 
           // Video elementinden stream'i al (torch ve zoom için)
-          setTimeout(() => {
+          setTimeout(async () => {
             const videoElement = document.querySelector('#barcode-scanner video') as HTMLVideoElement;
             if (videoElement && videoElement.srcObject) {
               videoStreamRef.current = videoElement.srcObject as MediaStream;
@@ -697,9 +788,14 @@ const ExpressPOS: React.FC = () => {
               // Default: brightness -1, contrast +1 (optimal for most conditions)
               videoElement.style.filter = 'brightness(0.8) contrast(1.15) saturate(0.9)';
               console.log('🎨 Optimal anti-glare filter applied automatically');
-              toast.success('✨ Anti-glare aktif (Otomatik)', { duration: 2000 });
+              
+              // 🔍 AUTO-APPLY ZOOM 1.5X ON START (better barcode detection)
+              await applyAutoZoom(1.5);
+              console.log('🔍 Auto-Zoom 1.5x applied on start');
+              
+              toast.success('🤖 AI Otomatik Ayarlar Aktif: Zoom 1.5x + Anti-glare', { duration: 3000 });
             }
-          }, 1000);
+          }, 1500);
           
           toast.success('📸 Kamera açıldı! Barkodu göster...', { duration: 2000 });
           console.log('✅ Scanner başlatıldı');
@@ -1665,6 +1761,7 @@ const ExpressPOS: React.FC = () => {
                   setScanQuality('good');
                   setBrightnessLevel(-1);
                   setContrastLevel(1);
+                  resetAutoRetry(); // Reset auto-retry state
                   if (videoStreamRef.current) {
                     videoStreamRef.current.getTracks().forEach(track => track.stop());
                     videoStreamRef.current = null;
@@ -1746,6 +1843,19 @@ const ExpressPOS: React.FC = () => {
                      scanQuality === 'good' ? '⭐⭐' : '⭐'}
                   </span>
                 </div>
+                {/* AI Auto-Adjustment Status */}
+                {isAutoAdjusting && (
+                  <div className="flex items-center justify-between pt-1.5 border-t border-white/20">
+                    <span className="text-gray-400">🤖 AI</span>
+                    <span className="text-orange-400 animate-pulse">Ayarlıyor {autoRetryCount}/3</span>
+                  </div>
+                )}
+                {autoRetryCount > 0 && !isAutoAdjusting && (
+                  <div className="flex items-center justify-between pt-1.5 border-t border-white/20">
+                    <span className="text-gray-400">🔄 Deneme</span>
+                    <span className="text-cyan-400">{autoRetryCount}/3</span>
+                  </div>
+                )}
               </div>
               
               {/* 🎯 DURUM GÖSTERGESİ - Üst Orta */}
