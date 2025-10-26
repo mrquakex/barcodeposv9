@@ -147,7 +147,7 @@ class BenimPOSScraperService {
       while (hasMorePages) {
         console.log(`\n📄 Sayfa ${currentPage} taranıyor...`);
 
-        // Only navigate on first page, use DataTables controls after
+        // Only navigate on first page
         if (currentPage === 1) {
           await page.goto('https://www.benimpos.com/products', {
             waitUntil: 'networkidle2',
@@ -155,43 +155,35 @@ class BenimPOSScraperService {
           });
           await new Promise(resolve => setTimeout(resolve, 2000));
         } else {
-          // For subsequent pages, use DataTables "Next" button
-          console.log(`🖱️  DataTables "Next" butonuna tıklanıyor... (Sayfa ${currentPage})`);
+          // BenimPOS uses DROPDOWN for pagination!
+          console.log(`🖱️  Dropdown'dan Sayfa ${currentPage} seçiliyor...`);
           
           try {
-            // Wait for table to be ready
-            await page.waitForSelector('#myReportTable', { timeout: 5000 });
+            // ✅ CORRECT SELECTOR: select[name="page"]
+            await page.waitForSelector('select[name="page"]', { timeout: 5000 });
             
-            // Try multiple selectors for "Next" button
-            const nextSelectors = [
-              'a.paginate_button.next:not(.disabled)',
-              'a#myReportTable_next:not(.disabled)',
-              'a[data-dt-idx]:last-child:not(.disabled)',
-              '.dataTables_paginate a.next:not(.disabled)'
-            ];
+            // Select the page number from dropdown
+            await page.select('select[name="page"]', currentPage.toString());
+            console.log(`✅ Dropdown'dan sayfa ${currentPage} seçildi`);
             
-            let clicked = false;
-            for (const selector of nextSelectors) {
-              const nextButton = await page.$(selector);
-              if (nextButton) {
-                await nextButton.click();
-                clicked = true;
-                console.log(`✅ "Next" butonuna tıklandı (${selector})`);
-                break;
-              }
+            // Wait a bit for dropdown to update
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // ✅ CORRECT BUTTON: button[type="submit"].btn.btn-primary
+            const submitButton = await page.$('button[type="submit"].btn.btn-primary');
+            if (submitButton) {
+              await submitButton.click();
+              console.log(`✅ "Görüntüle" butonuna tıklandı`);
+            } else {
+              throw new Error('"Görüntüle" butonu bulunamadı!');
             }
             
-            if (!clicked) {
-              console.log(`⚠️  "Next" butonu bulunamadı, sayfa geçişi yapılamıyor`);
-              hasMorePages = false;
-              break;
-            }
-            
-            // Wait for AJAX to reload table
+            // Wait for page to load (form submit)
             await new Promise(resolve => setTimeout(resolve, 3000));
             
             // Wait for table to update
             await page.waitForSelector('#myReportTable tbody tr', { timeout: 5000 });
+            console.log(`✅ Sayfa ${currentPage} yüklendi`);
             
           } catch (error: any) {
             console.error(`❌ Sayfa geçiş hatası: ${error.message}`);
@@ -247,12 +239,19 @@ class BenimPOSScraperService {
           console.log(`✅ ${allProducts.length} toplam ürün (şu ana kadar)`);
 
           // Check if there's a next page
-          // BenimPOS uses DataTables pagination - check if we got full 50 rows
+          // BenimPOS pagination: 32 pages total, 50 products per page
           if (rows.length >= 50) {
-            // Full page = probably more pages exist
+            // Full page = might have more pages
             currentPage++;
-            console.log(`➡️  Bir sonraki sayfaya geçiliyor... (Sayfa ${currentPage})`);
-            await new Promise(resolve => setTimeout(resolve, 1500)); // Wait before next page
+            
+            // Check if we've reached max pages (safety: 100 pages)
+            if (currentPage > 100) {
+              hasMorePages = false;
+              console.log(`⚠️  Maksimum sayfa limitine ulaşıldı (100 sayfa)`);
+            } else {
+              console.log(`➡️  Bir sonraki sayfaya geçiliyor... (Sayfa ${currentPage})`);
+              await new Promise(resolve => setTimeout(resolve, 1500)); // Wait before next page
+            }
           } else {
             // Less than 50 rows = last page
             hasMorePages = false;
