@@ -101,21 +101,55 @@ const Dashboard: React.FC = () => {
         ))}
       </div>
 
-      {/* Low Stock Alert */}
+      {/* Low Stock Alert - Modern */}
       {stats.lowStockProducts > 0 && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.4 }}
+          whileHover={{ scale: 1.01, y: -2 }}
+          className="group"
         >
-          <Card className="border-3 border-orange-500 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 shadow-xl">
-            <CardContent className="flex items-center gap-4 py-5">
-              <div className="p-3 rounded-xl bg-orange-500/20 shadow-md">
-                <AlertCircle className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+          <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-orange-50 via-red-50 to-orange-50 dark:from-orange-950/30 dark:via-red-950/30 dark:to-orange-950/30 shadow-xl hover:shadow-2xl transition-all duration-300">
+            {/* Animated Background Pattern */}
+            <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-red-500/10 to-orange-500/10 opacity-50 group-hover:opacity-70 transition-opacity duration-300" />
+            
+            {/* Top Warning Line */}
+            <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-orange-500 via-red-500 to-orange-500" />
+            
+            <CardContent className="flex flex-col md:flex-row items-start md:items-center gap-4 py-5 md:py-6 relative">
+              <motion.div 
+                className="flex-shrink-0 p-3 md:p-4 rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 shadow-lg"
+                animate={{ rotate: [0, -5, 5, -5, 0] }}
+                transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+              >
+                <AlertCircle className="h-6 w-6 md:h-7 md:w-7 text-white" />
+              </motion.div>
+              
+              <div className="flex-1">
+                <p className="text-sm md:text-base font-bold text-slate-700 dark:text-slate-200 mb-1">
+                  ⚠️ Düşük Stok Uyarısı
+                </p>
+                <p className="text-xs md:text-sm font-semibold text-slate-600 dark:text-slate-400">
+                  <motion.span 
+                    className="inline-block font-black text-orange-600 dark:text-orange-400 text-xl md:text-2xl"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: [0, 1.2, 1] }}
+                    transition={{ delay: 0.3, duration: 0.5 }}
+                  >
+                    {stats.lowStockProducts}
+                  </motion.span>
+                  <span className="ml-2">ürün stok seviyesinin altında!</span>
+                </p>
               </div>
-              <p className="text-base font-semibold">
-                <span className="font-black text-orange-600 dark:text-orange-400 text-lg">{stats.lowStockProducts}</span> ürün stok seviyesinin altında!
-              </p>
+              
+              <motion.button 
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs md:text-sm font-bold shadow-md hover:shadow-lg transition-all duration-300"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                Görüntüle →
+              </motion.button>
             </CardContent>
           </Card>
         </motion.div>
@@ -123,15 +157,25 @@ const Dashboard: React.FC = () => {
 
       {/* Charts Row */}
       <div className="grid gap-6 md:grid-cols-2">
-        {/* Sales Line Chart */}
+        {/* Sales Line Chart - Modern */}
         <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
+          initial={{ opacity: 0, x: -20, scale: 0.95 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          transition={{ delay: 0.3, duration: 0.4 }}
+          whileHover={{ y: -4 }}
+          className="group"
         >
-          <Card className="border-3 border-blue-500 dark:border-blue-900 shadow-xl bg-white dark:bg-slate-900">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-b-3 border-slate-300 dark:border-slate-700">
-              <CardTitle className="text-xl font-black text-slate-900 dark:text-white">📈 Son 7 Günlük Satışlar</CardTitle>
+          <Card className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white via-blue-50/30 to-slate-50 dark:from-slate-900 dark:via-blue-950/20 dark:to-slate-800">
+            {/* Top Accent */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-blue-600 to-slate-600" />
+            
+            {/* Glassmorphism overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            
+            <CardHeader className="bg-gradient-to-r from-blue-50/50 to-slate-50/50 dark:from-blue-950/30 dark:to-slate-950/30 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm">
+              <CardTitle className="text-base md:text-lg lg:text-xl font-black bg-gradient-to-r from-blue-600 to-slate-700 dark:from-blue-400 dark:to-slate-300 bg-clip-text text-transparent flex items-center gap-2">
+                <span className="text-2xl">📈</span> Son 7 Günlük Satışlar
+              </CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
               <ResponsiveContainer width="100%" height={300}>
@@ -163,15 +207,25 @@ const Dashboard: React.FC = () => {
           </Card>
         </motion.div>
 
-        {/* Sales Count Bar Chart */}
+        {/* Sales Count Bar Chart - Modern */}
         <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4 }}
+          initial={{ opacity: 0, x: 20, scale: 0.95 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          transition={{ delay: 0.4, duration: 0.4 }}
+          whileHover={{ y: -4 }}
+          className="group"
         >
-          <Card className="border-3 border-slate-400 dark:border-slate-800 shadow-xl bg-white dark:bg-slate-900">
-            <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-950/20 dark:to-blue-950/20 border-b-3 border-slate-300 dark:border-slate-700">
-              <CardTitle className="text-xl font-black text-slate-900 dark:text-white">📊 Satış Adetleri</CardTitle>
+          <Card className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white via-slate-50/30 to-blue-50 dark:from-slate-900 dark:via-slate-900/20 dark:to-blue-950/20">
+            {/* Top Accent */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-slate-500 via-slate-600 to-blue-600" />
+            
+            {/* Glassmorphism overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            
+            <CardHeader className="bg-gradient-to-r from-slate-50/50 to-blue-50/50 dark:from-slate-950/30 dark:to-blue-950/30 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm">
+              <CardTitle className="text-base md:text-lg lg:text-xl font-black bg-gradient-to-r from-slate-700 to-blue-600 dark:from-slate-300 dark:to-blue-400 bg-clip-text text-transparent flex items-center gap-2">
+                <span className="text-2xl">📊</span> Satış Adetleri
+              </CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
               <ResponsiveContainer width="100%" height={300}>
