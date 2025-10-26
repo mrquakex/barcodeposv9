@@ -9,7 +9,8 @@ import {
   TrendingUp,
   Package,
   Lightbulb,
-  Loader2
+  Loader2,
+  Zap
 } from 'lucide-react';
 import api from '../lib/api';
 import toast from 'react-hot-toast';
@@ -93,9 +94,9 @@ const AIChat: React.FC = () => {
   };
 
   const quickActions = [
-    { icon: TrendingUp, label: 'Satış Analizi', prompt: 'Son satışlarımı analiz eder misin?' },
-    { icon: Package, label: 'Stok Önerisi', prompt: 'Hangi ürünlerin stokunu artırmalıyım?' },
-    { icon: Lightbulb, label: 'İş Önerileri', prompt: 'İşimi geliştirmek için ne önerirsin?' },
+    { icon: TrendingUp, label: 'Satış Analizi', prompt: 'Son satışlarımı analiz eder misin?', color: 'blue' },
+    { icon: Package, label: 'Stok Önerisi', prompt: 'Hangi ürünlerin stokunu artırmalıyım?', color: 'slate' },
+    { icon: Lightbulb, label: 'İş Önerileri', prompt: 'İşimi geliştirmek için ne önerirsin?', color: 'blue' },
   ];
 
   const handleQuickAction = async (prompt: string) => {
@@ -142,39 +143,45 @@ const AIChat: React.FC = () => {
 
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col">
-      {/* Header */}
+      {/* Header - Corporate Blue/Slate */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="mb-6"
       >
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-lg">
-            <Bot className="w-7 h-7 text-white" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              AI Asistan
-            </h1>
-            <p className="text-sm text-muted-foreground">Powered by Groq AI (Llama 3.3) 🚀</p>
-          </div>
-          <div className="ml-auto flex gap-2">
-            <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-2 border-green-200 dark:border-green-900 rounded-xl">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-sm font-semibold text-green-700 dark:text-green-400">Sistem Entegre</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-2xl border-4 border-blue-200 dark:border-blue-900">
+              <Bot className="w-9 h-9 text-white" />
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30 border-2 border-purple-200 dark:border-purple-900 rounded-xl">
-              <Sparkles className="w-5 h-5 text-purple-600 animate-pulse" />
-              <span className="text-sm font-semibold text-purple-700 dark:text-purple-400">AI Aktif</span>
+            <div>
+              <h1 className="text-4xl font-black bg-gradient-to-r from-blue-600 to-slate-700 bg-clip-text text-transparent">
+                AI Asistan
+              </h1>
+              <div className="flex items-center gap-2 mt-1">
+                <Zap className="w-4 h-4 text-blue-600" />
+                <p className="text-sm font-bold text-slate-600 dark:text-slate-400">Powered by Groq AI (Llama 3.3)</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex gap-3">
+            <div className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-3 border-green-300 dark:border-green-800 rounded-xl shadow-lg">
+              <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse shadow-lg shadow-green-500/50" />
+              <span className="text-sm font-black text-green-700 dark:text-green-400">Sistem Entegre</span>
+            </div>
+            <div className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/30 dark:to-slate-950/30 border-3 border-blue-300 dark:border-blue-800 rounded-xl shadow-lg">
+              <Sparkles className="w-5 h-5 text-blue-600 animate-pulse" />
+              <span className="text-sm font-black text-blue-700 dark:text-blue-400">AI Aktif</span>
             </div>
           </div>
         </div>
       </motion.div>
 
-      {/* Chat Container */}
-      <Card className="flex-1 flex flex-col overflow-hidden">
+      {/* Chat Container - Enhanced */}
+      <Card className="flex-1 flex flex-col overflow-hidden shadow-2xl border-3 border-blue-200 dark:border-slate-800">
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+        <div className="flex-1 overflow-y-auto p-8 space-y-6 bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-950">
           <AnimatePresence>
             {messages.map((message) => (
               <motion.div
@@ -182,23 +189,24 @@ const AIChat: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className={`flex gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                transition={{ duration: 0.3 }}
+                className={`flex gap-4 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {message.role === 'assistant' && (
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-md">
-                    <Bot className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center flex-shrink-0 shadow-xl border-3 border-blue-200 dark:border-blue-900">
+                    <Bot className="w-7 h-7 text-white" />
                   </div>
                 )}
 
                 <div
-                  className={`max-w-[70%] p-4 rounded-2xl ${
+                  className={`max-w-[70%] p-5 rounded-2xl shadow-lg ${
                     message.role === 'user'
-                      ? 'bg-gradient-to-br from-blue-600 to-purple-600 text-white'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white'
+                      ? 'bg-gradient-to-br from-blue-600 to-slate-700 text-white border-3 border-blue-300'
+                      : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-3 border-blue-100 dark:border-slate-700'
                   }`}
                 >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                  <p className="text-xs mt-2 opacity-70">
+                  <p className="text-sm font-semibold leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                  <p className="text-xs mt-3 opacity-70 font-bold">
                     {message.timestamp.toLocaleTimeString('tr-TR', {
                       hour: '2-digit',
                       minute: '2-digit',
@@ -207,8 +215,8 @@ const AIChat: React.FC = () => {
                 </div>
 
                 {message.role === 'user' && (
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center flex-shrink-0 shadow-md">
-                    <User className="w-6 h-6 text-white" />
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center flex-shrink-0 shadow-xl border-3 border-blue-200 dark:border-blue-900">
+                    <User className="w-7 h-7 text-white" />
                   </div>
                 )}
               </motion.div>
@@ -219,15 +227,15 @@ const AIChat: React.FC = () => {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex gap-3"
+              className="flex gap-4"
             >
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-md">
-                <Bot className="w-6 h-6 text-white" />
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center flex-shrink-0 shadow-xl border-3 border-blue-200 dark:border-blue-900">
+                <Bot className="w-7 h-7 text-white" />
               </div>
-              <div className="bg-slate-100 dark:bg-slate-800 p-4 rounded-2xl">
-                <div className="flex items-center gap-2">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span className="text-sm">AI düşünüyor...</span>
+              <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-lg border-3 border-blue-100 dark:border-slate-700">
+                <div className="flex items-center gap-3">
+                  <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                  <span className="text-sm font-bold text-slate-700 dark:text-slate-300">AI düşünüyor...</span>
                 </div>
               </div>
             </motion.div>
@@ -236,47 +244,50 @@ const AIChat: React.FC = () => {
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Quick Actions */}
+        {/* Quick Actions - Enhanced */}
         {messages.length === 1 && (
-          <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-800">
-            <p className="text-sm font-semibold mb-3 text-muted-foreground">Hızlı Sorular:</p>
-            <div className="grid grid-cols-3 gap-3">
+          <div className="px-8 py-6 border-t-3 border-blue-200 dark:border-slate-800 bg-gradient-to-r from-blue-50 to-slate-50 dark:from-slate-900 dark:to-slate-950">
+            <p className="text-sm font-black mb-4 text-slate-700 dark:text-slate-300">⚡ Hızlı Sorular:</p>
+            <div className="grid grid-cols-3 gap-4">
               {quickActions.map((action, index) => (
                 <button
                   key={index}
                   onClick={() => handleQuickAction(action.prompt)}
                   disabled={loading}
-                  className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-700 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-4 rounded-xl bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 border-3 border-blue-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600 transition-all group disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:scale-105"
                 >
-                  <action.icon className="w-5 h-5 mx-auto mb-2 text-purple-600 group-hover:scale-110 transition-transform" />
-                  <p className="text-xs font-semibold text-center">{action.label}</p>
+                  <action.icon className="w-7 h-7 mx-auto mb-3 text-blue-600 dark:text-blue-400 group-hover:scale-125 transition-transform" />
+                  <p className="text-xs font-black text-center text-slate-700 dark:text-slate-300">{action.label}</p>
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Input */}
-        <div className="p-4 border-t border-slate-200 dark:border-slate-800">
-          <div className="flex gap-3">
+        {/* Input - Enhanced */}
+        <div className="p-6 border-t-3 border-blue-200 dark:border-slate-800 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-950 dark:to-slate-900">
+          <div className="flex gap-4">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Mesajınızı yazın... (Enter ile gönder)"
-              className="flex-1 px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 focus:border-purple-500 focus:outline-none resize-none"
+              className="flex-1 px-5 py-4 rounded-xl bg-white dark:bg-slate-800 border-3 border-blue-200 dark:border-slate-700 focus:border-blue-500 focus:outline-none resize-none font-semibold text-slate-900 dark:text-white placeholder-slate-400 shadow-lg"
               rows={2}
               disabled={loading}
             />
             <button
               onClick={handleSend}
               disabled={!input.trim() || loading}
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-slate-700 text-white font-black hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 border-3 border-blue-300 hover:scale-105"
             >
               {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Loader2 className="w-6 h-6 animate-spin" />
               ) : (
-                <Send className="w-5 h-5" />
+                <>
+                  <Send className="w-6 h-6" />
+                  <span>Gönder</span>
+                </>
               )}
             </button>
           </div>
@@ -287,4 +298,3 @@ const AIChat: React.FC = () => {
 };
 
 export default AIChat;
-
