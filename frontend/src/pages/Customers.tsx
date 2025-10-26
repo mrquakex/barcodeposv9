@@ -237,6 +237,46 @@ const Customers: React.FC = () => {
         </Button>
       </motion.div>
 
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+        <StatCard
+          title="Toplam Müşteri"
+          value={customers.length.toString()}
+          description="Aktif müşteriler"
+          icon={Users}
+          color="from-blue-600 to-blue-700"
+          trend={{ value: 12, isPositive: true }}
+        />
+        <StatCard
+          title="Toplam Borç"
+          value={formatCurrency(customers.reduce((sum, c) => sum + c.debt, 0))}
+          description="Ödenmemiş borçlar"
+          icon={CreditCard}
+          color="from-red-600 to-orange-700"
+          trend={{ value: 5.2, isPositive: false }}
+        />
+        <StatCard
+          title="Ort. Harcama"
+          value={formatCurrency(
+            customers.length > 0
+              ? customers.reduce((sum, c) => sum + (c.credit || 0), 0) / customers.length
+              : 0
+          )}
+          description="Müşteri başına"
+          icon={ShoppingCart}
+          color="from-green-600 to-emerald-700"
+          trend={{ value: 8.7, isPositive: true }}
+        />
+        <StatCard
+          title="Aktif Müşteri"
+          value={customers.filter(c => c.isActive).length.toString()}
+          description="Bu ay alışveriş yaptı"
+          icon={CheckCircle2}
+          color="from-purple-600 to-purple-700"
+          trend={{ value: 15.3, isPositive: true }}
+        />
+      </div>
+
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
