@@ -108,7 +108,7 @@ const Dashboard: React.FC = () => {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
         >
-          <Card className="border-2 border-orange-500/50 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 shadow-lg">
+          <Card className="border-3 border-orange-500 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 shadow-xl">
             <CardContent className="flex items-center gap-4 py-5">
               <div className="p-3 rounded-xl bg-orange-500/20 shadow-md">
                 <AlertCircle className="h-6 w-6 text-orange-600 dark:text-orange-400" />
@@ -129,8 +129,8 @@ const Dashboard: React.FC = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card className="border-2 border-blue-400 dark:border-blue-900 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-b-2">
+          <Card className="border-3 border-blue-500 dark:border-blue-900 shadow-xl bg-white dark:bg-slate-900">
+            <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-b-3 border-slate-300 dark:border-slate-700">
               <CardTitle className="text-xl font-black text-slate-900 dark:text-white">📈 Son 7 Günlük Satışlar</CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
@@ -169,8 +169,8 @@ const Dashboard: React.FC = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <Card className="border-2 border-slate-300 dark:border-slate-800 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-950/20 dark:to-blue-950/20 border-b-2">
+          <Card className="border-3 border-slate-400 dark:border-slate-800 shadow-xl bg-white dark:bg-slate-900">
+            <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-950/20 dark:to-blue-950/20 border-b-3 border-slate-300 dark:border-slate-700">
               <CardTitle className="text-xl font-black text-slate-900 dark:text-white">📊 Satış Adetleri</CardTitle>
             </CardHeader>
             <CardContent className="pt-6">

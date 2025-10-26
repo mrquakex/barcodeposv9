@@ -23,20 +23,20 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, description, icon: Ic
       transition={{ duration: 0.3 }}
       whileHover={{ y: -5, transition: { duration: 0.2 } }}
     >
-      <Card className="relative overflow-hidden border-2 shadow-md hover:shadow-xl transition-shadow">
-        <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-5`} />
+      <Card className="relative overflow-hidden border-2 border-slate-300 dark:border-slate-700 shadow-lg hover:shadow-2xl transition-all bg-white dark:bg-slate-900">
+        <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-10`} />
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{title}</CardTitle>
-          <div className={`p-2 rounded-lg bg-gradient-to-br ${color}`}>
-            <Icon className="h-4 w-4 text-white" />
+          <CardTitle className="text-sm font-bold text-slate-700 dark:text-slate-200">{title}</CardTitle>
+          <div className={`p-3 rounded-xl bg-gradient-to-br ${color} shadow-md`}>
+            <Icon className="h-5 w-5 text-white" />
           </div>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{value}</div>
+          <div className="text-3xl font-black text-slate-900 dark:text-white">{value}</div>
           <div className="flex items-center justify-between mt-1">
-            <p className="text-xs text-muted-foreground">{description}</p>
+            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">{description}</p>
             {trend && (
-              <span className={`text-xs font-semibold ${trend.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+              <span className={`text-xs font-bold ${trend.isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                 {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}%
               </span>
             )}
