@@ -42,6 +42,12 @@ const Login: React.FC = () => {
     }
   };
 
+  const fillDemoAccount = (demoEmail: string, demoPassword: string) => {
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+    setError('');
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 relative overflow-hidden">
       {/* Animated Mesh Background */}
@@ -259,7 +265,10 @@ const Login: React.FC = () => {
                     <h3 className="font-bold text-white">Demo Hesaplar</h3>
                   </div>
                   <div className="space-y-3">
-                    <div className="p-3 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all cursor-pointer group">
+                    <div 
+                      onClick={() => fillDemoAccount('admin@barcodepos.com', 'admin123')}
+                      className="p-3 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 hover:border-blue-500/30 transition-all cursor-pointer group active:scale-95"
+                    >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
                           👨‍💼
@@ -268,10 +277,18 @@ const Login: React.FC = () => {
                           <p className="text-xs text-gray-400 font-medium">Admin</p>
                           <p className="text-sm text-white font-mono truncate">admin@barcodepos.com</p>
                         </div>
-                        <span className="text-xs text-gray-500 font-mono">admin123</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-500 font-mono">admin123</span>
+                          <svg className="w-4 h-4 text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
                       </div>
                     </div>
-                    <div className="p-3 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-all cursor-pointer group">
+                    <div 
+                      onClick={() => fillDemoAccount('kasiyer@barcodepos.com', 'kasiyer123')}
+                      className="p-3 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 hover:border-slate-500/30 transition-all cursor-pointer group active:scale-95"
+                    >
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-sm group-hover:scale-110 transition-transform">
                           💰
@@ -280,7 +297,12 @@ const Login: React.FC = () => {
                           <p className="text-xs text-gray-400 font-medium">Kasiyer</p>
                           <p className="text-sm text-white font-mono truncate">kasiyer@barcodepos.com</p>
                         </div>
-                        <span className="text-xs text-gray-500 font-mono">kasiyer123</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-500 font-mono">kasiyer123</span>
+                          <svg className="w-4 h-4 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
                       </div>
                     </div>
                   </div>
