@@ -28,7 +28,7 @@ const AIChat: React.FC = () => {
     {
       id: '1',
       role: 'assistant',
-      content: `Merhaba ${user?.name}! 👋 Ben BarcodePOS AI asistanınızım. Size nasıl yardımcı olabilirim?\n\n✨ Yapabileceklerim:\n📊 Satış analizleri\n📦 Stok önerileri\n💰 Fiyatlandırma stratejileri\n🎯 İş geliştirme tavsiyeleri`,
+      content: `Merhaba ${user?.name}! 👋 Ben BarcodePOS AI asistanınızım.\n\n✅ Sistem verilerinize tam erişimim var!\n\n✨ Yapabileceklerim:\n📊 Son 30 günün satış analizleri\n📈 Gerçek ciro ve trend raporları\n📦 En çok satan ürünler ve stok önerileri\n💡 İş geliştirme stratejileri\n🎯 Kişiselleştirilmiş tavsiyeler\n\nNe öğrenmek istersiniz?`,
       timestamp: new Date(),
     },
   ]);
@@ -98,6 +98,48 @@ const AIChat: React.FC = () => {
     { icon: Lightbulb, label: 'İş Önerileri', prompt: 'İşimi geliştirmek için ne önerirsin?' },
   ];
 
+  const handleQuickAction = async (prompt: string) => {
+    setInput(prompt);
+    
+    // Mesajı otomatik gönder
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: prompt,
+      timestamp: new Date(),
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setLoading(true);
+
+    try {
+      const response = await api.post('/gemini/chat', { message: prompt });
+
+      const aiMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: response.data.message,
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'AI ile iletişim kurulamadı');
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: 'Üzgünüm, şu anda bir sorun yaşıyorum. Lütfen daha sonra tekrar deneyin.',
+        timestamp: new Date(),
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col">
       {/* Header */}
@@ -114,9 +156,13 @@ const AIChat: React.FC = () => {
             <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
               AI Asistan
             </h1>
-            <p className="text-sm text-muted-foreground">Powered by Google Gemini</p>
+            <p className="text-sm text-muted-foreground">Powered by Groq AI (Llama 3.3) 🚀</p>
           </div>
-          <div className="ml-auto">
+          <div className="ml-auto flex gap-2">
+            <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border-2 border-green-200 dark:border-green-900 rounded-xl">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-sm font-semibold text-green-700 dark:text-green-400">Sistem Entegre</span>
+            </div>
             <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30 border-2 border-purple-200 dark:border-purple-900 rounded-xl">
               <Sparkles className="w-5 h-5 text-purple-600 animate-pulse" />
               <span className="text-sm font-semibold text-purple-700 dark:text-purple-400">AI Aktif</span>
@@ -198,8 +244,9 @@ const AIChat: React.FC = () => {
               {quickActions.map((action, index) => (
                 <button
                   key={index}
-                  onClick={() => setInput(action.prompt)}
-                  className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-700 transition-all group"
+                  onClick={() => handleQuickAction(action.prompt)}
+                  disabled={loading}
+                  className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-700 transition-all group disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <action.icon className="w-5 h-5 mx-auto mb-2 text-purple-600 group-hover:scale-110 transition-transform" />
                   <p className="text-xs font-semibold text-center">{action.label}</p>
