@@ -439,14 +439,14 @@ const POS: React.FC = () => {
                   <div className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-md">
                     <Zap className="w-6 h-6 text-white" />
                   </div>
-                  <Input
-                    ref={barcodeInputRef}
-                    type="text"
+              <Input
+                ref={barcodeInputRef}
+                type="text"
                     inputMode="numeric"
                     placeholder="Barkod giriniz..."
-                    value={barcode}
-                    onChange={(e) => setBarcode(e.target.value)}
-                    disabled={loading}
+                value={barcode}
+                onChange={(e) => setBarcode(e.target.value)}
+                disabled={loading}
                     className="pl-20 pr-6 h-16 text-lg font-semibold tracking-wide border-2 border-slate-300 focus:border-blue-600 dark:border-slate-700 shadow-sm"
                   />
                   {loading && (
@@ -515,7 +515,7 @@ const POS: React.FC = () => {
                       whileHover={{ scale: 1.03, y: -4 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => handleProductClick(product)}
-                      className={`p-5 rounded-xl border-2 transition-all text-left shadow-md ${
+                      className={`p-4 md:p-5 rounded-xl border-2 transition-all text-left shadow-md ${
                         product.stock === 0 
                           ? 'opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800 border-gray-300' 
                           : 'hover:border-blue-600 hover:shadow-xl bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'
@@ -523,25 +523,25 @@ const POS: React.FC = () => {
                       disabled={product.stock === 0}
                     >
                       <div className="flex items-start justify-between mb-3">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-md">
-                          <Package className="w-6 h-6 text-white" />
+                        <div className="w-14 h-14 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-md">
+                          <Package className="w-7 h-7 md:w-6 md:h-6 text-white" />
                         </div>
                         {product.stock <= product.minStock && product.stock > 0 && (
-                          <span className="text-xs bg-red-600 text-white px-3 py-1 rounded-full font-bold shadow-md">
+                          <span className="text-xs bg-red-600 text-white px-2 md:px-3 py-1 rounded-full font-bold shadow-md">
                             Düşük
                           </span>
                         )}
                         {product.stock === 0 && (
-                          <span className="text-xs bg-gray-600 text-white px-3 py-1 rounded-full font-bold">
+                          <span className="text-xs bg-gray-600 text-white px-2 md:px-3 py-1 rounded-full font-bold">
                             Yok
                           </span>
                         )}
                       </div>
-                      <p className="font-bold text-base truncate mb-2 text-slate-900 dark:text-white">{product.name}</p>
+                      <p className="font-bold text-base md:text-base truncate mb-2 text-slate-900 dark:text-white">{product.name}</p>
                       <p className="text-sm text-muted-foreground mb-3 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded inline-block">
                         Stok: <span className={product.stock <= product.minStock ? 'text-red-600 font-bold' : 'font-semibold'}>{product.stock}</span> {product.unit}
                       </p>
-                      <p className="text-2xl font-black text-blue-700 dark:text-blue-400">
+                      <p className="text-xl md:text-2xl font-black text-blue-700 dark:text-blue-400">
                         {formatCurrency(product.price)}
                       </p>
                     </motion.button>
@@ -623,42 +623,42 @@ const POS: React.FC = () => {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20 }}
-                      className="border-2 rounded-xl p-5 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 hover:border-blue-600 transition-all shadow-md hover:shadow-lg border-slate-200 dark:border-slate-700"
+                      className="border-2 rounded-xl p-3 md:p-5 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 hover:border-blue-600 transition-all shadow-md hover:shadow-lg border-slate-200 dark:border-slate-700"
                     >
-                      <div className="flex justify-between items-start mb-4">
+                      <div className="flex justify-between items-start mb-3">
                         <div className="flex-1">
-                          <p className="font-bold text-base text-slate-900 dark:text-white mb-1">{item.product.name}</p>
-                          <p className="text-sm text-slate-600 dark:text-slate-400 font-mono">{formatCurrency(item.product.price)} × {item.quantity}</p>
+                          <p className="font-bold text-sm md:text-base text-slate-900 dark:text-white mb-1">{item.product.name}</p>
+                          <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 font-mono">{formatCurrency(item.product.price)} × {item.quantity}</p>
                         </div>
                     <button
                       onClick={() => removeItem(item.product.id)}
-                          className="text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 p-2 rounded-lg transition-colors"
+                          className="text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 p-2 md:p-2 rounded-lg transition-colors"
                     >
-                          <Trash2 className="w-5 h-5" />
+                          <Trash2 className="w-5 h-5 md:w-5 md:h-5" />
                     </button>
                   </div>
                       <div className="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-700">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 md:gap-3">
                           <Button
                             size="sm"
                             variant="outline"
                         onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                            className="w-10 h-10 p-0 border-2 border-slate-300 dark:border-slate-600 hover:border-blue-600 hover:bg-blue-50"
+                            className="w-12 h-12 md:w-10 md:h-10 p-0 border-2 border-slate-300 dark:border-slate-600 hover:border-blue-600 hover:bg-blue-50"
                       >
-                        <Minus className="w-4 h-4" />
+                        <Minus className="w-5 h-5 md:w-4 md:h-4" />
                           </Button>
-                          <span className="w-14 text-center font-black text-xl text-slate-900 dark:text-white">{item.quantity}</span>
+                          <span className="w-12 md:w-14 text-center font-black text-lg md:text-xl text-slate-900 dark:text-white">{item.quantity}</span>
                           <Button
                             size="sm"
                             variant="outline"
                         onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
                         disabled={item.quantity >= item.product.stock}
-                            className="w-10 h-10 p-0 border-2 border-slate-300 dark:border-slate-600 hover:border-blue-600 hover:bg-blue-50"
+                            className="w-12 h-12 md:w-10 md:h-10 p-0 border-2 border-slate-300 dark:border-slate-600 hover:border-blue-600 hover:bg-blue-50"
                       >
-                        <Plus className="w-4 h-4" />
+                        <Plus className="w-5 h-5 md:w-4 md:h-4" />
                           </Button>
                     </div>
-                        <p className="text-2xl font-black text-blue-700 dark:text-blue-400">
+                        <p className="text-xl md:text-2xl font-black text-blue-700 dark:text-blue-400">
                           {formatCurrency(item.subtotal)}
                         </p>
                   </div>
@@ -694,26 +694,27 @@ const POS: React.FC = () => {
                 ) : (
                   <Button
                     variant="outline"
-                    className="w-full"
+                    className="w-full h-12 md:h-auto text-base md:text-sm"
                     onClick={() => setShowCustomerModal(true)}
                   >
-                    <User className="w-4 h-4 mr-2" />
-                    Müşteri Seç (F2)
+                    <User className="w-5 h-5 md:w-4 md:h-4 mr-2" />
+                    <span className="md:hidden">Müşteri Seç</span>
+                    <span className="hidden md:inline">Müşteri Seç (F2)</span>
                   </Button>
                 )}
             </div>
 
               {/* Totals */}
               <div className="space-y-3">
-            <div className="flex justify-between text-sm font-semibold">
+            <div className="flex justify-between text-sm md:text-sm font-semibold">
               <span>Ara Toplam:</span>
-              <span className="text-base">{formatCurrency(totalAmount)}</span>
+              <span className="text-base md:text-base">{formatCurrency(totalAmount)}</span>
             </div>
 
 
-                <div className="border-t-2 border-blue-200 dark:border-blue-900 pt-3 flex justify-between items-center bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 p-3 rounded-xl">
-                  <span className="text-xl font-black">TOPLAM:</span>
-                  <span className="text-3xl font-black text-blue-700 dark:text-blue-400">
+                <div className="border-t-2 border-blue-200 dark:border-blue-900 pt-3 flex justify-between items-center bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 p-4 md:p-3 rounded-xl">
+                  <span className="text-lg md:text-xl font-black">TOPLAM:</span>
+                  <span className="text-2xl md:text-3xl font-black text-blue-700 dark:text-blue-400">
                     {formatCurrency(netAmount)}
                   </span>
                 </div>
@@ -722,18 +723,19 @@ const POS: React.FC = () => {
               {/* Action Buttons */}
             <div className="flex gap-2 pt-2">
               <Button
-                  className="flex-1 h-16 text-xl font-black bg-gradient-to-r from-blue-700 to-slate-700 hover:from-blue-600 hover:to-slate-600 shadow-xl hover:shadow-2xl transition-all"
+                  className="flex-1 h-20 md:h-16 text-xl md:text-xl font-black bg-gradient-to-r from-blue-700 to-slate-700 hover:from-blue-600 hover:to-slate-600 shadow-xl hover:shadow-2xl transition-all"
                   onClick={() => setShowPaymentModal(true)}
                 disabled={items.length === 0}
               >
-                  <CreditCard className="w-6 h-6 mr-3" />
-                  Ödeme Al (F5)
+                  <CreditCard className="w-7 h-7 md:w-6 md:h-6 mr-2 md:mr-3" />
+                  <span className="md:hidden">ÖDEME AL</span>
+                  <span className="hidden md:inline">Ödeme Al (F5)</span>
               </Button>
             </div>
 
               {/* Quick Actions & Shortcuts */}
               <div className="pt-3 border-t space-y-3">
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                   <Button
                     variant="outline"
                     size="sm"
