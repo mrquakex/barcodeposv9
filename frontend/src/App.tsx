@@ -17,7 +17,6 @@ import Expenses from './pages/Expenses';
 import Finance from './pages/Finance';
 import PurchaseOrders from './pages/PurchaseOrders';
 import Sales from './pages/Sales';
-import ReportsHub from './pages/ReportsHub';
 import SalesReport from './pages/Reports/SalesReport';
 import ProductReport from './pages/Reports/ProductReport';
 import Campaigns from './pages/Campaigns';
@@ -25,10 +24,7 @@ import Coupons from './pages/Coupons';
 import Branches from './pages/Branches';
 import ActivityLogs from './pages/ActivityLogs';
 import UserManagement from './pages/UserManagement';
-import AIInsights from './pages/AIInsights';
 import AIChat from './pages/AIChat';
-import ExpressPOS from './pages/ExpressPOS';
-import PriceMonitor from './pages/PriceMonitor';
 
 const App: React.FC = () => {
   return (
@@ -41,7 +37,6 @@ const App: React.FC = () => {
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="pos" element={<POS />} />
-            <Route path="express-pos" element={<ExpressPOS />} />
             <Route path="products" element={<ProductsNew />} />
             <Route path="categories" element={<Categories />} />
             <Route path="sales" element={<Sales />} />
@@ -51,7 +46,7 @@ const App: React.FC = () => {
             <Route path="expenses" element={<Expenses />} />
             <Route path="finance" element={<Finance />} />
             <Route path="purchase-orders" element={<PurchaseOrders />} />
-            <Route path="reports" element={<ReportsHub />} />
+            <Route path="reports" element={<Reports />} />
             <Route path="reports/sales" element={<SalesReport />} />
             <Route path="reports/products" element={<ProductReport />} />
             <Route path="reports/financial" element={<Finance />} />
@@ -63,9 +58,7 @@ const App: React.FC = () => {
             <Route path="branches" element={<Branches />} />
             <Route path="user-management" element={<UserManagement />} />
             <Route path="activity-logs" element={<ActivityLogs />} />
-            <Route path="ai-insights" element={<AIInsights />} />
             <Route path="ai-chat" element={<AIChat />} />
-            <Route path="price-monitor" element={<PriceMonitor />} />
             <Route path="settings" element={<Settings />} />
             <Route path="profile" element={<Profile />} />
           </Route>

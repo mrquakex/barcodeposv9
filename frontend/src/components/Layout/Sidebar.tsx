@@ -34,29 +34,15 @@ const Sidebar: React.FC = () => {
   const { user, logout } = useAuthStore();
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // 🏢 KURUMSAL MENÜ YAPISI (7 Ana Kategori)
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
-    { icon: ShoppingCart, label: 'Satış (POS)', path: '/pos', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
-    { icon: Zap, label: 'Express POS', path: '/express-pos', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
-    { icon: Receipt, label: 'Satışlar', path: '/sales', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
+    { icon: Zap, label: 'Satış', path: '/pos', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
     { icon: Package, label: 'Ürünler', path: '/products', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
-    { icon: FolderOpen, label: 'Kategoriler', path: '/categories', roles: ['ADMIN', 'MANAGER'] },
-    { icon: Building2, label: 'Tedarikçiler', path: '/suppliers', roles: ['ADMIN', 'MANAGER'] },
-    { icon: ShoppingBag, label: 'Satın Alma', path: '/purchase-orders', roles: ['ADMIN', 'MANAGER'] },
-    { icon: TrendingUp, label: 'Stok Hareketleri', path: '/stock-movements', roles: ['ADMIN', 'MANAGER'] },
-    { icon: DollarSign, label: 'Giderler', path: '/expenses', roles: ['ADMIN', 'MANAGER'] },
-    { icon: PiggyBank, label: 'Finans', path: '/finance', roles: ['ADMIN', 'MANAGER'] },
     { icon: Users, label: 'Müşteriler', path: '/customers', roles: ['ADMIN', 'MANAGER'] },
-    { icon: Gift, label: 'Kampanyalar', path: '/campaigns', roles: ['ADMIN', 'MANAGER'] },
-    { icon: Ticket, label: 'Kuponlar', path: '/coupons', roles: ['ADMIN', 'MANAGER'] },
+    { icon: PiggyBank, label: 'Finans', path: '/finance', roles: ['ADMIN', 'MANAGER'] },
     { icon: BarChart3, label: 'Raporlar', path: '/reports', roles: ['ADMIN', 'MANAGER'] },
-    { icon: Scan, label: 'Fiyat İzleme', path: '/price-monitor', roles: ['ADMIN', 'MANAGER'] },
-    { icon: Brain, label: 'AI İçgörüleri', path: '/ai-insights', roles: ['ADMIN', 'MANAGER'] },
     { icon: Bot, label: 'AI Asistan', path: '/ai-chat', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
-    { icon: Building, label: 'Şubeler', path: '/branches', roles: ['ADMIN'] },
-    { icon: UserCog, label: 'Kullanıcılar', path: '/user-management', roles: ['ADMIN'] },
-    { icon: Shield, label: 'Aktivite Logları', path: '/activity-logs', roles: ['ADMIN'] },
-    { icon: UserCircle, label: 'Profil', path: '/profile', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
     { icon: Settings, label: 'Ayarlar', path: '/settings', roles: ['ADMIN', 'MANAGER'] },
   ];
 
