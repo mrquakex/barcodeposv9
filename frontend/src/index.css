@@ -187,3 +187,221 @@
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
   animation: shine 2s infinite;
 }
+
+/* ======================================
+   GLOBAL MOBILE OPTIMIZATION STYLES
+   ====================================== */
+
+/* Touch-friendly minimum sizes (applies to ALL pages) */
+@media (max-width: 768px) {
+  /* All buttons minimum 48px height (Apple/Google guideline) */
+  button:not(.btn-icon-sm) {
+    @apply min-h-[48px] px-6 text-base;
+  }
+  
+  /* All inputs minimum 48px height */
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="password"],
+  input[type="search"],
+  select,
+  textarea {
+    @apply min-h-[48px] px-4 text-base;
+  }
+  
+  /* Table overflow scroll on mobile */
+  table {
+    @apply text-sm;
+  }
+  
+  /* Reduce padding on cards for mobile */
+  .card-content-mobile {
+    @apply p-4;
+  }
+  
+  /* Stack flex-row to flex-col on mobile */
+  .mobile-stack {
+    @apply flex-col;
+  }
+  
+  /* Full width on mobile */
+  .mobile-full {
+    @apply w-full;
+  }
+  
+  /* Hide on mobile */
+  .mobile-hide {
+    @apply hidden;
+  }
+  
+  /* Larger touch targets for icons */
+  button svg,
+  a svg {
+    @apply w-6 h-6;
+  }
+  
+  /* Modal full screen on mobile */
+  .modal-mobile {
+    @apply fixed inset-0 rounded-none;
+  }
+  
+  /* Stat cards stack on mobile */
+  .stats-grid {
+    @apply grid-cols-1 gap-4;
+  }
+  
+  /* Reduce font sizes slightly */
+  h1 {
+    @apply text-2xl;
+  }
+  
+  h2 {
+    @apply text-xl;
+  }
+  
+  h3 {
+    @apply text-lg;
+  }
+  
+  /* Compact spacing */
+  .space-y-6 {
+    @apply space-y-4;
+  }
+  
+  .space-x-6 {
+    @apply space-x-3;
+  }
+  
+  .gap-6 {
+    @apply gap-4;
+  }
+  
+  /* Bottom nav padding */
+  main {
+    @apply pb-24;
+  }
+}
+
+/* Tablet adjustments */
+@media (min-width: 768px) and (max-width: 1024px) {
+  /* Slightly smaller than desktop, bigger than mobile */
+  button {
+    @apply min-h-[44px];
+  }
+  
+  input {
+    @apply min-h-[44px];
+  }
+}
+
+/* Custom utility classes for mobile */
+@layer utilities {
+  /* Touch-friendly button variants */
+  .btn-touch-sm {
+    @apply h-12 md:h-10 px-6 md:px-4 text-base md:text-sm;
+  }
+  
+  .btn-touch-md {
+    @apply h-14 md:h-12 px-8 md:px-6 text-lg md:text-base;
+  }
+  
+  .btn-touch-lg {
+    @apply h-16 md:h-14 px-10 md:px-8 text-xl md:text-lg;
+  }
+  
+  .btn-touch-xl {
+    @apply h-20 md:h-16 px-12 md:px-10 text-2xl md:text-xl;
+  }
+  
+  /* Responsive grid utilities */
+  .grid-mobile-1 {
+    @apply grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+  }
+  
+  .grid-mobile-2 {
+    @apply grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5;
+  }
+  
+  /* Responsive text */
+  .text-mobile-sm {
+    @apply text-sm md:text-base;
+  }
+  
+  .text-mobile-base {
+    @apply text-base md:text-lg;
+  }
+  
+  .text-mobile-lg {
+    @apply text-lg md:text-xl;
+  }
+  
+  .text-mobile-xl {
+    @apply text-xl md:text-2xl;
+  }
+  
+  .text-mobile-2xl {
+    @apply text-2xl md:text-3xl;
+  }
+  
+  .text-mobile-3xl {
+    @apply text-3xl md:text-4xl;
+  }
+  
+  /* Responsive padding */
+  .p-mobile {
+    @apply p-4 md:p-6;
+  }
+  
+  .p-mobile-sm {
+    @apply p-3 md:p-4;
+  }
+  
+  .p-mobile-lg {
+    @apply p-6 md:p-8;
+  }
+  
+  /* Responsive gap */
+  .gap-mobile {
+    @apply gap-3 md:gap-4;
+  }
+  
+  .gap-mobile-lg {
+    @apply gap-4 md:gap-6;
+  }
+  
+  /* Hide on mobile, show on desktop */
+  .desktop-only {
+    @apply hidden md:block;
+  }
+  
+  /* Show on mobile, hide on desktop */
+  .mobile-only {
+    @apply md:hidden;
+  }
+  
+  /* Responsive flex */
+  .flex-mobile-col {
+    @apply flex-col md:flex-row;
+  }
+  
+  .flex-mobile-row {
+    @apply flex-row md:flex-col;
+  }
+}
+
+/* Custom scrollbar for mobile (thinner) */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+/* Smooth scrolling for mobile */
+@media (max-width: 768px) {
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+}

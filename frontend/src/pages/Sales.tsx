@@ -204,8 +204,8 @@ const Sales: React.FC = () => {
         </CardContent>
       </Card>
 
-      {/* Sales Table */}
-      <Card className="border-2 border-slate-200 dark:border-slate-700">
+      {/* Sales Table - Desktop */}
+      <Card className="border-2 border-slate-200 dark:border-slate-700 hidden md:block">
         <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-b-2">
           <CardTitle className="text-xl font-bold flex items-center gap-2">
             <Receipt className="w-6 h-6 text-blue-600" />
@@ -310,6 +310,104 @@ const Sales: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Sales Cards - Mobile */}
+      <div className="md:hidden space-y-3">
+        {filteredSales.length === 0 ? (
+          <Card className="border-2 border-slate-200 dark:border-slate-700">
+            <CardContent className="p-12 text-center">
+              <FileText className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-30" />
+              <p className="text-muted-foreground font-semibold">
+                {searchQuery ? 'Arama sonucu bulunamadı' : 'Henüz satış kaydı yok'}
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredSales.map((sale) => (
+            <motion.div
+              key={sale.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl shadow-md p-4"
+            >
+              {/* Header: Tarih & ID */}
+              <div className="flex justify-between items-start mb-3 pb-3 border-b-2 border-slate-100 dark:border-slate-700">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-blue-600" />
+                  <div>
+                    <div className="font-bold text-base">{formatDate(sale.createdAt)}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {new Date(sale.createdAt).toLocaleTimeString('tr-TR', { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}
+                    </div>
+                  </div>
+                </div>
+                <div className="font-mono text-sm font-bold text-blue-600">
+                  #{sale.id.slice(0, 8).toUpperCase()}
+                </div>
+              </div>
+
+              {/* Body: Müşteri & Tutar */}
+              <div className="space-y-2 mb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4 text-slate-600" />
+                    <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">Müşteri:</span>
+                  </div>
+                  <span className="font-bold text-slate-900 dark:text-white">
+                    {sale.customer?.name || 'Misafir'}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Package className="w-4 h-4 text-slate-600" />
+                    <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">Ürün:</span>
+                  </div>
+                  <span className="font-bold text-slate-900 dark:text-white">
+                    {sale.items?.length || 0} adet
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-700">
+                  <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">Tutar:</span>
+                  <span className="text-2xl font-black text-blue-700 dark:text-blue-400">
+                    {formatCurrency(sale.totalAmount)}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-slate-600 dark:text-slate-400">Ödeme:</span>
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                    {getPaymentMethodIcon(sale.paymentMethod)}
+                    <span className="text-sm font-bold">{getPaymentMethodText(sale.paymentMethod)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2 pt-3 border-t-2 border-slate-100 dark:border-slate-700">
+                <Button
+                  onClick={() => handleViewDetail(sale)}
+                  className="flex-1 h-12 bg-gradient-to-r from-blue-600 to-slate-700 hover:from-blue-700 hover:to-slate-800 text-white font-bold rounded-lg"
+                >
+                  <Eye className="w-5 h-5 mr-2" />
+                  Fiş Görüntüle
+                </Button>
+                <Button
+                  onClick={() => handleDelete(sale.id)}
+                  variant="outline"
+                  className="h-12 w-12 p-0 border-2 border-red-300 hover:bg-red-50 hover:border-red-500 hover:text-red-600"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </Button>
+              </div>
+            </motion.div>
+          ))
+        )}
+      </div>
 
       {/* Detail Modal */}
       <AnimatePresence>
