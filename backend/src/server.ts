@@ -3,9 +3,11 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import { createServer } from 'http';
+import { Server } from 'socket.io';
 import compression from 'compression';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import cron from 'node-cron';
 import authRoutes from './routes/auth.routes';
 import productRoutes from './routes/product.routes';
 import categoryRoutes from './routes/category.routes';
@@ -23,7 +25,9 @@ import branchRoutes from './routes/branch.routes';
 import activityRoutes from './routes/activity.routes';
 import aiRoutes from './routes/ai.routes';
 import geminiRoutes from './routes/gemini.routes';
+import priceMonitorRoutes from './routes/price-monitor.routes';
 import prisma from './lib/prisma';
+import benimPOSScraperService from './services/benimpos-scraper.service';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 
@@ -43,6 +47,24 @@ dotenv.config();
 const app = express();
 const httpServer = createServer(app);
 const PORT = process.env.PORT || 5000;
+
+// Initialize Socket.IO
+export const io = new Server(httpServer, {
+  cors: {
+    origin: true,
+    credentials: true,
+    methods: ['GET', 'POST'],
+  },
+});
+
+// Socket.IO connection
+io.on('connection', (socket) => {
+  console.log('🔌 Client connected:', socket.id);
+  
+  socket.on('disconnect', () => {
+    console.log('❌ Client disconnected:', socket.id);
+  });
+});
 
 // Trust proxy for Render.com
 app.set('trust proxy', 1);
@@ -106,6 +128,7 @@ app.use('/api/branches', branchRoutes);
 app.use('/api/activity-logs', activityRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/gemini', geminiRoutes);
+app.use('/api/price-monitor', priceMonitorRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
@@ -147,13 +170,69 @@ async function initializeDatabase() {
   }
 }
 
+// Initialize Scraper Cron Job
+async function initializeScraperCron() {
+  try {
+    const config = await prisma.scraperConfig.findUnique({
+      where: { source: 'BENIMPOS' }
+    });
+
+    if (!config) {
+      // Create default config
+      await prisma.scraperConfig.create({
+        data: {
+          source: 'BENIMPOS',
+          email: process.env.BENIMPOS_EMAIL || 'mrquakex0@gmail.com',
+          password: process.env.BENIMPOS_PASSWORD || 'elwerci12',
+          isActive: false, // Start disabled by default
+          cronSchedule: '0 9 * * *', // Every day at 09:00
+        }
+      });
+      console.log('📝 Scraper config created (disabled by default)');
+    }
+
+    if (config && config.isActive) {
+      // Schedule cron job
+      cron.schedule(config.cronSchedule, async () => {
+        console.log('⏰ Scheduled scraping started...');
+        const result = await benimPOSScraperService.runScraping();
+        
+        if (result.success) {
+          console.log(`✅ Scheduled scraping completed: ${result.changes.length} changes`);
+          io.emit('scraping-completed', {
+            success: true,
+            changesCount: result.changes.length,
+            changes: result.changes,
+            timestamp: new Date(),
+          });
+        } else {
+          console.error('❌ Scheduled scraping failed:', result.error);
+          io.emit('scraping-completed', {
+            success: false,
+            error: result.error,
+            timestamp: new Date(),
+          });
+        }
+      });
+
+      console.log(`⏰ Scraper cron job scheduled: ${config.cronSchedule}`);
+    } else {
+      console.log('⏸️  Scraper is disabled');
+    }
+  } catch (error) {
+    console.error('❌ Scraper cron initialization error:', error);
+  }
+}
+
 // Start server
 async function startServer() {
   await initializeDatabase();
+  await initializeScraperCron();
   
   httpServer.listen(PORT, () => {
     console.log(`🚀 Server is running on http://localhost:${PORT}`);
     console.log(`✅ Basic POS system ready!`);
+    console.log(`🕷️  Price monitoring system initialized!`);
   });
 }
 

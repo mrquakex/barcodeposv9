@@ -61,6 +61,7 @@ model Product {
   saleItems         SaleItem[]
   purchaseOrderItems PurchaseOrderItem[]
   stockMovements    StockMovement[]
+  priceChanges      PriceChange[]
   
   @@map("products")
 }
@@ -348,5 +349,41 @@ model ActivityLog {
   branch          Branch?  @relation(fields: [branchId], references: [id])
   
   @@map("activity_logs")
+}
+
+// Fiyat Değişiklik Takibi
+model PriceChange {
+  id              String   @id @default(uuid())
+  productId       String
+  source          String   // BENIMPOS, MANUAL, API
+  oldPrice        Float
+  newPrice        Float
+  difference      Float
+  percentage      Float
+  status          String   @default("PENDING") // PENDING, APPLIED, IGNORED
+  scrapedData     Json?    // Ek bilgiler (stok, kampanya vs)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  product         Product  @relation(fields: [productId], references: [id])
+  
+  @@map("price_changes")
+}
+
+// Scraper Ayarları
+model ScraperConfig {
+  id              String   @id @default(uuid())
+  source          String   @unique // BENIMPOS
+  email           String
+  password        String   // Encrypted
+  isActive        Boolean  @default(true)
+  cronSchedule    String   @default("0 9 * * *") // Her gün 09:00
+  lastRun         DateTime?
+  lastStatus      String?  // SUCCESS, ERROR
+  errorMessage    String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@map("scraper_configs")
 }
 
