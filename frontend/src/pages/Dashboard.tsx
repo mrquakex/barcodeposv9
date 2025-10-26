@@ -90,10 +90,10 @@ const Dashboard: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         className="mb-6"
       >
-        <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">
+        <h1 className="text-[34px] font-bold text-foreground tracking-tight">
           Dashboard
         </h1>
-        <p className="text-muted-foreground mt-2 font-semibold">Genel bakış ve istatistikler</p>
+        <p className="text-muted-foreground mt-2 text-[15px] font-normal">Genel bakış ve istatistikler</p>
       </motion.div>
 
       {/* Stat Cards */}
