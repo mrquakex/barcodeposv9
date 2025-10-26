@@ -64,19 +64,79 @@ export const getProductById = async (req: Request, res: Response) => {
 
 export const getProductByBarcode = async (req: Request, res: Response) => {
   try {
-    const { barcode } = req.params;
+    let { barcode } = req.params;
+    
+    // 🔥 BARKOD NORMALİZE ET (boşlukları kaldır, büyük harf yap)
+    const normalizedBarcode = barcode.trim().replace(/\s+/g, '').toUpperCase();
+    
+    console.log('📸 Aranan barkod (raw):', barcode);
+    console.log('📸 Aranan barkod (normalized):', normalizedBarcode);
 
-    const product = await prisma.product.findUnique({
+    // İLK DENEME: Tam eşleşme (exact match)
+    let product = await prisma.product.findUnique({
       where: { barcode },
       include: {
         category: true,
       },
     });
 
+    // İKİNCİ DENEME: Normalize edilmiş ile tam eşleşme
     if (!product) {
+      product = await prisma.product.findUnique({
+        where: { barcode: normalizedBarcode },
+        include: {
+          category: true,
+        },
+      });
+    }
+
+    // ÜÇÜNCÜ DENEME: Case-insensitive LIKE search (büyük/küçük harf fark etmez)
+    if (!product) {
+      const products = await prisma.product.findMany({
+        where: {
+          barcode: {
+            equals: normalizedBarcode,
+            mode: 'insensitive', // 🔥 Büyük/küçük harf fark etmez
+          },
+        },
+        include: {
+          category: true,
+        },
+        take: 1,
+      });
+      
+      if (products.length > 0) {
+        product = products[0];
+      }
+    }
+
+    // DÖRDÜNCÜ DENEME: CONTAINS search (içerir)
+    if (!product) {
+      const products = await prisma.product.findMany({
+        where: {
+          barcode: {
+            contains: normalizedBarcode,
+            mode: 'insensitive',
+          },
+        },
+        include: {
+          category: true,
+        },
+        take: 1,
+      });
+      
+      if (products.length > 0) {
+        product = products[0];
+        console.log('⚠️ CONTAINS ile bulundu:', product.barcode);
+      }
+    }
+
+    if (!product) {
+      console.log('❌ Ürün bulunamadı. Aranan:', normalizedBarcode);
       return res.status(404).json({ error: 'Ürün bulunamadı' });
     }
 
+    console.log('✅ Ürün bulundu:', product.name, '(', product.barcode, ')');
     res.json({ product });
   } catch (error) {
     console.error('Get product by barcode error:', error);
