@@ -136,7 +136,7 @@ const ExpressPOS: React.FC = () => {
   // 🤖 AI AUTO-ADJUSTMENT
   const [autoRetryCount, setAutoRetryCount] = useState(0);
   const [isAutoAdjusting, setIsAutoAdjusting] = useState(false);
-  const autoRetryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const autoRetryTimeoutRef = useRef<number | null>(null);
   
   // Channel State - Kurumsal tek renk
   const [channels, setChannels] = useState<Channel[]>([
@@ -493,7 +493,7 @@ const ExpressPOS: React.FC = () => {
         // Try 1: Increase zoom to 2.0x
         console.log('🎯 Strategy 1: Zoom 2.0x');
         await applyAutoZoom(2.0);
-        toast.info('🔍 Zoom artırıldı: 2.0x', { duration: 1500 });
+        toast('🔍 Zoom artırıldı: 2.0x', { duration: 1500, icon: '🔍' });
         break;
         
       case 1:
@@ -501,7 +501,7 @@ const ExpressPOS: React.FC = () => {
         console.log('🎯 Strategy 2: Zoom 2.5x + High Contrast');
         await applyAutoZoom(2.5);
         handleContrastChange(2);
-        toast.info('🔍 Zoom 2.5x + Kontrast artırıldı', { duration: 1500 });
+        toast('🔍 Zoom 2.5x + Kontrast artırıldı', { duration: 1500, icon: '🎯' });
         break;
         
       case 2:
@@ -510,7 +510,7 @@ const ExpressPOS: React.FC = () => {
         await applyAutoZoom(3.0);
         handleBrightnessChange(-2);
         handleContrastChange(2);
-        toast.info('🔍 Maksimum zoom + Anti-glare', { duration: 1500 });
+        toast('🔍 Maksimum zoom + Anti-glare', { duration: 1500, icon: '⚡' });
         break;
     }
     
@@ -746,7 +746,7 @@ const ExpressPOS: React.FC = () => {
                 
                 // 🤖 AUTO-RETRY: Otomatik ayarlama ve tekrar deneme
                 if (autoRetryCount < 3) {
-                  toast.warning(`⚙️ Ürün bulunamadı. Otomatik ayarlama (${autoRetryCount + 1}/3)...`, { duration: 2000 });
+                  toast(`⚙️ Ürün bulunamadı. Otomatik ayarlama (${autoRetryCount + 1}/3)...`, { duration: 2000, icon: '🤖' });
                   await handleAutoRetry(cleanBarcode);
                 } else {
                   toast.error(`❌ Ürün bulunamadı: ${cleanBarcode} (3 deneme yapıldı)`, { duration: 5000 });
