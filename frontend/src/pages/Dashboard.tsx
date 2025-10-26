@@ -309,7 +309,7 @@ const Dashboard: React.FC = () => {
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-lg">
                 <Brain className="w-7 h-7 text-white" />
               </div>
-              Gelişmiş Analitikler
+              Analitikler
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6 pt-6">
@@ -350,14 +350,14 @@ const Dashboard: React.FC = () => {
             <div className="flex flex-wrap gap-3 pt-4 border-t-2">
               <div className="px-5 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-slate-700 text-white text-sm font-black flex items-center gap-2 shadow-lg">
                 <Sparkles className="w-5 h-5" />
-                Gerçek Zamanlı İzleme
+                Canlı İzleme
               </div>
               <div className="px-5 py-3 rounded-xl bg-gradient-to-r from-slate-700 to-blue-600 text-white text-sm font-black flex items-center gap-2 shadow-lg">
                 <Brain className="w-5 h-5" />
-                Gelişmiş Raporlama
+                Raporlama
               </div>
               <div className="px-5 py-3 rounded-xl bg-gradient-to-r from-blue-700 to-slate-600 text-white text-sm font-black shadow-lg">
-                📊 Modern Dashboard
+                Dashboard
               </div>
             </div>
           </CardContent>
