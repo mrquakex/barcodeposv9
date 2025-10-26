@@ -36,7 +36,7 @@ class BenimPOSScraperService {
    * Login to BenimPOS
    */
   async login(): Promise<{ browser: Browser; page: Page }> {
-    console.log('🔐 BenimPOS login başlatılıyor...');
+    console.log('🔐 Tedarikçi sistemine bağlanılıyor...');
 
     // Get credentials from database
     const config = await prisma.scraperConfig.findUnique({
@@ -44,11 +44,11 @@ class BenimPOSScraperService {
     });
 
     if (!config) {
-      throw new Error('BenimPOS scraper ayarları bulunamadı!');
+      throw new Error('Tarama ayarları bulunamadı!');
     }
 
     if (!config.isActive) {
-      throw new Error('BenimPOS scraper devre dışı!');
+      throw new Error('Fiyat tarama sistemi devre dışı!');
     }
 
     // Launch browser
@@ -266,8 +266,8 @@ class BenimPOSScraperService {
 
       // 📊 Final summary
       console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-      console.log(`📊 BenimPOS'ta Toplam Ürün: ${allProducts.length} ürün`);
-      console.log(`📊 Taranan Ürün: ${allProducts.length} / ${allProducts.length} ✅`);
+      console.log(`📊 Toplam Ürün: ${allProducts.length} ürün`);
+      console.log(`📊 Taranan: ${allProducts.length} / ${allProducts.length} ✅`);
       console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
       
       return allProducts;
@@ -418,7 +418,7 @@ class BenimPOSScraperService {
       priceChanges.forEach((change, i) => {
         const direction = change.difference > 0 ? '⬆️ ARTIŞ' : '⬇️ DÜŞÜŞ';
         console.log(`  ${i + 1}. ${change.productName} (${change.barcode})`);
-        console.log(`     Bizim: ${change.oldPrice} TL → BenimPOS: ${change.newPrice} TL (${direction}: ${change.percentage.toFixed(2)}%)`);
+        console.log(`     Bizim: ${change.oldPrice} TL → Piyasa: ${change.newPrice} TL (${direction}: ${change.percentage.toFixed(2)}%)`);
       });
     }
     
@@ -427,7 +427,7 @@ class BenimPOSScraperService {
       console.log(`\n🆕 EKLENMESİ GEREKEN YENİ ÜRÜNLER:`);
       newProducts.forEach((product, i) => {
         console.log(`  ${i + 1}. ${product.name} (${product.barcode || 'Barkod yok'})`);
-        console.log(`     BenimPOS Fiyatı: ${product.price} TL`);
+        console.log(`     Piyasa Fiyatı: ${product.price} TL`);
       });
     }
     
@@ -515,7 +515,7 @@ class BenimPOSScraperService {
     error?: string;
   }> {
     const startTime = Date.now();
-    console.log('🚀 BenimPOS scraping başlatılıyor...', new Date().toISOString());
+    console.log('🚀 Fiyat tarama sistemi başlatılıyor...', new Date().toISOString());
 
     // 🎭 DEMO MODE (BenimPOS login sorunları için geçici)
     if (demoMode) {
@@ -548,8 +548,8 @@ class BenimPOSScraperService {
       console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
       console.log(`🎉 ===== TARAMA TAMAMLANDI! =====`);
       console.log(`⏱️  Toplam Süre: ${duration} saniye`);
-      console.log(`\n📊 BenimPOS'ta Toplam Ürün: ${scrapedProducts.length} ürün`);
-      console.log(`📊 Taranan Ürün: ${scrapedProducts.length} / ${scrapedProducts.length} ✅`);
+      console.log(`\n📊 Toplam Ürün: ${scrapedProducts.length} ürün`);
+      console.log(`📊 Taranan: ${scrapedProducts.length} / ${scrapedProducts.length} ✅`);
       console.log(`\n💰 Güncellenmesi Gereken: ${priceChanges.length} ürün`);
       console.log(`🆕 Eklenmesi Gereken: ${newProducts.length} ürün`);
       console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
