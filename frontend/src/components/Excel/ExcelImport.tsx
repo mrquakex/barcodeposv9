@@ -15,6 +15,7 @@ interface ExcelImportProps {
 const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<any[]>([]);
+  const [allProducts, setAllProducts] = useState<any[]>([]);
 
   // Tüm özel karakterleri ve tırnakları temizle
   const cleanValue = (value: any): string => {
@@ -94,6 +95,7 @@ const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
           return product;
         });
         
+        setAllProducts(products); // Tüm ürünleri sakla
         setPreview(products.slice(0, 10)); // İlk 10 kayıt önizleme
         toast.success(`${products.length} ürün yüklendi ve temizlendi!`);
       } catch (error) {
@@ -114,7 +116,7 @@ const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
   });
 
   const handleImport = async () => {
-    if (preview.length === 0) {
+    if (allProducts.length === 0) {
       toast.error('Önce bir Excel dosyası yükleyin!');
       return;
     }
@@ -125,7 +127,7 @@ const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
 
     try {
       // Her ürünü API'ye gönder
-      for (const item of preview) {
+      for (const item of allProducts) {
         try {
           // Kategori ID'sini bul veya oluştur (eğer kategori adı varsa)
           let categoryId = null;
@@ -180,6 +182,7 @@ const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
       }
       
       setPreview([]);
+      setAllProducts([]);
       onImportComplete();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'İçe aktarma başarısız!');

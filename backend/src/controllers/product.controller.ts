@@ -134,21 +134,24 @@ export const updateProduct = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { name, description, price, cost, stock, unit, taxRate, minStock, categoryId, imageUrl, isActive } = req.body;
 
+    // Update data objesini dinamik olarak oluştur
+    const updateData: any = {};
+    
+    if (name !== undefined) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (price !== undefined) updateData.price = parseFloat(price);
+    if (cost !== undefined) updateData.cost = parseFloat(cost);
+    if (stock !== undefined) updateData.stock = parseInt(stock);
+    if (unit !== undefined) updateData.unit = unit;
+    if (taxRate !== undefined) updateData.taxRate = parseFloat(taxRate);
+    if (minStock !== undefined) updateData.minStock = parseInt(minStock);
+    if (categoryId !== undefined) updateData.categoryId = categoryId; // null olabilir
+    if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
+    if (isActive !== undefined) updateData.isActive = isActive;
+
     const product = await prisma.product.update({
       where: { id },
-      data: {
-        name,
-        description,
-        price: price ? parseFloat(price) : undefined,
-        cost: cost ? parseFloat(cost) : undefined,
-        stock: stock !== undefined ? parseInt(stock) : undefined,
-        unit,
-        taxRate: taxRate ? parseFloat(taxRate) : undefined,
-        minStock: minStock ? parseInt(minStock) : undefined,
-        ...(categoryId !== undefined && { categoryId }),
-        imageUrl,
-        isActive,
-      },
+      data: updateData,
       include: {
         category: true,
       },
