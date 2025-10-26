@@ -979,75 +979,81 @@ const ExpressPOS: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-blue-600 to-slate-700 shadow-2xl p-4"
+        className="bg-gradient-to-r from-blue-600 to-slate-700 shadow-2xl p-3 md:p-4"
       >
-        <div className="flex items-center gap-3">
+        {/* Mobil: İki satır - Input üstte, butonlar altta */}
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3">
           {/* Barkod Input */}
           <div className="flex-1 flex items-center gap-2">
-            <Scan className="w-6 h-6 text-white flex-shrink-0" />
+            <Scan className="w-6 h-6 text-white flex-shrink-0 hidden md:block" />
             <form onSubmit={handleBarcodeSubmit} className="flex-1 flex gap-2">
               <input
                 ref={barcodeInputRef}
                 type="text"
+                inputMode="text"
                 value={barcode}
                 onChange={(e) => setBarcode(e.target.value)}
-                placeholder="Barkod okut veya ara... (F1)"
-                className="flex-1 px-4 py-3 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-base focus:outline-none focus:ring-4 focus:ring-blue-300 shadow-lg"
+                placeholder="Barkod okut..."
+                className="flex-1 px-4 h-12 md:h-auto md:py-3 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold text-base focus:outline-none focus:ring-4 focus:ring-blue-300 shadow-lg"
                 disabled={loading}
                 autoFocus
               />
             </form>
           </div>
 
-          {/* Kamera Butonu */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setShowCamera(!showCamera)}
-            className="px-4 py-3 rounded-xl bg-white text-blue-600 font-black shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
-          >
-            <Camera className="w-5 h-5" />
-            <span className="hidden md:inline">F2</span>
-          </motion.button>
+          {/* Kontrol Butonları */}
+          <div className="flex items-center gap-2">
+            {/* Kamera Butonu - Mobilde daha büyük */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowCamera(!showCamera)}
+              className="flex-1 md:flex-none h-12 md:h-auto px-4 md:px-4 py-3 rounded-xl bg-white text-blue-600 font-black shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+            >
+              <Camera className="w-5 h-5" />
+              <span className="md:hidden">KAMERA</span>
+              <span className="hidden md:inline">F2</span>
+            </motion.button>
 
-          {/* Son Satışlar */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setShowRecentSales(true)}
-            className="px-4 py-3 rounded-xl bg-white text-slate-700 dark:bg-slate-800 dark:text-white font-bold shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
-          >
-            <History className="w-5 h-5" />
-            <span className="hidden lg:inline">F3</span>
-          </motion.button>
+            {/* Son Satışlar - Desktop */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowRecentSales(true)}
+              className="hidden md:flex px-4 py-3 rounded-xl bg-white text-slate-700 dark:bg-slate-800 dark:text-white font-bold shadow-lg hover:shadow-xl transition-all items-center gap-2"
+            >
+              <History className="w-5 h-5" />
+              <span className="hidden lg:inline">F3</span>
+            </motion.button>
 
-          {/* Müşteri Seç */}
-          <button
-            onClick={() => setShowCustomerModal(true)}
-            className="px-4 py-3 rounded-xl bg-white text-slate-700 dark:bg-slate-800 dark:text-white font-bold shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
-          >
-            <User className="w-5 h-5" />
-            <span className="hidden lg:inline">{selectedCustomer ? selectedCustomer.name : 'Müşteri (F4)'}</span>
-          </button>
+            {/* Müşteri Seç - Desktop */}
+            <button
+              onClick={() => setShowCustomerModal(true)}
+              className="hidden md:flex px-4 py-3 rounded-xl bg-white text-slate-700 dark:bg-slate-800 dark:text-white font-bold shadow-lg hover:shadow-xl transition-all items-center gap-2"
+            >
+              <User className="w-5 h-5" />
+              <span className="hidden lg:inline">{selectedCustomer ? selectedCustomer.name : 'Müşteri (F4)'}</span>
+            </button>
 
-          {/* Toplam Badge */}
-          <div className="px-6 py-3 rounded-xl bg-white text-blue-600 font-black text-xl shadow-lg flex items-center gap-2">
-            <DollarSign className="w-6 h-6" />
-            {totalAmount.toFixed(2)} ₺
+            {/* Toplam Badge */}
+            <div className="flex-1 md:flex-none px-4 md:px-6 h-12 md:h-auto py-3 rounded-xl bg-white text-blue-600 font-black text-lg md:text-xl shadow-lg flex items-center justify-center gap-2">
+              <DollarSign className="w-5 md:w-6 h-5 md:h-6" />
+              <span className="text-base md:text-xl">{totalAmount.toFixed(2)} ₺</span>
+            </div>
+
+            {/* Ses Toggle - Desktop */}
+            <button
+              onClick={() => setSoundEnabled(!soundEnabled)}
+              className="hidden md:block p-3 rounded-xl bg-white text-slate-700 dark:bg-slate-800 dark:text-white shadow-lg hover:shadow-xl transition-all"
+            >
+              {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+            </button>
           </div>
-
-          {/* Ses Toggle */}
-          <button
-            onClick={() => setSoundEnabled(!soundEnabled)}
-            className="p-3 rounded-xl bg-white text-slate-700 dark:bg-slate-800 dark:text-white shadow-lg hover:shadow-xl transition-all"
-          >
-            {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
-          </button>
         </div>
       </motion.div>
 
       {/* MAIN CONTENT */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col-reverse md:flex-row overflow-hidden">
         {/* SOL PANEL - Favori Ürünler (Desktop Only) */}
         <motion.div
           initial={{ opacity: 0, x: -20 }}
@@ -1086,12 +1092,12 @@ const ExpressPOS: React.FC = () => {
         </motion.div>
 
         {/* ORTA PANEL - Kategoriler + Ürünler */}
-        <div className="flex-1 flex flex-col p-4 overflow-hidden">
+        <div className="flex-1 flex flex-col p-3 md:p-4 overflow-hidden">
           {/* Kategoriler */}
-          <div className="mb-4 flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+          <div className="mb-3 md:mb-4 flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
             <button
               onClick={() => setSelectedCategory('all')}
-              className={`px-6 py-3 rounded-xl font-black text-sm whitespace-nowrap shadow-lg transition-all ${
+              className={`px-4 md:px-6 py-2 md:py-3 rounded-xl font-black text-xs md:text-sm whitespace-nowrap shadow-lg transition-all ${
                 selectedCategory === 'all'
                   ? 'bg-gradient-to-r from-blue-600 to-slate-700 text-white scale-105'
                   : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-700'
@@ -1103,7 +1109,7 @@ const ExpressPOS: React.FC = () => {
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`px-6 py-3 rounded-xl font-black text-sm whitespace-nowrap shadow-lg transition-all ${
+                className={`px-4 md:px-6 py-2 md:py-3 rounded-xl font-black text-xs md:text-sm whitespace-nowrap shadow-lg transition-all ${
                   selectedCategory === category.id
                     ? 'bg-gradient-to-r from-blue-600 to-slate-700 text-white scale-105'
                     : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-700'
@@ -1115,20 +1121,21 @@ const ExpressPOS: React.FC = () => {
           </div>
 
           {/* Arama ve Görünüm */}
-          <div className="mb-4 flex gap-2">
+          <div className="mb-3 md:mb-4 flex gap-2">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input
                 type="text"
+                inputMode="search"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Ürün ara..."
-                className="w-full pl-11 pr-4 py-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:outline-none font-semibold shadow-md"
+                className="w-full pl-11 pr-4 h-12 md:h-auto md:py-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:outline-none font-semibold shadow-md"
               />
             </div>
             <button
               onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-              className="px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-500 transition-all shadow-md"
+              className="hidden md:flex w-12 h-12 items-center justify-center rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 hover:border-blue-500 transition-all shadow-md"
             >
               {viewMode === 'grid' ? <List className="w-5 h-5" /> : <Grid className="w-5 h-5" />}
             </button>
@@ -1142,34 +1149,34 @@ const ExpressPOS: React.FC = () => {
                 <p className="text-sm font-bold">Ürün Bulunamadı</p>
               </div>
             ) : (
-              <div className={viewMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3' : 'space-y-2'}>
+              <div className={viewMode === 'grid' ? 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-2 md:gap-3' : 'space-y-2'}>
                 {filteredProducts.map(product => (
                   <motion.button
                     key={product.id}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => addToCart(product)}
-                    className={`rounded-xl bg-white dark:bg-slate-800 border-3 border-blue-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-xl transition-all shadow-lg ${
-                      viewMode === 'grid' ? 'p-4 flex flex-col' : 'p-3 flex items-center gap-3'
+                    className={`rounded-xl bg-white dark:bg-slate-800 border-2 md:border-3 border-blue-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600 hover:shadow-xl transition-all shadow-lg ${
+                      viewMode === 'grid' ? 'p-3 md:p-4 flex flex-col' : 'p-3 flex items-center gap-3'
                     }`}
                   >
                     <div className={viewMode === 'grid' ? 'w-full' : 'flex-1'}>
                       <p className={`font-black text-slate-900 dark:text-white ${
-                        viewMode === 'grid' ? 'text-sm mb-2 line-clamp-2 min-h-[2.5rem]' : 'text-sm line-clamp-1'
+                        viewMode === 'grid' ? 'text-xs md:text-sm mb-2 line-clamp-2 min-h-[2rem] md:min-h-[2.5rem]' : 'text-sm line-clamp-1'
                       }`}>
                         {product.name.toUpperCase()}
                       </p>
                       {product.category && (
-                        <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold mb-1">
+                        <p className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 font-semibold mb-1">
                           {product.category.name}
                         </p>
                       )}
                     </div>
                     <div className={`flex items-center ${viewMode === 'grid' ? 'justify-between' : 'gap-3'}`}>
-                      <span className={`font-black text-blue-600 ${viewMode === 'grid' ? 'text-lg' : 'text-base'}`}>
+                      <span className={`font-black text-blue-600 ${viewMode === 'grid' ? 'text-base md:text-lg' : 'text-base'}`}>
                         {product.price.toFixed(2)} ₺
                       </span>
-                      <span className={`text-xs font-bold px-2 py-1 rounded ${
+                      <span className={`text-[10px] md:text-xs font-bold px-1.5 md:px-2 py-0.5 md:py-1 rounded ${
                         product.stock > 10 ? 'bg-green-100 text-green-700' :
                         product.stock > 0 ? 'bg-yellow-100 text-yellow-700' :
                         'bg-red-100 text-red-700'
@@ -1188,16 +1195,16 @@ const ExpressPOS: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="w-80 lg:w-96 flex flex-col bg-white dark:bg-slate-900 border-l-3 border-blue-200 dark:border-slate-800 shadow-2xl"
+          className="w-full md:w-80 lg:w-96 flex flex-col bg-white dark:bg-slate-900 md:border-l-3 border-blue-200 dark:border-slate-800 shadow-2xl max-h-[50vh] md:max-h-none"
         >
           {/* Sepet Header */}
-          <div className="p-4 bg-gradient-to-r from-blue-600 to-slate-700 text-white">
+          <div className="p-3 md:p-4 bg-gradient-to-r from-blue-600 to-slate-700 text-white">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-xl font-black flex items-center gap-2">
-                <Receipt className="w-6 h-6" />
+              <h2 className="text-lg md:text-xl font-black flex items-center gap-2">
+                <Receipt className="w-5 md:w-6 h-5 md:h-6" />
                 SEPET
               </h2>
-              <span className="px-3 py-1 rounded-full bg-white text-blue-600 font-black text-sm">
+              <span className="px-2 md:px-3 py-0.5 md:py-1 rounded-full bg-white text-blue-600 font-black text-sm">
                 {totalItems}
               </span>
             </div>
@@ -1208,19 +1215,20 @@ const ExpressPOS: React.FC = () => {
                 className="text-xs font-bold text-blue-100 hover:text-white transition-colors disabled:opacity-50 flex items-center gap-1"
               >
                 <Trash2 className="w-3 h-3" />
-                Temizle (F5)
+                <span className="hidden md:inline">Temizle (F5)</span>
+                <span className="md:hidden">Temizle</span>
               </button>
               {selectedCustomer && (
-                <div className="text-xs font-bold text-blue-100 flex items-center gap-1">
-                  <Users className="w-3 h-3" />
-                  {selectedCustomer.name}
+                <div className="text-xs font-bold text-blue-100 flex items-center gap-1 truncate max-w-[120px]">
+                  <Users className="w-3 h-3 flex-shrink-0" />
+                  <span className="truncate">{selectedCustomer.name}</span>
                 </div>
               )}
             </div>
           </div>
 
           {/* Sepet Items */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin">
+          <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-2 scrollbar-thin">
             <AnimatePresence>
               {cart.length === 0 ? (
                 <motion.div
