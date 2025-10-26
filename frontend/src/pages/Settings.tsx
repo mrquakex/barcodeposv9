@@ -6,6 +6,8 @@ import Label from '../components/ui/Label';
 import { Settings as SettingsType } from '../types';
 import api from '../lib/api';
 import { Save, Store } from 'lucide-react';
+import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
 
 const Settings: React.FC = () => {
   const [settings, setSettings] = useState<SettingsType | null>(null);
@@ -34,9 +36,9 @@ const Settings: React.FC = () => {
     setSaving(true);
     try {
       await api.put('/settings', settings);
-      alert('Ayarlar başarıyla kaydedildi');
+      toast.success('✓ Ayarlar başarıyla kaydedildi!');
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Ayarlar kaydedilemedi');
+      toast.error(error.response?.data?.error || 'Ayarlar kaydedilemedi');
     } finally {
       setSaving(false);
     }
@@ -65,31 +67,34 @@ const Settings: React.FC = () => {
 
   return (
     <div className="space-y-6 max-w-4xl">
-      <div>
-        <h1 className="text-3xl font-bold">Ayarlar</h1>
-        <p className="text-muted-foreground mt-1">Sistem ayarlarını yönetin</p>
-      </div>
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+        <h1 className="text-4xl font-black bg-gradient-to-r from-blue-600 to-slate-700 bg-clip-text text-transparent">Ayarlar</h1>
+        <p className="text-muted-foreground mt-2 font-semibold">Sistem ayarlarını yönetin</p>
+      </motion.div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Store className="w-5 h-5" />
+        <Card className="border-2 border-blue-200 dark:border-blue-900 shadow-xl">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-b-2">
+            <CardTitle className="flex items-center gap-3 text-xl font-black text-slate-900 dark:text-white">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-md">
+                <Store className="w-5 h-5 text-white" />
+              </div>
               Market Bilgileri
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="font-semibold">
               Market için temel bilgiler
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-6">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="storeName">Market Adı</Label>
+                <Label htmlFor="storeName" className="font-semibold">Market Adı</Label>
                 <Input
                   id="storeName"
                   value={settings.storeName}
                   onChange={(e) => handleChange('storeName', e.target.value)}
                   required
+                  className="h-11"
                 />
               </div>
 
@@ -166,8 +171,8 @@ const Settings: React.FC = () => {
         </Card>
 
         <div className="flex justify-end">
-          <Button type="submit" disabled={saving}>
-            <Save className="w-4 h-4 mr-2" />
+          <Button type="submit" disabled={saving} className="h-12 px-6 font-bold bg-gradient-to-r from-blue-600 to-slate-700 hover:from-blue-500 hover:to-slate-600 shadow-lg">
+            <Save className="w-5 h-5 mr-2" />
             {saving ? 'Kaydediliyor...' : 'Kaydet'}
           </Button>
         </div>

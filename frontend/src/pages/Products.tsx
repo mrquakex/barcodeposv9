@@ -12,12 +12,19 @@ import { Plus, Search, Edit, Trash2, Package, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const Products: React.FC = () => {
+  console.log('🚀 Products component yüklendi!');
+  
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Debug
+  useEffect(() => {
+    console.log('🔵 showModal değeri:', showModal);
+  }, [showModal]);
   const [formData, setFormData] = useState({
     name: '',
     barcode: '',
@@ -155,12 +162,15 @@ const Products: React.FC = () => {
         className="flex items-center justify-between"
       >
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-slate-700 bg-clip-text text-transparent">
             Ürünler
           </h1>
           <p className="text-muted-foreground mt-1">Tüm ürünlerinizi yönetin • {products.length} ürün</p>
         </div>
-        <Button onClick={() => setShowModal(true)}>
+        <Button onClick={() => {
+          console.log('Yeni Ürün butonu tıklandı!');
+          setShowModal(true);
+        }}>
           <Plus className="w-4 h-4 mr-2" />
           Yeni Ürün
         </Button>
@@ -168,7 +178,9 @@ const Products: React.FC = () => {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={(e) => {
+          if (e.target === e.currentTarget) resetForm();
+        }}>
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}

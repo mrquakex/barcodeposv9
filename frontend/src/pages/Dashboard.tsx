@@ -52,7 +52,7 @@ const Dashboard: React.FC = () => {
       value: formatCurrency(stats.todayRevenue),
       description: `${stats.todaySalesCount} adet satış`,
       icon: TrendingUp,
-      color: "from-green-500 to-emerald-600",
+      color: "from-blue-600 to-blue-700",
       trend: { value: 12.5, isPositive: true },
     },
     {
@@ -60,7 +60,7 @@ const Dashboard: React.FC = () => {
       value: formatCurrency(stats.monthRevenue),
       description: `${stats.monthSalesCount} adet satış`,
       icon: DollarSign,
-      color: "from-blue-500 to-cyan-600",
+      color: "from-slate-700 to-slate-800",
       trend: { value: 8.2, isPositive: true },
     },
     {
@@ -68,14 +68,14 @@ const Dashboard: React.FC = () => {
       value: stats.totalProducts,
       description: "Aktif ürünler",
       icon: Package,
-      color: "from-purple-500 to-pink-600",
+      color: "from-blue-700 to-blue-800",
     },
     {
       title: "Toplam Müşteri",
       value: stats.totalCustomers,
       description: "Kayıtlı müşteriler",
       icon: Users,
-      color: "from-orange-500 to-red-600",
+      color: "from-slate-600 to-slate-700",
     },
   ];
 
@@ -86,11 +86,12 @@ const Dashboard: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
+        className="mb-6"
       >
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        <h1 className="text-4xl font-black bg-gradient-to-r from-blue-600 to-slate-700 bg-clip-text text-transparent">
           Dashboard
         </h1>
-        <p className="text-muted-foreground mt-1">Genel bakış ve istatistikler</p>
+        <p className="text-muted-foreground mt-2 font-semibold">Genel bakış ve istatistikler</p>
       </motion.div>
 
       {/* Stat Cards */}
@@ -107,13 +108,13 @@ const Dashboard: React.FC = () => {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
         >
-          <Card className="border-2 border-orange-500/50 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20">
-            <CardContent className="flex items-center gap-3 py-4">
-              <div className="p-2 rounded-full bg-orange-500/20">
-                <AlertCircle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+          <Card className="border-2 border-orange-500/50 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 shadow-lg">
+            <CardContent className="flex items-center gap-4 py-5">
+              <div className="p-3 rounded-xl bg-orange-500/20 shadow-md">
+                <AlertCircle className="h-6 w-6 text-orange-600 dark:text-orange-400" />
               </div>
-              <p className="text-sm">
-                <span className="font-semibold text-orange-600 dark:text-orange-400">{stats.lowStockProducts}</span> ürün stok seviyesinin altında!
+              <p className="text-base font-semibold">
+                <span className="font-black text-orange-600 dark:text-orange-400 text-lg">{stats.lowStockProducts}</span> ürün stok seviyesinin altında!
               </p>
             </CardContent>
           </Card>
@@ -128,33 +129,33 @@ const Dashboard: React.FC = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
         >
-          <Card>
-            <CardHeader>
-              <CardTitle>Son 7 Günlük Satışlar</CardTitle>
+          <Card className="border-2 border-blue-200 dark:border-blue-900 shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-b-2">
+              <CardTitle className="text-xl font-black text-slate-900 dark:text-white">📈 Son 7 Günlük Satışlar</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={stats.last7DaysChart}>
                   <defs>
                     <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="date" stroke="#6b7280" />
-                  <YAxis stroke="#6b7280" />
+                  <XAxis dataKey="date" stroke="#6b7280" style={{ fontWeight: 600 }} />
+                  <YAxis stroke="#6b7280" style={{ fontWeight: 600 }} />
                   <Tooltip 
                     formatter={(value) => formatCurrency(Number(value))}
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+                    contentStyle={{ borderRadius: '12px', border: '2px solid #2563eb', boxShadow: '0 8px 16px rgba(0,0,0,0.2)', fontWeight: 'bold' }}
                   />
                   <Line 
                     type="monotone" 
                     dataKey="revenue" 
-                    stroke="#3b82f6" 
-                    strokeWidth={3}
-                    dot={{ fill: '#3b82f6', r: 5 }}
-                    activeDot={{ r: 7 }}
+                    stroke="#2563eb" 
+                    strokeWidth={4}
+                    dot={{ fill: '#2563eb', r: 6, strokeWidth: 2, stroke: '#fff' }}
+                    activeDot={{ r: 8 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -168,18 +169,18 @@ const Dashboard: React.FC = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <Card>
-            <CardHeader>
-              <CardTitle>Satış Adetleri</CardTitle>
+          <Card className="border-2 border-slate-200 dark:border-slate-800 shadow-lg">
+            <CardHeader className="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-950/20 dark:to-blue-950/20 border-b-2">
+              <CardTitle className="text-xl font-black text-slate-900 dark:text-white">📊 Satış Adetleri</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={stats.last7DaysChart}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="date" stroke="#6b7280" />
-                  <YAxis stroke="#6b7280" />
-                  <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }} />
-                  <Bar dataKey="salesCount" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
+                  <XAxis dataKey="date" stroke="#6b7280" style={{ fontWeight: 600 }} />
+                  <YAxis stroke="#6b7280" style={{ fontWeight: 600 }} />
+                  <Tooltip contentStyle={{ borderRadius: '12px', border: '2px solid #475569', boxShadow: '0 8px 16px rgba(0,0,0,0.2)', fontWeight: 'bold' }} />
+                  <Bar dataKey="salesCount" fill="#475569" radius={[12, 12, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -189,17 +190,42 @@ const Dashboard: React.FC = () => {
 
       <div className="grid gap-6 md:grid-cols-3">
         <div className="md:col-span-2">
-          <Card className="glass">
-            <CardHeader><CardTitle>En Çok Satan Ürünler (Bu Ay)</CardTitle></CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+          <Card className="border-2 border-blue-200 dark:border-blue-900 shadow-xl">
+            <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-b-2">
+              <CardTitle className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+                <TrendingUp className="w-6 h-6 text-blue-600" />
+                En Çok Satan Ürünler (Bu Ay)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <div className="space-y-3">
                 {stats.topProducts.map((item, index) => (
-                  <motion.div key={index} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: index * 0.1 }} className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20">
-                    <div className="flex-1"><p className="font-medium">{item.product?.name}</p><p className="text-sm text-muted-foreground">{item.totalQuantity} adet satıldı</p></div>
-                    <div className="text-right"><p className="font-semibold text-green-600">{formatCurrency(item.totalRevenue || 0)}</p></div>
+                  <motion.div 
+                    key={index} 
+                    initial={{ opacity: 0, x: -20 }} 
+                    animate={{ opacity: 1, x: 0 }} 
+                    transition={{ delay: index * 0.1 }} 
+                    className="flex items-center gap-4 p-5 rounded-xl bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-2 border-blue-200 dark:border-blue-900 hover:shadow-lg transition-all hover:scale-[1.02]"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-md">
+                      <span className="text-white font-black text-xl">#{index + 1}</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-black text-base text-slate-900 dark:text-white">{item.product?.name}</p>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 font-semibold">
+                        📦 {item.totalQuantity} adet satıldı
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-black text-blue-700 dark:text-blue-400">
+                        {formatCurrency(item.totalRevenue || 0)}
+                      </p>
+                    </div>
                   </motion.div>
                 ))}
-                {stats.topProducts.length === 0 && (<p className="text-center text-muted-foreground py-4">Henüz satış yok</p>)}
+                {stats.topProducts.length === 0 && (
+                  <p className="text-center text-muted-foreground py-8 font-semibold">Henüz satış yok</p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -217,54 +243,60 @@ const Dashboard: React.FC = () => {
         transition={{ delay: 0.6 }}
         className="mt-8"
       >
-        <Card className="border-2 border-blue-500/20">
-          <CardHeader className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20">
-            <CardTitle className="flex items-center gap-2">
-              <Brain className="w-5 h-5 text-blue-500" />
+        <Card className="border-2 border-blue-200 dark:border-blue-900 shadow-xl">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-b-2">
+            <CardTitle className="flex items-center gap-3 text-xl font-black">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-md">
+                <Brain className="w-6 h-6 text-white" />
+              </div>
               Gelişmiş Analitikler
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6 pt-6">
             <div className="grid gap-4 md:grid-cols-3">
-              <div className="p-4 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 border border-blue-200 dark:border-blue-800">
-                <div className="flex items-center gap-3 mb-2">
-                  <TrendingUp className="w-5 h-5 text-blue-500" />
-                  <h3 className="font-semibold text-blue-700 dark:text-blue-400">Satış Trendi</h3>
+              <div className="p-5 rounded-xl bg-gradient-to-br from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-2 border-blue-200 dark:border-blue-800 shadow-md">
+                <div className="flex items-center gap-3 mb-3">
+                  <TrendingUp className="w-6 h-6 text-blue-600" />
+                  <h3 className="font-black text-base text-slate-900 dark:text-white">Satış Trendi</h3>
                 </div>
-                <p className="text-sm text-muted-foreground">Bu ay %12 artış</p>
-                <p className="text-2xl font-bold text-blue-600 mt-2">
+                <p className="text-sm text-muted-foreground font-semibold mb-2">Bu ay %12 artış</p>
+                <p className="text-3xl font-black text-blue-700 dark:text-blue-400">
                   {formatCurrency(stats.monthRevenue)}
                 </p>
               </div>
 
-              <div className="p-4 rounded-lg bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 border border-orange-200 dark:border-orange-800">
-                <div className="flex items-center gap-3 mb-2">
-                  <AlertCircle className="w-5 h-5 text-orange-500" />
-                  <h3 className="font-semibold text-orange-700 dark:text-orange-400">Stok Durumu</h3>
+              <div className="p-5 rounded-xl bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950/20 dark:to-red-950/20 border-2 border-orange-200 dark:border-orange-800 shadow-md">
+                <div className="flex items-center gap-3 mb-3">
+                  <AlertCircle className="w-6 h-6 text-orange-600" />
+                  <h3 className="font-black text-base text-slate-900 dark:text-white">Stok Durumu</h3>
                 </div>
-                <p className="text-sm text-muted-foreground">{stats.lowStockProducts} ürün kritik seviyede</p>
+                <p className="text-sm text-muted-foreground font-semibold mb-2">{stats.lowStockProducts} ürün kritik seviyede</p>
+                <p className="text-3xl font-black text-orange-600">⚠️ Dikkat</p>
               </div>
 
-              <div className="p-4 rounded-lg bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 border border-purple-200 dark:border-purple-800">
-                <div className="flex items-center gap-3 mb-2">
-                  <Users className="w-5 h-5 text-purple-500" />
-                  <h3 className="font-semibold text-purple-700 dark:text-purple-400">Aktif Müşteriler</h3>
+              <div className="p-5 rounded-xl bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950/20 dark:to-blue-950/20 border-2 border-slate-200 dark:border-slate-800 shadow-md">
+                <div className="flex items-center gap-3 mb-3">
+                  <Users className="w-6 h-6 text-slate-600" />
+                  <h3 className="font-black text-base text-slate-900 dark:text-white">Müşteriler</h3>
                 </div>
-                <p className="text-sm text-muted-foreground">Toplam {stats.totalCustomers} kayıtlı</p>
+                <p className="text-sm text-muted-foreground font-semibold mb-2">Kayıtlı müşteriler</p>
+                <p className="text-3xl font-black text-slate-700 dark:text-slate-400">
+                  {stats.totalCustomers}
+                </p>
               </div>
             </div>
 
             {/* Feature Badges */}
-            <div className="mt-4 flex flex-wrap gap-3">
-              <div className="px-4 py-2 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-sm font-medium flex items-center gap-2">
-                <Sparkles className="w-4 h-4" />
+            <div className="flex flex-wrap gap-3 pt-4 border-t-2">
+              <div className="px-5 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-slate-700 text-white text-sm font-black flex items-center gap-2 shadow-lg">
+                <Sparkles className="w-5 h-5" />
                 Gerçek Zamanlı İzleme
               </div>
-              <div className="px-4 py-2 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 text-white text-sm font-medium flex items-center gap-2">
-                <Brain className="w-4 h-4" />
+              <div className="px-5 py-3 rounded-xl bg-gradient-to-r from-slate-700 to-blue-600 text-white text-sm font-black flex items-center gap-2 shadow-lg">
+                <Brain className="w-5 h-5" />
                 Gelişmiş Raporlama
               </div>
-              <div className="px-4 py-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium">
+              <div className="px-5 py-3 rounded-xl bg-gradient-to-r from-blue-700 to-slate-600 text-white text-sm font-black shadow-lg">
                 📊 Modern Dashboard
               </div>
             </div>

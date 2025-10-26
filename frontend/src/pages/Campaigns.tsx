@@ -33,7 +33,7 @@ const Campaigns: React.FC = () => {
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
-        <div><h1 className="text-3xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">Kampanyalar</h1><p className="text-muted-foreground mt-1">İndirim ve promosyon yönetimi</p></div>
+        <div><h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-slate-700 bg-clip-text text-transparent">Kampanyalar</h1><p className="text-muted-foreground mt-1">İndirim ve promosyon yönetimi</p></div>
         <Button className="gap-2"><Plus className="w-4 h-4" />Yeni Kampanya</Button>
       </motion.div>
 
@@ -45,7 +45,7 @@ const Campaigns: React.FC = () => {
               {campaigns.map(campaign => (
                 <TableRow key={campaign.id}>
                   <TableCell className="font-medium">{campaign.name}</TableCell>
-                  <TableCell><span className="px-2 py-1 rounded-full bg-pink-100 dark:bg-pink-900/30 text-xs">{campaign.type}</span></TableCell>
+                  <TableCell><span className="px-2 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-xs">{campaign.type}</span></TableCell>
                   <TableCell>{campaign.discountValue ? `${campaign.discountType === 'PERCENTAGE' ? '%' : '₺'}${campaign.discountValue}` : '-'}</TableCell>
                   <TableCell className="text-sm">{formatDate(campaign.startDate)}</TableCell>
                   <TableCell className="text-sm">{formatDate(campaign.endDate)}</TableCell>

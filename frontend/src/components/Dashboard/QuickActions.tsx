@@ -9,11 +9,11 @@ const QuickActions: React.FC = () => {
   
   const actions = [
     { icon: ShoppingCart, label: 'Yeni Satış', path: '/pos', color: 'from-blue-500 to-cyan-600' },
-    { icon: Package, label: 'Ürün Ekle', path: '/products', color: 'from-purple-500 to-pink-600' },
+    { icon: Package, label: 'Ürün Ekle', path: '/products', color: 'from-blue-600 to-slate-700' },
     { icon: Users, label: 'Müşteri Ekle', path: '/customers', color: 'from-orange-500 to-red-600' },
     { icon: Building2, label: 'Tedarikçi', path: '/suppliers', color: 'from-green-500 to-emerald-600' },
-    { icon: DollarSign, label: 'Gider Ekle', path: '/expenses', color: 'from-red-500 to-pink-600' },
-    { icon: FileText, label: 'Raporlar', path: '/reports', color: 'from-indigo-500 to-purple-600' },
+    { icon: DollarSign, label: 'Gider Ekle', path: '/expenses', color: 'from-red-600 to-red-700' },
+    { icon: FileText, label: 'Raporlar', path: '/reports', color: 'from-slate-600 to-slate-700' },
   ];
 
   return (

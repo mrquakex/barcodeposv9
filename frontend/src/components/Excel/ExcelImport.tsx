@@ -16,6 +16,34 @@ const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState<any[]>([]);
 
+  // Tüm özel karakterleri ve tırnakları temizle
+  const cleanValue = (value: any): string => {
+    if (value === null || value === undefined) return '';
+    let str = String(value).trim();
+    
+    // Başta ve sonda tırnak (", '), virgül (,), noktalı virgül (;) gibi karakterleri kaldır
+    str = str.replace(/^[",';`´]+|[",';`´]+$/g, '');
+    
+    // Tekrar trim (temizleme sonrası boşluk kalabilir)
+    str = str.trim();
+    
+    return str;
+  };
+
+  // Sayısal değerleri temizle ve parse et
+  const cleanNumeric = (value: any): number => {
+    if (value === null || value === undefined || value === '') return 0;
+    
+    let str = String(value).trim();
+    // Başta ve sonda tırnak, virgül gibi karakterleri kaldır
+    str = str.replace(/^[",';`´]+|[",';`´]+$/g, '');
+    // Sadece sayı, nokta ve eksi işareti bırak
+    str = str.replace(/[^\d.-]/g, '');
+    
+    const num = parseFloat(str);
+    return isNaN(num) ? 0 : num;
+  };
+
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
@@ -27,11 +55,49 @@ const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
         const workbook = XLSX.read(data, { type: 'binary' });
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
-        const json = XLSX.utils.sheet_to_json(worksheet);
+        const json = XLSX.utils.sheet_to_json(worksheet, { header: 'A', defval: '' });
         
-        setPreview(json.slice(0, 5)); // İlk 5 kayıt önizleme
-        toast.success(`${json.length} ürün yüklendi!`);
+        // İlk satır başlık olabilir, kontrol et
+        const startRow = json[0] && typeof json[0] === 'object' && 'A' in json[0] && 
+                         (String(json[0].A).toLowerCase().includes('barkod') || 
+                          String(json[0].A).toLowerCase().includes('ürün')) ? 1 : 0;
+        
+        const products = json.slice(startRow).filter((row: any) => row.A || row.B).map((row: any, index: number) => {
+          const product = {
+            barcode: cleanValue(row.A),
+            name: cleanValue(row.B),
+            stock: cleanValue(row.C),
+            unit: cleanValue(row.D),
+            price: cleanValue(row.E),
+            taxRate: cleanValue(row.F),
+            cost: cleanValue(row.G),
+            parentCategory: cleanValue(row.H),
+            category: cleanValue(row.I),
+            price2: cleanValue(row.J),
+            stockCode: cleanValue(row.K),
+            description: cleanValue(row.L),
+            quickSaleGroup: cleanValue(row.M),
+            quickSaleOrder: cleanValue(row.N),
+            minStock: cleanValue(row.O),
+          };
+          
+          // İlk 3 ürün için temizleme logla
+          if (index < 3) {
+            console.log(`Ürün ${index + 1} temizlendi:`, {
+              'Orijinal Barkod': row.A,
+              'Temiz Barkod': product.barcode,
+              'Orijinal Fiyat': row.E,
+              'Temiz Fiyat': product.price,
+            });
+          }
+          
+          return product;
+        });
+        
+        setPreview(products.slice(0, 10)); // İlk 10 kayıt önizleme
+        toast.success(`${products.length} ürün yüklendi ve temizlendi!`);
       } catch (error) {
+        console.error('Excel import error:', error);
         toast.error('Excel dosyası okunamadı!');
       }
     };
@@ -54,21 +120,65 @@ const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
     }
 
     setLoading(true);
+    let successCount = 0;
+    let errorCount = 0;
+
     try {
       // Her ürünü API'ye gönder
       for (const item of preview) {
-        await api.post('/products', {
-          barcode: item.barkod || item.Barkod,
-          name: item.urun_adi || item['Ürün Adı'],
-          price: parseFloat(item.fiyat || item.Fiyat),
-          cost: parseFloat(item.maliyet || item.Maliyet || 0),
-          stock: parseInt(item.stok || item.Stok || 0),
-          unit: item.birim || item.Birim || 'Adet',
-          taxRate: parseFloat(item.kdv || item.KDV || 18),
-        });
+        try {
+          // Kategori ID'sini bul veya oluştur (eğer kategori adı varsa)
+          let categoryId = null;
+          if (item.category) {
+            try {
+              const categoriesResponse = await api.get('/categories');
+              const categories = categoriesResponse.data.categories;
+              let category = categories.find((cat: any) => 
+                cat.name.toLowerCase() === item.category.toLowerCase()
+              );
+
+              if (!category) {
+                // Kategori yoksa oluştur
+                const newCategoryResponse = await api.post('/categories', {
+                  name: item.category,
+                  description: item.parentCategory || '',
+                });
+                category = newCategoryResponse.data.category;
+              }
+
+              categoryId = category.id;
+            } catch (catError) {
+              console.error('Category error:', catError);
+            }
+          }
+
+          await api.post('/products', {
+            barcode: item.barcode || undefined,
+            name: item.name,
+            price: cleanNumeric(item.price),
+            cost: cleanNumeric(item.cost),
+            stock: Math.floor(cleanNumeric(item.stock)),
+            unit: item.unit || 'ADET',
+            taxRate: cleanNumeric(item.taxRate) || 18,
+            minStock: Math.floor(cleanNumeric(item.minStock)) || 5,
+            description: item.description || item.stockCode || '',
+            categoryId,
+          });
+          successCount++;
+        } catch (itemError: any) {
+          console.error(`Error importing ${item.name}:`, itemError);
+          errorCount++;
+        }
       }
       
-      toast.success('Tüm ürünler başarıyla eklendi!');
+      if (successCount > 0) {
+        toast.success(`✓ ${successCount} ürün başarıyla eklendi!${errorCount > 0 ? ` (${errorCount} hata)` : ''}`);
+        console.log(`İçe aktarma tamamlandı: ${successCount} başarılı, ${errorCount} hata`);
+      }
+      if (errorCount > 0 && successCount === 0) {
+        toast.error(`✗ ${errorCount} ürün eklenemedi!`);
+      }
+      
       setPreview([]);
       onImportComplete();
     } catch (error: any) {
@@ -79,41 +189,48 @@ const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
   };
 
   const downloadTemplate = () => {
+    // Sütunları A-O olarak hazırla
     const template = [
-      {
-        'Barkod': '8690000000001',
-        'Ürün Adı': 'Örnek Ürün 1',
-        'Fiyat': 100,
-        'Maliyet': 70,
-        'Stok': 50,
-        'Birim': 'Adet',
-        'KDV': 18,
-      },
-      {
-        'Barkod': '8690000000002',
-        'Ürün Adı': 'Örnek Ürün 2',
-        'Fiyat': 200,
-        'Maliyet': 140,
-        'Stok': 30,
-        'Birim': 'Adet',
-        'KDV': 18,
-      },
+      ['Ürün Barkodu', 'Ürün Adı', 'Adet', 'Birim', 'Fiyat 1 (Satış)', 'KDV', 'Alış Fiyatı', 'Üst Ürün Grubu', 'Ürün Grubu', 'Fiyat 2', 'Stok Kodu', 'Ürün Detayı', 'Satış Hızlı Ürün Grubu', 'Satış Hızlı Ürün Sırası', 'Kritik Stok Miktarı'],
+      ['8690000000001', 'Coca Cola 330ml', 100, 'ADET', 15, 18, 10, 'İçecekler', 'Gazlı İçecekler', 15, 'CC-330', 'Coca Cola 330ml Kutu', 1, 1, 10],
+      ['8690000000002', 'Fanta 330ml', 80, 'ADET', 12, 18, 8, 'İçecekler', 'Gazlı İçecekler', 12, 'FN-330', 'Fanta 330ml Kutu', 1, 2, 10],
+      ['8690000000003', 'Süt 1L', 50, 'ADET', 25, 8, 18, 'Gıda', 'Süt Ürünleri', 25, 'SUT-1L', 'Tam Yağlı Süt 1 Litre', 1, 3, 5],
     ];
 
-    const ws = XLSX.utils.json_to_sheet(template);
+    const ws = XLSX.utils.aoa_to_sheet(template);
+    
+    // Sütun genişliklerini ayarla
+    ws['!cols'] = [
+      { wch: 15 }, // A - Barkod
+      { wch: 30 }, // B - Ürün Adı
+      { wch: 10 }, // C - Adet
+      { wch: 10 }, // D - Birim
+      { wch: 12 }, // E - Fiyat 1
+      { wch: 8 },  // F - KDV
+      { wch: 12 }, // G - Alış Fiyatı
+      { wch: 20 }, // H - Üst Ürün Grubu
+      { wch: 20 }, // I - Ürün Grubu
+      { wch: 12 }, // J - Fiyat 2
+      { wch: 15 }, // K - Stok Kodu
+      { wch: 35 }, // L - Ürün Detayı
+      { wch: 22 }, // M - Satış Hızlı Ürün Grubu
+      { wch: 22 }, // N - Satış Hızlı Ürün Sırası
+      { wch: 18 }, // O - Kritik Stok Miktarı
+    ];
+
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Ürünler');
-    XLSX.writeFile(wb, 'urun-sablonu.xlsx');
-    toast.success('Şablon indirildi!');
+    XLSX.writeFile(wb, 'urun-import-sablonu.xlsx');
+    toast.success('Excel şablonu indirildi!');
   };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
+      className="w-full max-h-[85vh] overflow-y-auto"
     >
-      <Card className="border-2 border-dashed border-blue-300 dark:border-blue-700 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20">
+      <Card className="border-2 border-dashed border-blue-300 dark:border-blue-700 bg-gradient-to-br from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileSpreadsheet className="w-6 h-6 text-blue-600" />
@@ -121,14 +238,39 @@ const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Info Box */}
+          <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-xl border-2 border-blue-200 dark:border-blue-900">
+            <p className="text-sm font-bold text-slate-900 dark:text-white mb-2">📋 Excel Format Bilgisi</p>
+            <div className="text-xs text-slate-700 dark:text-slate-300 space-y-1">
+              <p>• <strong>Sütun A:</strong> Ürün Barkodu (Boş bırakılırsa otomatik)</p>
+              <p>• <strong>Sütun B:</strong> Ürün Adı (Zorunlu)</p>
+              <p>• <strong>Sütun C:</strong> Stok Miktarı</p>
+              <p>• <strong>Sütun D:</strong> Birim (ADET, KG, GRAM)</p>
+              <p>• <strong>Sütun E:</strong> Satış Fiyatı</p>
+              <p>• <strong>Sütun F:</strong> KDV Oranı (%)</p>
+              <p>• <strong>Sütun G:</strong> Alış Fiyatı</p>
+              <p>• <strong>Sütun I:</strong> Ürün Grubu (Kategori)</p>
+              <p>• <strong>Sütun O:</strong> Kritik Stok Miktarı</p>
+            </div>
+            <div className="mt-3 pt-3 border-t border-blue-300 dark:border-blue-800">
+              <p className="text-xs font-bold text-green-600 dark:text-green-400 mb-2">🧹 Otomatik Temizleme:</p>
+              <div className="text-xs text-slate-600 dark:text-slate-400 space-y-1 font-mono">
+                <p>• <span className="text-red-500">"8681254020277</span> → <span className="text-green-500">8681254020277</span></p>
+                <p>• <span className="text-red-500">,55</span> → <span className="text-green-500">55</span></p>
+                <p>• <span className="text-red-500">'ADET'</span> → <span className="text-green-500">ADET</span></p>
+                <p>• Tırnak (", '), virgül (,), noktalı virgül (;) → Otomatik kaldırılır</p>
+              </div>
+            </div>
+          </div>
+
           {/* Download Template */}
           <Button
             variant="outline"
             onClick={downloadTemplate}
-            className="w-full"
+            className="w-full h-11 font-bold"
           >
             <Download className="w-4 h-4 mr-2" />
-            Örnek Excel Şablonunu İndir
+            Excel Şablonunu İndir (A-O Sütunlar)
           </Button>
 
           {/* Dropzone */}
@@ -147,7 +289,7 @@ const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
             <div className="text-center space-y-3">
               <motion.div
                 animate={{ y: isDragActive ? -10 : 0 }}
-                className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center"
+                className="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center"
               >
                 <Upload className="w-8 h-8 text-white" />
               </motion.div>
@@ -179,31 +321,41 @@ const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
               {/* Preview Table */}
               <div className="overflow-x-auto rounded-lg border">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-100 dark:bg-gray-800">
+                  <thead className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20">
                     <tr>
-                      <th className="p-2 text-left">Barkod</th>
-                      <th className="p-2 text-left">Ürün Adı</th>
-                      <th className="p-2 text-left">Fiyat</th>
-                      <th className="p-2 text-left">Stok</th>
+                      <th className="p-2 text-left font-bold">Barkod</th>
+                      <th className="p-2 text-left font-bold">Ürün Adı</th>
+                      <th className="p-2 text-left font-bold">Stok</th>
+                      <th className="p-2 text-left font-bold">Birim</th>
+                      <th className="p-2 text-left font-bold">Fiyat</th>
+                      <th className="p-2 text-left font-bold">Kategori</th>
                     </tr>
                   </thead>
                   <tbody>
                     {preview.map((item, index) => (
-                      <tr key={index} className="border-t">
-                        <td className="p-2">{item.barkod || item.Barkod}</td>
-                        <td className="p-2">{item.urun_adi || item['Ürün Adı']}</td>
-                        <td className="p-2">{item.fiyat || item.Fiyat} TL</td>
-                        <td className="p-2">{item.stok || item.Stok}</td>
+                      <tr key={index} className="border-t hover:bg-blue-50 dark:hover:bg-blue-950/10">
+                        <td className="p-2 font-mono text-xs">{item.barcode || 'Otomatik'}</td>
+                        <td className="p-2 font-semibold">{item.name}</td>
+                        <td className="p-2">{item.stock}</td>
+                        <td className="p-2">{item.unit}</td>
+                        <td className="p-2 font-bold text-blue-700">₺{item.price}</td>
+                        <td className="p-2 text-xs">{item.category || '-'}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
 
+              <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-900">
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  ℹ️ İlk 10 ürün önizleniyor. Tüm ürünler içe aktarılacak.
+                </p>
+              </div>
+
               <Button
                 onClick={handleImport}
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                className="w-full bg-gradient-to-r from-blue-700 to-slate-700 hover:from-blue-600 hover:to-slate-600"
               >
                 {loading ? 'İçe Aktarılıyor...' : 'Ürünleri İçe Aktar'}
               </Button>

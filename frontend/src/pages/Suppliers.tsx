@@ -90,51 +90,78 @@ const Suppliers: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Tedarikçiler</h1>
-          <p className="text-muted-foreground mt-1">Tedarikçi yönetimi • {suppliers.length} tedarikçi</p>
+          <h1 className="text-4xl font-black bg-gradient-to-r from-blue-600 to-slate-700 bg-clip-text text-transparent">Tedarikçiler</h1>
+          <p className="text-muted-foreground mt-2 font-semibold">Tedarikçi yönetimi • {suppliers.length} tedarikçi</p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)} className="gap-2"><Plus className="w-4 h-4" />Yeni Tedarikçi</Button>
+        <Button onClick={() => setShowForm(!showForm)} className="h-12 px-6 text-base font-bold bg-gradient-to-r from-blue-600 to-slate-700 hover:from-blue-500 hover:to-slate-600 shadow-lg gap-2"><Plus className="w-5 h-5" />Yeni Tedarikçi</Button>
       </motion.div>
 
       {showForm && (
         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
-          <Card>
-            <CardHeader><CardTitle>{editingId ? 'Tedarikçi Düzenle' : 'Yeni Tedarikçi Ekle'}</CardTitle></CardHeader>
-            <CardContent>
+          <Card className="border-2 border-blue-200 dark:border-blue-900 shadow-xl">
+            <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-b-2">
+              <CardTitle className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+                <Building2 className="w-6 h-6 text-blue-600" />
+                {editingId ? 'Tedarikçi Düzenle' : 'Yeni Tedarikçi Ekle'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6">
               <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
-                <div><Label>Firma Adı *</Label><Input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} /></div>
-                <div><Label>Yetkili</Label><Input value={formData.contactPerson} onChange={e => setFormData({...formData, contactPerson: e.target.value})} /></div>
-                <div><Label>Email</Label><Input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} /></div>
-                <div><Label>Telefon</Label><Input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} /></div>
-                <div><Label>Adres</Label><Input value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} /></div>
-                <div><Label>Vergi No</Label><Input value={formData.taxNumber} onChange={e => setFormData({...formData, taxNumber: e.target.value})} /></div>
-                <div className="md:col-span-2 flex gap-2"><Button type="submit">{editingId ? 'Güncelle' : 'Kaydet'}</Button><Button type="button" variant="outline" onClick={resetForm}>İptal</Button></div>
+                <div><Label className="font-semibold">Firma Adı *</Label><Input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="h-11" /></div>
+                <div><Label className="font-semibold">Yetkili</Label><Input value={formData.contactPerson} onChange={e => setFormData({...formData, contactPerson: e.target.value})} className="h-11" /></div>
+                <div><Label className="font-semibold">Email</Label><Input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="h-11" /></div>
+                <div><Label className="font-semibold">Telefon</Label><Input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="h-11" /></div>
+                <div><Label className="font-semibold">Adres</Label><Input value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="h-11" /></div>
+                <div><Label className="font-semibold">Vergi No</Label><Input value={formData.taxNumber} onChange={e => setFormData({...formData, taxNumber: e.target.value})} className="h-11" /></div>
+                <div className="md:col-span-2 flex gap-3 pt-4 border-t-2">
+                  <Button type="submit" className="h-12 px-6 font-bold bg-gradient-to-r from-blue-600 to-slate-700 hover:from-blue-500 hover:to-slate-600 shadow-lg">{editingId ? 'Güncelle' : 'Kaydet'}</Button>
+                  <Button type="button" variant="outline" onClick={resetForm} className="h-12 px-6 font-semibold">İptal</Button>
+                </div>
               </form>
             </CardContent>
           </Card>
         </motion.div>
       )}
 
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex items-center gap-4 mb-4">
-            <Search className="w-5 h-5 text-muted-foreground" />
-            <Input placeholder="Tedarikçi ara..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="flex-1" />
+      <Card className="border-2 border-blue-200 dark:border-blue-900 shadow-xl">
+        <CardHeader className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-b-2">
+          <div className="flex items-center gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-blue-600" />
+              <Input placeholder="🔍 Tedarikçi ara..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-14 h-14 text-base border-2 border-slate-300 focus:border-blue-600 dark:border-slate-700" />
+            </div>
           </div>
+        </CardHeader>
+        <CardContent className="pt-6">
           <Table>
             <TableHeader>
-              <TableRow><TableHead>Firma</TableHead><TableHead>Yetkili</TableHead><TableHead>İletişim</TableHead><TableHead>Bakiye</TableHead><TableHead>İşlemler</TableHead></TableRow>
+              <TableRow className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-b-2">
+                <TableHead className="font-black text-slate-900 dark:text-white">Firma</TableHead>
+                <TableHead className="font-black text-slate-900 dark:text-white">Yetkili</TableHead>
+                <TableHead className="font-black text-slate-900 dark:text-white">İletişim</TableHead>
+                <TableHead className="font-black text-slate-900 dark:text-white">Bakiye</TableHead>
+                <TableHead className="font-black text-slate-900 dark:text-white">İşlemler</TableHead>
+              </TableRow>
             </TableHeader>
             <TableBody>
               {filteredSuppliers.map(supplier => (
-                <TableRow key={supplier.id}>
-                  <TableCell className="font-medium">{supplier.name}</TableCell>
-                  <TableCell>{supplier.contactPerson || '-'}</TableCell>
-                  <TableCell><div className="text-sm">{supplier.email}</div><div className="text-xs text-muted-foreground">{supplier.phone}</div></TableCell>
-                  <TableCell><span className={supplier.balance > 0 ? 'text-red-600 font-semibold' : 'text-green-600'}>{formatCurrency(supplier.balance)}</span></TableCell>
-                  <TableCell><div className="flex gap-2"><Button variant="ghost" size="icon" onClick={() => handleEdit(supplier)}><Edit className="w-4 h-4" /></Button><Button variant="ghost" size="icon" onClick={() => handleDelete(supplier.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button></div></TableCell>
+                <TableRow key={supplier.id} className="hover:bg-blue-50 dark:hover:bg-blue-950/10 transition-colors">
+                  <TableCell className="font-bold text-slate-900 dark:text-white">{supplier.name}</TableCell>
+                  <TableCell className="font-medium">{supplier.contactPerson || '-'}</TableCell>
+                  <TableCell><div className="text-sm font-medium">{supplier.email}</div><div className="text-xs text-muted-foreground font-semibold">{supplier.phone}</div></TableCell>
+                  <TableCell>
+                    <span className={supplier.balance > 0 ? 'text-red-600 font-black bg-red-50 dark:bg-red-950/20 px-3 py-1 rounded-lg' : 'text-green-600 font-black bg-green-50 dark:bg-green-950/20 px-3 py-1 rounded-lg'}>
+                      {formatCurrency(supplier.balance)}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="icon" onClick={() => handleEdit(supplier)} className="hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-950/20"><Edit className="w-5 h-5" /></Button>
+                      <Button variant="ghost" size="icon" onClick={() => handleDelete(supplier.id)} className="hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/20"><Trash2 className="w-5 h-5 text-destructive" /></Button>
+                    </div>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

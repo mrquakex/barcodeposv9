@@ -16,6 +16,7 @@ import StockMovements from './pages/StockMovements';
 import Expenses from './pages/Expenses';
 import Finance from './pages/Finance';
 import PurchaseOrders from './pages/PurchaseOrders';
+import Sales from './pages/Sales';
 import ReportsHub from './pages/ReportsHub';
 import SalesReport from './pages/Reports/SalesReport';
 import ProductReport from './pages/Reports/ProductReport';
@@ -29,7 +30,7 @@ const App: React.FC = () => {
   return (
     <>
       <Toast />
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<MainLayout />}>
@@ -38,6 +39,7 @@ const App: React.FC = () => {
             <Route path="pos" element={<POS />} />
             <Route path="products" element={<ProductsNew />} />
             <Route path="categories" element={<Categories />} />
+            <Route path="sales" element={<Sales />} />
             <Route path="customers" element={<Customers />} />
             <Route path="suppliers" element={<Suppliers />} />
             <Route path="stock-movements" element={<StockMovements />} />

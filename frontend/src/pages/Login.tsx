@@ -12,6 +12,7 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const { login, isLoading, isAuthenticated } = useAuthStore();
+  const [currentDateTime, setCurrentDateTime] = useState(new Date());
 
   // Animated particles
   const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number; size: number; duration: number }>>([]);
@@ -25,6 +26,13 @@ const Login: React.FC = () => {
       duration: Math.random() * 20 + 10,
     }));
     setParticles(particleArray);
+
+    // Update time every second
+    const timer = setInterval(() => {
+      setCurrentDateTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
   }, []);
 
   if (isAuthenticated) {
@@ -130,14 +138,44 @@ const Login: React.FC = () => {
           <div className="w-full">
             <div className="bg-white/10 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
               {/* Form Header */}
-              <div className="bg-gradient-to-r from-blue-900/30 to-slate-800/30 p-8 text-center border-b border-white/10">
+              <div className="bg-gradient-to-r from-blue-900/40 to-slate-800/40 p-8 text-center border-b border-white/10">
+                {/* Date & Time */}
+                <div className="mb-4 space-y-1">
+                  <div className="text-blue-300 text-sm font-bold tracking-wide flex items-center justify-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    {currentDateTime.toLocaleDateString('tr-TR', { 
+                      weekday: 'long', 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </div>
+                  <div className="text-white text-3xl font-black tracking-wider tabular-nums">
+                    {currentDateTime.toLocaleTimeString('tr-TR', { 
+                      hour: '2-digit', 
+                      minute: '2-digit', 
+                      second: '2-digit' 
+                    })}
+                  </div>
+                </div>
+
                 <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-blue-600 to-slate-700 shadow-xl mb-4 animate-pulse">
                   <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
-                <h2 className="text-3xl font-bold text-white mb-2">Hoş Geldiniz</h2>
-                <p className="text-gray-300">Devam etmek için giriş yapın</p>
+                
+                <div className="space-y-2">
+                  <div className="flex items-center justify-center gap-2">
+                    <h2 className="text-3xl font-black text-white">Hoş Geldiniz</h2>
+                    <span className="px-3 py-1 rounded-full bg-gradient-to-r from-blue-600 to-slate-700 text-white text-xs font-black shadow-lg">
+                      ENTERPRISE
+                    </span>
+                  </div>
+                  <p className="text-gray-300 font-semibold">Devam etmek için giriş yapın</p>
+                </div>
               </div>
 
               {/* Form Body */}
@@ -210,7 +248,7 @@ const Login: React.FC = () => {
                         type="checkbox"
                         checked={rememberMe}
                         onChange={(e) => setRememberMe(e.target.checked)}
-                        className="w-4 h-4 rounded border-white/20 bg-white/5 text-purple-500 focus:ring-purple-500 focus:ring-offset-0 cursor-pointer"
+                        className="w-4 h-4 rounded border-white/20 bg-white/5 text-blue-500 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
                       />
                       <span className="text-sm text-gray-300 group-hover:text-white transition-colors">Beni Hatırla</span>
                     </label>

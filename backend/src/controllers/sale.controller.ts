@@ -44,7 +44,23 @@ export const getAllSales = async (req: Request, res: Response) => {
       },
     });
 
-    res.json({ sales });
+    // saleItems'ı items olarak map et (frontend için)
+    const formattedSales = sales.map(sale => ({
+      ...sale,
+      items: sale.saleItems.map(item => ({
+        id: item.id,
+        quantity: item.quantity,
+        price: item.unitPrice,
+        product: {
+          name: item.product.name,
+          barcode: item.product.barcode,
+        },
+      })),
+      // saleItems'ı kaldır (gereksiz)
+      saleItems: undefined,
+    }));
+
+    res.json({ sales: formattedSales });
   } catch (error) {
     console.error('Get sales error:', error);
     res.status(500).json({ error: 'Satışlar getirilemedi' });
@@ -78,7 +94,22 @@ export const getSaleById = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Satış bulunamadı' });
     }
 
-    res.json({ sale });
+    // saleItems'ı items olarak map et
+    const formattedSale = {
+      ...sale,
+      items: sale.saleItems.map(item => ({
+        id: item.id,
+        quantity: item.quantity,
+        price: item.unitPrice,
+        product: {
+          name: item.product.name,
+          barcode: item.product.barcode,
+        },
+      })),
+      saleItems: undefined,
+    };
+
+    res.json({ sale: formattedSale });
   } catch (error) {
     console.error('Get sale error:', error);
     res.status(500).json({ error: 'Satış getirilemedi' });
@@ -181,10 +212,37 @@ export const createSale = async (req: AuthRequest, res: Response) => {
         });
       }
 
+      // Veresiye ise müşterinin borcunu artır
+      if (paymentMethod === 'CREDIT' && customerId) {
+        await tx.customer.update({
+          where: { id: customerId },
+          data: {
+            debt: {
+              increment: netAmount,
+            },
+          },
+        });
+      }
+
       return newSale;
     });
 
-    res.status(201).json({ message: 'Satış başarıyla oluşturuldu', sale });
+    // saleItems'ı items olarak map et
+    const formattedSale = {
+      ...sale,
+      items: sale.saleItems.map(item => ({
+        id: item.id,
+        quantity: item.quantity,
+        price: item.unitPrice,
+        product: {
+          name: item.product.name,
+          barcode: item.product.barcode,
+        },
+      })),
+      saleItems: undefined,
+    };
+
+    res.status(201).json({ message: 'Satış başarıyla oluşturuldu', sale: formattedSale });
   } catch (error: any) {
     console.error('Create sale error:', error);
     res.status(500).json({ error: error.message || 'Satış oluşturulamadı' });

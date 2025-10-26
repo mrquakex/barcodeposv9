@@ -32,7 +32,7 @@ const Branches: React.FC = () => {
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between">
-        <div><h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Şubeler</h1><p className="text-muted-foreground mt-1">Çoklu şube yönetimi</p></div>
+        <div><h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-slate-700 bg-clip-text text-transparent">Şubeler</h1><p className="text-muted-foreground mt-1">Çoklu şube yönetimi</p></div>
         <Button className="gap-2"><Plus className="w-4 h-4" />Yeni Şube</Button>
       </motion.div>
 
@@ -41,7 +41,7 @@ const Branches: React.FC = () => {
           <motion.div key={branch.id} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: index * 0.1 }}>
             <Card className="glass card-hover">
               <CardContent className="p-6">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mb-4"><Building className="w-8 h-8 text-white" /></div>
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center mb-4"><Building className="w-8 h-8 text-white" /></div>
                 <h3 className="font-bold text-lg mb-1">{branch.name}</h3>
                 <p className="text-sm text-muted-foreground mb-3">{branch.address}</p>
                 <div className="flex items-center justify-between text-xs"><span>{branch.phone}</span>{branch.isActive ? <span className="text-green-600">● Aktif</span> : <span className="text-gray-600">○ Pasif</span>}</div>

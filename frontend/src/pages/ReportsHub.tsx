@@ -7,17 +7,17 @@ import { BarChart3, Package, Users, DollarSign, TrendingUp, PieChart } from 'luc
 const ReportsHub: React.FC = () => {
   const reportTypes = [
     { icon: BarChart3, title: 'Satış Raporları', desc: 'Detaylı satış analitiği', path: '/reports/sales', color: 'from-blue-500 to-cyan-600' },
-    { icon: Package, title: 'Ürün Raporları', desc: 'Envanter analizi', path: '/reports/products', color: 'from-purple-500 to-pink-600' },
+    { icon: Package, title: 'Ürün Raporları', desc: 'Envanter analizi', path: '/reports/products', color: 'from-blue-600 to-slate-700' },
     { icon: DollarSign, title: 'Finans Raporları', desc: 'Gelir gider analizi', path: '/reports/financial', color: 'from-green-500 to-emerald-600' },
     { icon: Users, title: 'Müşteri Raporları', desc: 'Müşteri davranış analizi', path: '/reports/customers', color: 'from-orange-500 to-red-600' },
-    { icon: TrendingUp, title: 'Stok Raporları', desc: 'Stok hareket analizi', path: '/reports/stock', color: 'from-indigo-500 to-purple-600' },
-    { icon: PieChart, title: 'Karlılık Raporları', desc: 'Kar zarar analizi', path: '/reports/profitability', color: 'from-pink-500 to-rose-600' },
+    { icon: TrendingUp, title: 'Stok Raporları', desc: 'Stok hareket analizi', path: '/reports/stock', color: 'from-slate-600 to-slate-700' },
+    { icon: PieChart, title: 'Karlılık Raporları', desc: 'Kar zarar analizi', path: '/reports/profitability', color: 'from-blue-500 to-blue-600' },
   ];
 
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Raporlar</h1>
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-slate-700 bg-clip-text text-transparent">Raporlar</h1>
         <p className="text-muted-foreground mt-1">Kapsamlı iş analitiği ve raporlama</p>
       </motion.div>
 

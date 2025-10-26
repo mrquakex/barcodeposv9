@@ -57,7 +57,7 @@ const Profile: React.FC = () => {
               <CardTitle>Profil Bilgileri</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col items-center space-y-4">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center">
                 <span className="text-4xl font-bold text-white">
                   {user?.name.charAt(0).toUpperCase()}
                 </span>

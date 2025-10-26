@@ -114,7 +114,7 @@ export const createProduct = async (req: Request, res: Response) => {
         unit: unit || 'Adet',
         taxRate: taxRate ? parseFloat(taxRate) : 18,
         minStock: minStock ? parseInt(minStock) : 5,
-        categoryId,
+        ...(categoryId && { categoryId }),
         imageUrl,
       },
       include: {
@@ -145,7 +145,7 @@ export const updateProduct = async (req: Request, res: Response) => {
         unit,
         taxRate: taxRate ? parseFloat(taxRate) : undefined,
         minStock: minStock ? parseInt(minStock) : undefined,
-        categoryId,
+        ...(categoryId !== undefined && { categoryId }),
         imageUrl,
         isActive,
       },
@@ -173,6 +173,32 @@ export const deleteProduct = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Delete product error:', error);
     res.status(500).json({ error: 'Ürün silinemedi' });
+  }
+};
+
+export const bulkDeleteProducts = async (req: Request, res: Response) => {
+  try {
+    const { ids } = req.body;
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: 'Silinecek ürün ID\'leri gerekli' });
+    }
+
+    const result = await prisma.product.deleteMany({
+      where: {
+        id: {
+          in: ids,
+        },
+      },
+    });
+
+    res.json({ 
+      message: `${result.count} ürün başarıyla silindi`,
+      count: result.count,
+    });
+  } catch (error) {
+    console.error('Bulk delete products error:', error);
+    res.status(500).json({ error: 'Ürünler silinemedi' });
   }
 };
 
