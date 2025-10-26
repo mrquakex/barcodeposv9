@@ -135,7 +135,7 @@ const Dashboard: React.FC = () => {
         {kpiCards.map((card, index) => {
           const Icon = card.icon;
           return (
-            <FluentCard key={index} elevation="depth4" hover className="p-4">
+            <FluentCard key={index} depth="depth-4" hoverable className="p-4">
               <div className="flex items-start justify-between">
                 <div>
                   <p className="fluent-body-small text-foreground-secondary mb-1">
@@ -174,7 +174,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Chart */}
-      <FluentCard elevation="depth4" className="p-6">
+      <FluentCard depth="depth-4" className="p-6">
         <h3 className="fluent-heading text-foreground mb-4">Revenue Trend</h3>
         {chartData && (
           <div className="h-64">

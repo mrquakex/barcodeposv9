@@ -64,7 +64,7 @@ const Reports: React.FC = () => {
         {reportTypes.map((report, index) => {
           const Icon = report.icon;
           return (
-            <FluentCard key={index} elevation="depth4" hover className="p-6">
+            <FluentCard key={index} depth="depth-4" hoverable className="p-6">
               <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-4 ${report.bgColor}`}>
                 <Icon className={`w-6 h-6 ${report.color}`} />
               </div>
@@ -81,7 +81,7 @@ const Reports: React.FC = () => {
       </div>
 
       {/* Quick Stats */}
-      <FluentCard elevation="depth4" className="p-6">
+      <FluentCard depth="depth-4" className="p-6">
         <h3 className="fluent-heading text-foreground mb-4">Quick Stats</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="p-4 bg-background-alt rounded">

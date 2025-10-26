@@ -89,7 +89,7 @@ const Shifts: React.FC = () => {
       </div>
 
       {activeShift && (
-        <FluentCard elevation="depth8" className="p-6 bg-gradient-to-br from-success/10 to-success/5">
+        <FluentCard depth="depth-8" className="p-6 bg-gradient-to-br from-success/10 to-success/5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-success/20 rounded-full flex items-center justify-center">
@@ -131,7 +131,7 @@ const Shifts: React.FC = () => {
         </FluentCard>
       )}
 
-      <FluentCard elevation="depth4" className="p-6">
+      <FluentCard depth="depth-4" className="p-6">
         <h3 className="fluent-heading text-foreground mb-4">Shift History</h3>
         <div className="space-y-3">
           {shifts

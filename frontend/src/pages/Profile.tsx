@@ -57,7 +57,7 @@ const Profile: React.FC = () => {
         <p className="fluent-body text-foreground-secondary mt-1">Manage your account settings</p>
       </div>
 
-      <FluentCard elevation="depth4" className="p-6">
+      <FluentCard depth="depth-4" className="p-6">
         <h3 className="fluent-heading text-foreground mb-4">Personal Information</h3>
         <div className="space-y-4">
           <FluentInput
@@ -84,7 +84,7 @@ const Profile: React.FC = () => {
         </div>
       </FluentCard>
 
-      <FluentCard elevation="depth4" className="p-6">
+      <FluentCard depth="depth-4" className="p-6">
         <h3 className="fluent-heading text-foreground mb-4">Change Password</h3>
         <div className="space-y-4">
           <FluentInput
@@ -119,7 +119,7 @@ const Profile: React.FC = () => {
         </div>
       </FluentCard>
 
-      <FluentCard elevation="depth4" className="p-6">
+      <FluentCard depth="depth-4" className="p-6">
         <h3 className="fluent-heading text-foreground mb-4">Account Information</h3>
         <div className="space-y-2">
           <div className="flex justify-between">

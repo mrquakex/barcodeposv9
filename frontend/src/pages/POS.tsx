@@ -204,7 +204,7 @@ const POS: React.FC = () => {
       {/* Left: Scanner & Products */}
       <div className="flex-1 space-y-4">
         {/* Scanner */}
-        <FluentCard elevation="depth4" className="p-4">
+        <FluentCard depth="depth-4" className="p-4">
           <div className="flex flex-col sm:flex-row gap-2">
             <FluentInput
               ref={barcodeInputRef}
@@ -234,7 +234,7 @@ const POS: React.FC = () => {
         </FluentCard>
 
         {/* Customer Selection */}
-        <FluentCard elevation="depth4" className="p-4">
+        <FluentCard depth="depth-4" className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <User className="w-5 h-5 text-foreground-secondary" />
@@ -255,7 +255,7 @@ const POS: React.FC = () => {
 
       {/* Right: Cart */}
       <div className="w-full md:w-96 flex flex-col">
-        <FluentCard elevation="depth8" className="flex-1 flex flex-col">
+        <FluentCard depth="depth-8" className="flex-1 flex flex-col">
           {/* Cart Header */}
           <div className="p-4 border-b border-border flex items-center justify-between">
             <h3 className="fluent-heading text-foreground">Cart ({cart.length})</h3>

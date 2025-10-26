@@ -111,7 +111,7 @@ const Categories: React.FC = () => {
       </div>
 
       {/* Search */}
-      <FluentCard elevation="depth4" className="p-4">
+      <FluentCard depth="depth-4" className="p-4">
         <FluentInput
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -123,7 +123,7 @@ const Categories: React.FC = () => {
       {/* Categories Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {filteredCategories.map((category) => (
-          <FluentCard key={category.id} elevation="depth4" hover className="p-4">
+          <FluentCard key={category.id} depth="depth-4" hoverable className="p-4">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 bg-primary/10 rounded flex items-center justify-center">
                 <FolderOpen className="w-5 h-5 text-primary" />

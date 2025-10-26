@@ -68,13 +68,13 @@ const ActivityLogs: React.FC = () => {
         <p className="fluent-body text-foreground-secondary mt-1">{logs.length} activities</p>
       </div>
 
-      <FluentCard elevation="depth4" className="p-4">
+      <FluentCard depth="depth-4" className="p-4">
         <FluentInput placeholder="Search logs..." icon={<Search className="w-4 h-4" />} />
       </FluentCard>
 
       <div className="space-y-2">
         {logs.map((log) => (
-          <FluentCard key={log.id} elevation="depth4" hover className="p-3">
+          <FluentCard key={log.id} depth="depth-4" hoverable className="p-3">
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 bg-primary/10 rounded flex items-center justify-center shrink-0">
                 <FileText className="w-4 h-4 text-primary" />

@@ -90,7 +90,7 @@ const Settings: React.FC = () => {
       </div>
 
       {/* Store Information */}
-      <FluentCard elevation="depth4" className="p-6">
+      <FluentCard depth="depth-4" className="p-6">
         <div className="flex items-center gap-2 mb-4">
           <Store className="w-5 h-5 text-primary" />
           <h3 className="fluent-heading text-foreground">Store Information</h3>
@@ -132,7 +132,7 @@ const Settings: React.FC = () => {
       </FluentCard>
 
       {/* Localization */}
-      <FluentCard elevation="depth4" className="p-6">
+      <FluentCard depth="depth-4" className="p-6">
         <div className="flex items-center gap-2 mb-4">
           <Globe className="w-5 h-5 text-primary" />
           <h3 className="fluent-heading text-foreground">Localization</h3>
@@ -170,7 +170,7 @@ const Settings: React.FC = () => {
       </FluentCard>
 
       {/* Receipt */}
-      <FluentCard elevation="depth4" className="p-6">
+      <FluentCard depth="depth-4" className="p-6">
         <div className="flex items-center gap-2 mb-4">
           <DollarSign className="w-5 h-5 text-primary" />
           <h3 className="fluent-heading text-foreground">Receipt Settings</h3>

@@ -72,7 +72,7 @@ const ProfitLoss: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <FluentCard elevation="depth4" className="p-4">
+        <FluentCard depth="depth-4" className="p-4">
           <div className="flex items-center gap-2 mb-2">
             <DollarSign className="w-5 h-5 text-success" />
             <p className="fluent-body-small text-foreground-secondary">Revenue</p>
@@ -80,7 +80,7 @@ const ProfitLoss: React.FC = () => {
           <p className="fluent-title text-success">₺{stats.revenue.toFixed(2)}</p>
         </FluentCard>
 
-        <FluentCard elevation="depth4" className="p-4">
+        <FluentCard depth="depth-4" className="p-4">
           <div className="flex items-center gap-2 mb-2">
             <DollarSign className="w-5 h-5 text-destructive" />
             <p className="fluent-body-small text-foreground-secondary">Expenses</p>
@@ -88,7 +88,7 @@ const ProfitLoss: React.FC = () => {
           <p className="fluent-title text-destructive">₺{stats.expenses.toFixed(2)}</p>
         </FluentCard>
 
-        <FluentCard elevation="depth4" className="p-4">
+        <FluentCard depth="depth-4" className="p-4">
           <div className="flex items-center gap-2 mb-2">
             {stats.profit >= 0 ? (
               <TrendingUp className="w-5 h-5 text-success" />
@@ -102,7 +102,7 @@ const ProfitLoss: React.FC = () => {
           </p>
         </FluentCard>
 
-        <FluentCard elevation="depth4" className="p-4">
+        <FluentCard depth="depth-4" className="p-4">
           <div className="flex items-center gap-2 mb-2">
             <DollarSign className="w-5 h-5 text-primary" />
             <p className="fluent-body-small text-foreground-secondary">Profit Margin</p>
@@ -112,7 +112,7 @@ const ProfitLoss: React.FC = () => {
       </div>
 
       {chartData && (
-        <FluentCard elevation="depth4" className="p-6">
+        <FluentCard depth="depth-4" className="p-6">
           <h3 className="fluent-heading text-foreground mb-4">Profit & Loss Trend</h3>
           <div className="h-64">
             <Line

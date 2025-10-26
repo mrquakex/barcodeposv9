@@ -61,13 +61,13 @@ const Invoices: React.FC = () => {
         </FluentButton>
       </div>
 
-      <FluentCard elevation="depth4" className="p-4">
+      <FluentCard depth="depth-4" className="p-4">
         <FluentInput placeholder="Search invoices..." icon={<Search className="w-4 h-4" />} />
       </FluentCard>
 
       <div className="space-y-3">
         {invoices.map((invoice) => (
-          <FluentCard key={invoice.id} elevation="depth4" hover className="p-4">
+          <FluentCard key={invoice.id} depth="depth-4" hoverable className="p-4">
             <div className="flex flex-col md:flex-row md:items-center gap-4">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
                 <FileText className="w-6 h-6 text-primary" />

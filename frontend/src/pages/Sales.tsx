@@ -84,7 +84,7 @@ const Sales: React.FC = () => {
       </div>
 
       {/* Search & Filters */}
-      <FluentCard elevation="depth4" className="p-4">
+      <FluentCard depth="depth-4" className="p-4">
         <div className="flex flex-col md:flex-row gap-2">
           <FluentInput
             value={searchTerm}
@@ -102,7 +102,7 @@ const Sales: React.FC = () => {
       {/* Sales List */}
       <div className="space-y-3">
         {filteredSales.map((sale) => (
-          <FluentCard key={sale.id} elevation="depth4" hover className="p-4">
+          <FluentCard key={sale.id} depth="depth-4" hoverable className="p-4">
             <div className="flex flex-col md:flex-row md:items-center gap-4">
               {/* Icon */}
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center shrink-0">

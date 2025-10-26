@@ -17,7 +17,7 @@ export interface FluentCardProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export const FluentCard = React.forwardRef<HTMLDivElement, FluentCardProps>(
-  ({ variant = 'elevated', depth = 'depth-4', hoverable = false, clickable = false, className, ...props }, ref) => {
+  ({ variant = 'elevated', depth = 'depth-4', hoverable = false, clickable = false, className, ...restProps }, ref) => {
     const variantStyles = {
       elevated: cn('bg-card', `fluent-${depth}`),
       filled: 'bg-background-alt',
@@ -34,7 +34,7 @@ export const FluentCard = React.forwardRef<HTMLDivElement, FluentCardProps>(
           clickable && 'cursor-pointer active:fluent-depth-4',
           className
         )}
-        {...props}
+        {...restProps}
       />
     );
   }

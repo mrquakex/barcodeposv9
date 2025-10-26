@@ -80,7 +80,7 @@ const StockCount: React.FC = () => {
 
       <div className="space-y-3">
         {counts.map((count) => (
-          <FluentCard key={count.id} elevation="depth4" hover className="p-4">
+          <FluentCard key={count.id} depth="depth-4" hoverable className="p-4">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
                 <ClipboardList className="w-6 h-6 text-primary" />

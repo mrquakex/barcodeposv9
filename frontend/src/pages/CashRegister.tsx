@@ -75,7 +75,7 @@ const CashRegister: React.FC = () => {
         <p className="fluent-body text-foreground-secondary mt-1">Manage cash transactions</p>
       </div>
 
-      <FluentCard elevation="depth8" className="p-6 bg-gradient-to-br from-primary/10 to-primary/5">
+      <FluentCard depth="depth-8" className="p-6 bg-gradient-to-br from-primary/10 to-primary/5">
         <div className="flex items-center gap-4 mb-4">
           <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
             <Wallet className="w-8 h-8 text-primary" />
@@ -111,7 +111,7 @@ const CashRegister: React.FC = () => {
         </div>
       </FluentCard>
 
-      <FluentCard elevation="depth4" className="p-6">
+      <FluentCard depth="depth-4" className="p-6">
         <h3 className="fluent-heading text-foreground mb-4">Recent Transactions</h3>
         <div className="space-y-3">
           {transactions.map((transaction) => (

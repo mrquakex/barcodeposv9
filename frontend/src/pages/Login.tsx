@@ -32,7 +32,7 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-primary/10 p-4">
-      <FluentCard elevation="depth16" className="w-full max-w-md">
+      <FluentCard depth="depth-16" className="w-full max-w-md">
         <div className="p-8">
           {/* Header */}
           <div className="text-center mb-8">

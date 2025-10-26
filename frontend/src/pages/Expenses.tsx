@@ -94,13 +94,13 @@ const Expenses: React.FC = () => {
         </FluentButton>
       </div>
 
-      <FluentCard elevation="depth4" className="p-4">
+      <FluentCard depth="depth-4" className="p-4">
         <FluentInput placeholder="Search expenses..." icon={<Search className="w-4 h-4" />} />
       </FluentCard>
 
       <div className="space-y-3">
         {expenses.map((expense) => (
-          <FluentCard key={expense.id} elevation="depth4" hover className="p-4">
+          <FluentCard key={expense.id} depth="depth-4" hoverable className="p-4">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-destructive/10 rounded-full flex items-center justify-center shrink-0">
                 <Receipt className="w-6 h-6 text-destructive" />

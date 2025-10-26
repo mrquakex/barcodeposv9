@@ -130,7 +130,7 @@ const Customers: React.FC = () => {
       </div>
 
       {/* Search */}
-      <FluentCard elevation="depth4" className="p-4">
+      <FluentCard depth="depth-4" className="p-4">
         <FluentInput
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -142,7 +142,7 @@ const Customers: React.FC = () => {
       {/* Customers Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredCustomers.map((customer) => (
-          <FluentCard key={customer.id} elevation="depth4" hover className="p-4">
+          <FluentCard key={customer.id} depth="depth-4" hoverable className="p-4">
             <div className="flex items-start gap-3 mb-4">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
                 <User className="w-6 h-6 text-primary" />
