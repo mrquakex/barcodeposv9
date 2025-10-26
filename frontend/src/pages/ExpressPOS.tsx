@@ -262,8 +262,8 @@ const ExpressPOS: React.FC = () => {
         return;
       }
 
-      // Ctrl+N - Yeni kanal
-      if (e.ctrlKey && e.key === 'n') {
+      // Alt+N - Yeni kanal (Ctrl+N Chrome kullanıyor)
+      if (e.altKey && e.key === 'n') {
         e.preventDefault();
         addChannel();
         return;
@@ -871,7 +871,7 @@ const ExpressPOS: React.FC = () => {
             >
               <Plus className="w-5 h-5" />
               Yeni Kanal
-              <span className="text-xs opacity-75">(Ctrl+N)</span>
+              <span className="text-xs opacity-75">(Alt+N)</span>
             </motion.button>
           )}
         </div>
