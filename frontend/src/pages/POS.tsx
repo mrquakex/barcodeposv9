@@ -38,6 +38,21 @@ const POS: React.FC = () => {
   const [showCamera, setShowCamera] = useState(false);
   const barcodeInputRef = useRef<HTMLInputElement>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  
+  // 🎯 PROFESYONEL KAMERA STATE
+  const [cameraInfo, setCameraInfo] = useState<{
+    deviceName: string;
+    resolution: string;
+    fps: number;
+    scanCount: number;
+  }>({
+    deviceName: 'Yükleniyor...',
+    resolution: '1920x1080',
+    fps: 30,
+    scanCount: 0,
+  });
+  const [scanStatus, setScanStatus] = useState<'idle' | 'scanning' | 'success' | 'error'>('idle');
+  const [flashEffect, setFlashEffect] = useState<'none' | 'success' | 'error'>('none');
 
   const { items, addItem, removeItem, updateQuantity, clearCart, getTotal, getNetTotal } = useCartStore();
 
@@ -142,13 +157,16 @@ const POS: React.FC = () => {
             if (backCamera) {
               cameraId = backCamera.id;
               console.log('✅ Arka kamera bulundu:', backCamera.label);
+              setCameraInfo(prev => ({ ...prev, deviceName: backCamera.label }));
             } else if (devices.length > 0) {
               // Son kamera genellikle arka kamera (en iyi çözünürlük)
               cameraId = devices[devices.length - 1].id;
               console.log('✅ Kamera seçildi:', devices[devices.length - 1].label);
+              setCameraInfo(prev => ({ ...prev, deviceName: devices[devices.length - 1].label }));
             }
           } catch (e) {
             console.warn('⚠️ Kamera listesi alınamadı, default kullanılıyor:', e);
+            setCameraInfo(prev => ({ ...prev, deviceName: 'Arka Kamera' }));
           }
 
           // 🎯 FULL HD VIDEO CONSTRAINTS (videoConstraints içinde olmalı!)
@@ -178,6 +196,15 @@ const POS: React.FC = () => {
               console.log('✅ BARKOD (RAW):', decodedText);
               console.log('✅ BARKOD (CLEAN):', cleanBarcode);
               
+              // 📊 Scan counter artır
+              setCameraInfo(prev => ({ ...prev, scanCount: prev.scanCount + 1 }));
+              setScanStatus('scanning');
+              
+              // 📳 Vibration (hafif)
+              if (navigator.vibrate) {
+                navigator.vibrate(50);
+              }
+              
               // Ürünü bul ve sepete ekle
               try {
                 toast.loading('🔍 Aranıyor...');
@@ -204,9 +231,22 @@ const POS: React.FC = () => {
                   icon: '🛒' 
                 });
                 
+                // ✅ BAŞARILI FEEDBACK
+                setScanStatus('success');
+                setFlashEffect('success');
+                
+                // 📳 Başarılı vibration (çift titreşim)
+                if (navigator.vibrate) {
+                  navigator.vibrate([100, 50, 100]);
+                }
+                
+                // Flash efektini kaldır
+                setTimeout(() => setFlashEffect('none'), 500);
+                
                 // Kapat ve reset
                 setTimeout(() => {
                   setShowCamera(false);
+                  setScanStatus('idle');
                   isProcessing = false;
                 }, 800);
               } catch (error: any) {
@@ -220,6 +260,21 @@ const POS: React.FC = () => {
                 }
                 
                 toast.error(`❌ Ürün bulunamadı: ${cleanBarcode}`, { duration: 5000 });
+                
+                // ❌ HATA FEEDBACK
+                setScanStatus('error');
+                setFlashEffect('error');
+                
+                // 📳 Hata vibration (uzun titreşim)
+                if (navigator.vibrate) {
+                  navigator.vibrate(200);
+                }
+                
+                // Flash efektini kaldır
+                setTimeout(() => {
+                  setFlashEffect('none');
+                  setScanStatus('idle');
+                }, 500);
                 
                 // Kamerayı kapatma, tekrar deneme için açık bırak
                 setTimeout(() => {
@@ -1046,7 +1101,12 @@ const POS: React.FC = () => {
                 BARKOD OKUYUCU
               </h3>
               <button
-                onClick={() => setShowCamera(false)}
+                onClick={() => {
+                  setShowCamera(false);
+                  setScanStatus('idle');
+                  setFlashEffect('none');
+                  setCameraInfo(prev => ({ ...prev, scanCount: 0 }));
+                }}
                 className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
               >
                 <X className="w-6 h-6 text-white" />
@@ -1059,6 +1119,62 @@ const POS: React.FC = () => {
                 id="barcode-scanner-pos" 
                 className="w-full h-full"
               />
+              
+              {/* 🎨 FLASH EFFECTS (Yeşil=Başarılı, Kırmızı=Hata) */}
+              <AnimatePresence>
+                {flashEffect === 'success' && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 0.5 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 bg-green-500 pointer-events-none"
+                  />
+                )}
+                {flashEffect === 'error' && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 0.5 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 bg-red-500 pointer-events-none"
+                  />
+                )}
+              </AnimatePresence>
+              
+              {/* 📊 KAMERA BİLGİLERİ - Üst Sol */}
+              <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm rounded-xl p-3 space-y-1 text-white text-xs font-bold">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  <span>CANLI</span>
+                </div>
+                <div className="text-green-400">📷 {cameraInfo.deviceName}</div>
+                <div className="text-blue-400">📐 {cameraInfo.resolution}</div>
+                <div className="text-yellow-400">⚡ {cameraInfo.fps} FPS</div>
+                <div className="text-purple-400">📊 {cameraInfo.scanCount} Tarama</div>
+              </div>
+              
+              {/* 🎯 DURUM GÖSTERGESİ - Üst Orta */}
+              <div className="absolute top-4 left-1/2 -translate-x-1/2">
+                <motion.div
+                  animate={{
+                    scale: scanStatus === 'scanning' ? [1, 1.1, 1] : 1,
+                  }}
+                  transition={{
+                    duration: 0.5,
+                    repeat: scanStatus === 'scanning' ? Infinity : 0,
+                  }}
+                  className={`px-6 py-3 rounded-full font-black text-sm shadow-2xl ${
+                    scanStatus === 'success' ? 'bg-green-500 text-white' :
+                    scanStatus === 'error' ? 'bg-red-500 text-white' :
+                    scanStatus === 'scanning' ? 'bg-yellow-500 text-black animate-pulse' :
+                    'bg-blue-600 text-white'
+                  }`}
+                >
+                  {scanStatus === 'success' ? '✅ BAŞARILI!' :
+                   scanStatus === 'error' ? '❌ BULUNAMADI!' :
+                   scanStatus === 'scanning' ? '🔍 ARANIYOR...' :
+                   '📸 TARANMAYA HAZIR'}
+                </motion.div>
+              </div>
               
               {/* KIRMIZI LAZER TARAMA ÇİZGİSİ - Animasyonlu */}
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
@@ -1102,31 +1218,56 @@ const POS: React.FC = () => {
               </div>
             </div>
             
-            {/* Footer - Talimatlar */}
+            {/* Footer - Profesyonel Talimatlar */}
             <div className="bg-gradient-to-r from-blue-600 to-slate-700 p-5 space-y-3">
               <div className="bg-white/10 rounded-lg p-3 space-y-2">
                 <p className="text-base text-white text-center font-black">
-                  📸 KIRMIZI LAZER İÇİNE GETİRİN
+                  🎯 KIRMIZI LAZER İÇİNE GETİRİN
                 </p>
                 <p className="text-sm text-blue-100 text-center font-bold">
-                  ⚡ 20 FPS Yüksek Hız • 9 Format • HD Tarama • Otomatik
+                  ⚡ 30 FPS Ultra Hız • Full HD 1920x1080 • 9 Format
                 </p>
               </div>
               
+              {/* Desteklenen Formatlar */}
               <div className="flex flex-wrap justify-center gap-2 text-xs text-white font-bold">
-                <span className="bg-white/20 px-2 py-1 rounded">✓ EAN-13</span>
-                <span className="bg-white/20 px-2 py-1 rounded">✓ EAN-8</span>
-                <span className="bg-white/20 px-2 py-1 rounded">✓ UPC-A</span>
-                <span className="bg-white/20 px-2 py-1 rounded">✓ Code-128</span>
-                <span className="bg-white/20 px-2 py-1 rounded">✓ QR Code</span>
+                <span className="bg-white/20 px-2 py-1 rounded flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> EAN-13
+                </span>
+                <span className="bg-white/20 px-2 py-1 rounded flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> EAN-8
+                </span>
+                <span className="bg-white/20 px-2 py-1 rounded flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> UPC-A
+                </span>
+                <span className="bg-white/20 px-2 py-1 rounded flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Code-128
+                </span>
+                <span className="bg-white/20 px-2 py-1 rounded flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> QR Code
+                </span>
               </div>
               
-              <div className="space-y-1">
-                <p className="text-xs text-blue-100 text-center font-bold">
-                  💡 İYİ IŞIK • 📏 15-20 CM MESAFE • 🤚 HAREKETSİZ TUT
-                </p>
-                <p className="text-xs text-blue-200 text-center font-semibold">
-                  Barkod otomatik okunacak ve sepete eklenecek!
+              {/* Profesyonel İpuçları */}
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="bg-white/10 rounded-lg p-2">
+                  <div className="text-2xl mb-1">💡</div>
+                  <div className="text-xs text-white font-bold">İyi Işık</div>
+                </div>
+                <div className="bg-white/10 rounded-lg p-2">
+                  <div className="text-2xl mb-1">📏</div>
+                  <div className="text-xs text-white font-bold">15-20 cm</div>
+                </div>
+                <div className="bg-white/10 rounded-lg p-2">
+                  <div className="text-2xl mb-1">🤚</div>
+                  <div className="text-xs text-white font-bold">Sabit Tut</div>
+                </div>
+              </div>
+              
+              {/* Feedback Bilgileri */}
+              <div className="bg-gradient-to-r from-green-500/20 to-blue-500/20 rounded-lg p-2 border border-white/20">
+                <p className="text-xs text-white text-center font-bold">
+                  🎵 Ses + 📳 Titreşim + 🎨 Flash Feedback
                 </p>
               </div>
             </div>
