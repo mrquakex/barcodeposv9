@@ -67,7 +67,7 @@ const Sidebar: React.FC = () => {
   return (
     <div 
       className={cn(
-        "flex h-screen flex-col bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 border-r-2 border-slate-200 dark:border-slate-800 shadow-xl transition-all duration-300 ease-in-out",
+        "hidden md:flex h-screen flex-col bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 border-r-2 border-slate-200 dark:border-slate-800 shadow-xl transition-all duration-300 ease-in-out",
         isExpanded ? "w-64" : "w-20"
       )}
       onMouseEnter={() => setIsExpanded(true)}
