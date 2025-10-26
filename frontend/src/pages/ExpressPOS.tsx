@@ -352,23 +352,40 @@ const ExpressPOS: React.FC = () => {
           });
           scannerRef.current = scanner;
 
-          // HD KALITE MOBİL + DESKTOP için optimize config
+          // MOBİL UYUMLU config (basit ve stabil)
           const config = {
-            fps: 15, // 15 FPS optimal (10→15)
-            qrbox: { width: 300, height: 180 }, // Daha büyük tarama alanı (250x150 → 300x180)
+            fps: 10, // Mobilde 10 FPS daha stabil
+            qrbox: { width: 250, height: 150 }, // Orta boyut (mobil uyumlu)
             aspectRatio: 1.777778,
-            disableFlip: false,
           };
 
-          // HD VIDEO CONSTRAINTS - Mobil + Desktop optimize
-          const videoConstraints = {
-            facingMode: 'environment',
-            width: { ideal: 1920, min: 1280 }, // HD çözünürlük
-            height: { ideal: 1080, min: 720 }, // HD çözünürlük
-          };
+          // ARKA KAMERA ID'sini bul
+          let cameraId = 'environment'; // Default
+          try {
+            const devices = await Html5Qrcode.getCameras();
+            console.log('📸 Bulunan kameralar:', devices);
+            
+            // Arka kamerayı bul (environment)
+            const backCamera = devices.find(device => 
+              device.label.toLowerCase().includes('back') || 
+              device.label.toLowerCase().includes('rear') ||
+              device.label.toLowerCase().includes('arka')
+            );
+            
+            if (backCamera) {
+              cameraId = backCamera.id;
+              console.log('✅ Arka kamera bulundu:', backCamera.label);
+            } else if (devices.length > 0) {
+              // Arka kamera yoksa, ilk kamerayı kullan
+              cameraId = devices[devices.length - 1].id; // Genellikle son kamera arka kamera
+              console.log('✅ Kamera seçildi:', devices[devices.length - 1].label);
+            }
+          } catch (e) {
+            console.warn('⚠️ Kamera listesi alınamadı, default kullanılıyor:', e);
+          }
 
           await scanner.start(
-            videoConstraints,
+            cameraId, // Kamera ID veya 'environment'
             config,
             async (decodedText, decodedResult) => {
               // Çift okuma önleme
@@ -1441,7 +1458,7 @@ const ExpressPOS: React.FC = () => {
                   📸 KIRMIZI LAZER İÇİNE GETİRİN
                 </p>
                 <p className="text-sm text-blue-100 text-center font-bold">
-                  📡 HD Kamera • 15 FPS • 9 Format • Otomatik Odak
+                  📱 Mobil Optimize • 9 Format • Arka Kamera • Otomatik
                 </p>
               </div>
               
