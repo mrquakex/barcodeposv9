@@ -147,38 +147,58 @@ class BenimPOSScraperService {
       while (hasMorePages) {
         console.log(`\n📄 Sayfa ${currentPage} taranıyor...`);
 
-        // Go to products page with pagination
-        // BenimPOS might use different pagination URL patterns - try multiple formats
-        let url: string;
+        // Only navigate on first page, use DataTables controls after
         if (currentPage === 1) {
-          url = 'https://www.benimpos.com/products';
+          await page.goto('https://www.benimpos.com/products', {
+            waitUntil: 'networkidle2',
+            timeout: 30000,
+          });
+          await new Promise(resolve => setTimeout(resolve, 2000));
         } else {
-          // Try clicking "next" button on page instead of URL navigation
+          // For subsequent pages, use DataTables "Next" button
+          console.log(`🖱️  DataTables "Next" butonuna tıklanıyor... (Sayfa ${currentPage})`);
+          
           try {
-            // Look for DataTables "next" button and click it
-            const nextButton = await page.$('.paginate_button.next:not(.disabled)');
-            if (nextButton) {
-              console.log(`🖱️  "İleri" butonuna tıklanıyor... (Sayfa ${currentPage})`);
-              await nextButton.click();
-              await page.waitForTimeout(2000); // Wait for AJAX to load
-              continue; // Skip goto, continue with scraping
-            } else {
-              // No next button found, try URL parameters
-              url = `https://www.benimpos.com/products?start=${(currentPage - 1) * 50}&length=50`;
+            // Wait for table to be ready
+            await page.waitForSelector('#myReportTable', { timeout: 5000 });
+            
+            // Try multiple selectors for "Next" button
+            const nextSelectors = [
+              'a.paginate_button.next:not(.disabled)',
+              'a#myReportTable_next:not(.disabled)',
+              'a[data-dt-idx]:last-child:not(.disabled)',
+              '.dataTables_paginate a.next:not(.disabled)'
+            ];
+            
+            let clicked = false;
+            for (const selector of nextSelectors) {
+              const nextButton = await page.$(selector);
+              if (nextButton) {
+                await nextButton.click();
+                clicked = true;
+                console.log(`✅ "Next" butonuna tıklandı (${selector})`);
+                break;
+              }
             }
-          } catch (error) {
-            // Fallback to URL navigation
-            url = `https://www.benimpos.com/products?start=${(currentPage - 1) * 50}&length=50`;
+            
+            if (!clicked) {
+              console.log(`⚠️  "Next" butonu bulunamadı, sayfa geçişi yapılamıyor`);
+              hasMorePages = false;
+              break;
+            }
+            
+            // Wait for AJAX to reload table
+            await new Promise(resolve => setTimeout(resolve, 3000));
+            
+            // Wait for table to update
+            await page.waitForSelector('#myReportTable tbody tr', { timeout: 5000 });
+            
+          } catch (error: any) {
+            console.error(`❌ Sayfa geçiş hatası: ${error.message}`);
+            hasMorePages = false;
+            break;
           }
         }
-        
-        await page.goto(url, {
-          waitUntil: 'networkidle2',
-          timeout: 30000,
-        });
-
-        // Wait for products to load
-        await new Promise(resolve => setTimeout(resolve, 2000));
 
         // Get HTML content
         const html = await page.content();
@@ -303,6 +323,20 @@ class BenimPOSScraperService {
             const difference = scraped.price - ourProduct.price;
             const percentage = (difference / ourProduct.price) * 100;
 
+            // 🚫 DUPLICATE KONTROLÜ: Aynı ürün için zaten PENDING değişiklik var mı?
+            const existingChange = await prisma.priceChange.findFirst({
+              where: {
+                productId: ourProduct.id,
+                status: 'PENDING',
+                newPrice: scraped.price, // Aynı yeni fiyat
+              }
+            });
+
+            if (existingChange) {
+              console.log(`⏭️  Atlanıyor (zaten pending): ${ourProduct.name}`);
+              continue; // Skip duplicate
+            }
+
             priceChanges.push({
               productId: ourProduct.id,
               productName: ourProduct.name,
@@ -326,6 +360,9 @@ class BenimPOSScraperService {
                 scrapedData: { ...scraped.additionalData, isNewProduct: false },
               },
             });
+          } else {
+            // ℹ️ Fiyat aynı, kaydetme (oldPrice === newPrice)
+            console.log(`⏭️  Atlanıyor (fiyat aynı): ${ourProduct.name} - ${ourProduct.price} TL`);
           }
         } else {
           // 🆕 Ürün bizde YOK - yeni ürün!

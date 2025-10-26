@@ -10,6 +10,7 @@ import {
   getScraperConfig,
   updateScraperConfig,
   getPriceChangeStats,
+  clearAllPendingChanges,
 } from '../controllers/price-monitor.controller';
 
 const router = Router();
@@ -31,6 +32,9 @@ router.post('/changes/:id/ignore', checkPermission(['ADMIN', 'MANAGER']), ignore
 
 // 🔄 Toplu fiyat değişikliği uygula
 router.post('/changes/apply-multiple', checkPermission(['ADMIN', 'MANAGER']), applyMultiplePriceChanges);
+
+// 🗑️ Taramayı sıfırla (TÜM PENDING değişiklikleri sil)
+router.delete('/changes/clear', checkPermission(['ADMIN', 'MANAGER']), clearAllPendingChanges);
 
 // 🕷️ Manuel scraping başlat (ADMIN ve MANAGER)
 router.post('/scrape', checkPermission(['ADMIN', 'MANAGER']), runManualScraping);

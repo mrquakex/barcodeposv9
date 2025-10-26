@@ -304,3 +304,29 @@ export const getPriceChangeStats = async (req: Request, res: Response) => {
   }
 };
 
+// 🗑️ TARAMAYI SIFIRLA (TÜM PENDING DEĞİŞİKLİKLERİ SİL)
+export const clearAllPendingChanges = async (req: Request, res: Response) => {
+  try {
+    const result = await prisma.priceChange.deleteMany({
+      where: { status: 'PENDING' }
+    });
+
+    console.log(`🗑️  ${result.count} adet PENDING fiyat değişikliği silindi`);
+
+    // Send WebSocket notification
+    io.emit('price-changes-cleared', {
+      count: result.count,
+      timestamp: new Date(),
+    });
+
+    res.json({
+      success: true,
+      message: `${result.count} adet fiyat değişikliği temizlendi`,
+      count: result.count,
+    });
+  } catch (error: any) {
+    console.error('Clear pending changes error:', error);
+    res.status(500).json({ error: 'Temizleme işlemi başarısız' });
+  }
+};
+
