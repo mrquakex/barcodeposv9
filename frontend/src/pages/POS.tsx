@@ -186,16 +186,27 @@ const POS: React.FC = () => {
                   icon: '🛒' 
                 });
                 
-                // Kapat
+                // Kapat ve reset
                 setTimeout(() => {
                   setShowCamera(false);
+                  isProcessing = false;
                 }, 800);
               } catch (error: any) {
                 toast.dismiss();
                 console.error('❌ Ürün yok (Clean):', cleanBarcode);
                 console.error('❌ Ürün yok (RAW):', decodedText);
+                
+                // Detaylı hata logu
+                if (error.response) {
+                  console.error('API Response:', error.response.status, error.response.data);
+                }
+                
                 toast.error(`❌ Ürün bulunamadı: ${cleanBarcode}`, { duration: 5000 });
-                isProcessing = false;
+                
+                // Kamerayı kapatma, tekrar deneme için açık bırak
+                setTimeout(() => {
+                  isProcessing = false;
+                }, 2000);
               }
             },
             () => {}
@@ -403,40 +414,53 @@ const POS: React.FC = () => {
         />
       </div>
 
-      <div className="flex-1 flex gap-4 min-h-0">
+      <div className="flex-1 flex flex-col md:flex-row gap-4 min-h-0">
       {/* Left: Products */}
-        <div className="flex-1 flex flex-col gap-4 min-h-0">
+        <div className="flex-1 flex flex-col gap-4 min-h-0 order-2 md:order-1">
           {/* Barcode Scanner */}
           <Card className="border-2 border-blue-200 dark:border-blue-900 shadow-lg">
             <CardContent className="pt-6">
-              <form onSubmit={handleBarcodeSubmit} className="flex gap-3">
+              <form onSubmit={handleBarcodeSubmit} className="flex flex-col sm:flex-row gap-3">
+                {/* Mobilde: Önce kamera butonu (büyük) */}
+                <button
+                  type="button"
+                  onClick={() => setShowCamera(true)}
+                  className="sm:hidden w-full h-16 bg-gradient-to-br from-blue-600 to-slate-700 hover:from-blue-700 hover:to-slate-800 text-white rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3 font-black text-lg"
+                >
+                  <Camera className="w-7 h-7" />
+                  📸 KAMERA İLE OKUT
+                </button>
+
+                {/* Desktop & Mobil: Barkod input */}
                 <div className="relative flex-1">
-                  <div className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-md">
-                    <Zap className="w-6 h-6 text-white" />
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-md">
+                    <Zap className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                   </div>
               <Input
                 ref={barcodeInputRef}
                 type="text"
-                    placeholder="Barkod okutun veya ürün arayın... (Enter ile ekle)"
+                    inputMode="numeric"
+                    placeholder="Barkod giriniz..."
                 value={barcode}
                 onChange={(e) => setBarcode(e.target.value)}
                 disabled={loading}
-                    className="pl-20 pr-6 h-16 text-lg font-semibold tracking-wide border-2 border-slate-300 focus:border-blue-600 dark:border-slate-700 shadow-sm"
+                    className="pl-16 sm:pl-20 pr-6 h-14 sm:h-16 text-base sm:text-lg font-semibold tracking-wide border-2 border-slate-300 focus:border-blue-600 dark:border-slate-700 shadow-sm"
                   />
                   {loading && (
                     <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                      <Clock className="w-6 h-6 text-blue-600 animate-spin" />
+                      <Clock className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 animate-spin" />
                     </div>
                   )}
                 </div>
-                {/* Kamera Butonu */}
+
+                {/* Desktop: Kamera butonu (yanında) */}
                 <button
                   type="button"
                   onClick={() => setShowCamera(true)}
-                  className="h-16 px-6 bg-gradient-to-br from-blue-600 to-slate-700 hover:from-blue-700 hover:to-slate-800 text-white rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2 font-bold"
+                  className="hidden sm:flex h-16 px-6 bg-gradient-to-br from-blue-600 to-slate-700 hover:from-blue-700 hover:to-slate-800 text-white rounded-lg shadow-lg hover:shadow-xl transition-all items-center gap-2 font-bold"
                 >
                   <Camera className="w-6 h-6" />
-                  <span className="hidden sm:inline">Kamera</span>
+                  Kamera
                 </button>
             </form>
           </CardContent>
@@ -445,7 +469,8 @@ const POS: React.FC = () => {
           {/* Products Grid */}
           <Card className="flex-1 overflow-hidden flex flex-col min-h-0">
           <CardHeader>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                {/* Search */}
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -453,34 +478,38 @@ const POS: React.FC = () => {
                 placeholder="Ürün ara..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 h-10 sm:h-auto"
                   />
                 </div>
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="px-4 py-2 border rounded-md bg-background min-w-[150px]"
-                >
-                  <option value="">Tüm Kategoriler</option>
-                  {categories.map(cat => (
-                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                  ))}
-                </select>
-                <div className="flex gap-1 border rounded-md p-1">
-                  <Button
-                    variant={viewMode === 'grid' ? 'default' : 'ghost'}
-                    size="icon"
-                    onClick={() => setViewMode('grid')}
+
+                {/* Category & View Mode */}
+                <div className="flex gap-2">
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    className="flex-1 sm:flex-none px-3 py-2 border rounded-md bg-background text-sm sm:min-w-[150px]"
                   >
-                    <Grid3x3 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === 'list' ? 'default' : 'ghost'}
-                    size="icon"
-                    onClick={() => setViewMode('list')}
-                  >
-                    <List className="w-4 h-4" />
-                  </Button>
+                    <option value="">Tüm Kategoriler</option>
+                    {categories.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                  </select>
+                  <div className="hidden sm:flex gap-1 border rounded-md p-1">
+                    <Button
+                      variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                      size="icon"
+                      onClick={() => setViewMode('grid')}
+                    >
+                      <Grid3x3 className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant={viewMode === 'list' ? 'default' : 'ghost'}
+                      size="icon"
+                      onClick={() => setViewMode('list')}
+                    >
+                      <List className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
             </div>
           </CardHeader>
@@ -556,7 +585,7 @@ const POS: React.FC = () => {
       </div>
 
         {/* Right: Cart & Payment */}
-        <div className="w-[420px] flex flex-col gap-4 min-h-0">
+        <div className="w-full md:w-[420px] flex flex-col gap-4 min-h-0 order-1 md:order-2">
           {/* Cart */}
           <Card className="flex-1 overflow-hidden flex flex-col min-h-0 border-2 border-slate-200 dark:border-slate-700 shadow-xl">
             <CardHeader className="border-b-2 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950/30">
