@@ -12,10 +12,11 @@ import {
   Search, Trash2, Plus, Minus, CreditCard, Banknote, ShoppingCart,
   User, X, Receipt, Printer, CheckCircle2, Clock,
   Package, Grid3x3, List, Star, Sparkles, Zap, DollarSign,
-  Users, Calendar, BarChart3
+  Users, Calendar, BarChart3, Camera
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import StatCard from '../components/ui/StatCard';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 
 const POS: React.FC = () => {
   const [barcode, setBarcode] = useState('');
@@ -34,7 +35,9 @@ const POS: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [lastSale, setLastSale] = useState<any>(null);
   const [recentSales, setRecentSales] = useState<any[]>([]);
+  const [showCamera, setShowCamera] = useState(false);
   const barcodeInputRef = useRef<HTMLInputElement>(null);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
 
   const { items, addItem, removeItem, updateQuantity, clearCart, getTotal, getNetTotal } = useCartStore();
 
@@ -67,6 +70,184 @@ const POS: React.FC = () => {
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [items]);
+
+  // Kamera ile barkod okuma
+  useEffect(() => {
+    let isProcessing = false;
+
+    const startScanner = async () => {
+      if (showCamera) {
+        // HTTPS kontrolü
+        if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+          toast.error('🔒 Kamera sadece HTTPS bağlantısında çalışır!', { duration: 6000 });
+          setShowCamera(false);
+          return;
+        }
+
+        // getUserMedia desteği kontrolü
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          toast.error('❌ Tarayıcınız kamera kullanımını desteklemiyor!', { duration: 6000 });
+          setShowCamera(false);
+          return;
+        }
+
+        try {
+          // Önce kamera iznini test et
+          console.log('📸 Kamera izni isteniyor...');
+          const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment' } 
+          });
+          
+          // İzin alındı, stream'i hemen kapat
+          stream.getTracks().forEach(track => track.stop());
+          console.log('✅ Kamera izni alındı!');
+
+          const scanner = new Html5Qrcode('barcode-scanner-pos', {
+            verbose: false,
+            formatsToSupport: [
+              Html5QrcodeSupportedFormats.EAN_13,
+              Html5QrcodeSupportedFormats.EAN_8,
+              Html5QrcodeSupportedFormats.UPC_A,
+              Html5QrcodeSupportedFormats.UPC_E,
+              Html5QrcodeSupportedFormats.CODE_128,
+              Html5QrcodeSupportedFormats.CODE_39,
+              Html5QrcodeSupportedFormats.CODE_93,
+              Html5QrcodeSupportedFormats.ITF,
+              Html5QrcodeSupportedFormats.QR_CODE,
+            ],
+          });
+          scannerRef.current = scanner;
+
+          // MOBİL UYUMLU config
+          const config = {
+            fps: 10,
+            qrbox: { width: 250, height: 150 },
+            aspectRatio: 1.777778,
+          };
+
+          // ARKA KAMERA ID'sini bul
+          let cameraId = 'environment';
+          try {
+            const devices = await Html5Qrcode.getCameras();
+            console.log('📸 Bulunan kameralar:', devices);
+            
+            const backCamera = devices.find(device => 
+              device.label.toLowerCase().includes('back') || 
+              device.label.toLowerCase().includes('rear') ||
+              device.label.toLowerCase().includes('arka')
+            );
+            
+            if (backCamera) {
+              cameraId = backCamera.id;
+              console.log('✅ Arka kamera bulundu:', backCamera.label);
+            } else if (devices.length > 0) {
+              cameraId = devices[devices.length - 1].id;
+              console.log('✅ Kamera seçildi:', devices[devices.length - 1].label);
+            }
+          } catch (e) {
+            console.warn('⚠️ Kamera listesi alınamadı, default kullanılıyor:', e);
+          }
+
+          await scanner.start(
+            cameraId,
+            config,
+            async (decodedText) => {
+              if (isProcessing) return;
+              isProcessing = true;
+              
+              // BARKOD TEMİZLE
+              const cleanBarcode = decodedText.trim().replace(/\s+/g, '').toUpperCase();
+              console.log('✅ BARKOD (RAW):', decodedText);
+              console.log('✅ BARKOD (CLEAN):', cleanBarcode);
+              
+              // Ürünü bul ve sepete ekle
+              try {
+                toast.loading('🔍 Aranıyor...');
+                
+                let response;
+                try {
+                  response = await api.get(`/products/barcode/${encodeURIComponent(cleanBarcode)}`);
+                } catch {
+                  response = await api.get(`/products/barcode/${encodeURIComponent(decodedText)}`);
+                }
+                
+                const product = response.data.product;
+                toast.dismiss();
+
+                if (product.stock <= 0) {
+                  toast.error(`❌ ${product.name} stokta yok!`, { duration: 4000 });
+                  isProcessing = false;
+                  return;
+                }
+
+                addItem(product, 1);
+                toast.success(`✅ ${product.name} eklendi!`, { 
+                  duration: 2000,
+                  icon: '🛒' 
+                });
+                
+                // Kapat
+                setTimeout(() => {
+                  setShowCamera(false);
+                }, 800);
+              } catch (error: any) {
+                toast.dismiss();
+                console.error('❌ Ürün yok (Clean):', cleanBarcode);
+                console.error('❌ Ürün yok (RAW):', decodedText);
+                toast.error(`❌ Ürün bulunamadı: ${cleanBarcode}`, { duration: 5000 });
+                isProcessing = false;
+              }
+            },
+            () => {}
+          );
+
+          toast.success('📸 Kamera açıldı! Barkodu göster...', { duration: 2000 });
+          console.log('✅ Scanner başlatıldı');
+        } catch (error: any) {
+          console.error('❌ Kamera hatası:', error);
+          
+          let errorMsg = 'Kamera açılamadı!';
+          if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+            errorMsg = '🚫 Kamera izni reddedildi! Ayarlardan izin verin.';
+          } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+            errorMsg = '📷 Kamera bulunamadı!';
+          } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+            errorMsg = '⚠️ Kamera başka bir uygulama tarafından kullanılıyor!';
+          } else if (error.name === 'OverconstrainedError') {
+            errorMsg = '⚙️ Kamera ayarları uygun değil!';
+          } else if (error.message) {
+            errorMsg = `❌ ${error.message}`;
+          }
+          
+          toast.error(errorMsg, { duration: 6000 });
+          setShowCamera(false);
+        }
+      }
+    };
+
+    const stopScanner = async () => {
+      if (scannerRef.current && scannerRef.current.isScanning) {
+        try {
+          await scannerRef.current.stop();
+          await scannerRef.current.clear();
+          console.log('✅ Scanner durduruldu');
+        } catch (error) {
+          console.error('❌ Stop scanner error:', error);
+        }
+      }
+      isProcessing = false;
+    };
+
+    if (showCamera) {
+      startScanner();
+    } else {
+      stopScanner();
+    }
+
+    return () => {
+      stopScanner();
+    };
+  }, [showCamera, addItem]);
 
   const fetchProducts = async () => {
     try {
@@ -228,8 +409,8 @@ const POS: React.FC = () => {
           {/* Barcode Scanner */}
           <Card className="border-2 border-blue-200 dark:border-blue-900 shadow-lg">
             <CardContent className="pt-6">
-              <form onSubmit={handleBarcodeSubmit}>
-                <div className="relative">
+              <form onSubmit={handleBarcodeSubmit} className="flex gap-3">
+                <div className="relative flex-1">
                   <div className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-lg bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center shadow-md">
                     <Zap className="w-6 h-6 text-white" />
                   </div>
@@ -248,6 +429,15 @@ const POS: React.FC = () => {
                     </div>
                   )}
                 </div>
+                {/* Kamera Butonu */}
+                <button
+                  type="button"
+                  onClick={() => setShowCamera(true)}
+                  className="h-16 px-6 bg-gradient-to-br from-blue-600 to-slate-700 hover:from-blue-700 hover:to-slate-800 text-white rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2 font-bold"
+                >
+                  <Camera className="w-6 h-6" />
+                  <span className="hidden sm:inline">Kamera</span>
+                </button>
             </form>
           </CardContent>
         </Card>
@@ -418,10 +608,10 @@ const POS: React.FC = () => {
                           <p className="font-bold text-base text-slate-900 dark:text-white mb-1">{item.product.name}</p>
                           <p className="text-sm text-slate-600 dark:text-slate-400 font-mono">{formatCurrency(item.product.price)} × {item.quantity}</p>
                         </div>
-                        <button
-                          onClick={() => removeItem(item.product.id)}
+                    <button
+                      onClick={() => removeItem(item.product.id)}
                           className="text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 p-2 rounded-lg transition-colors"
-                        >
+                    >
                           <Trash2 className="w-5 h-5" />
                     </button>
                   </div>
@@ -430,35 +620,35 @@ const POS: React.FC = () => {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                        onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
                             className="w-10 h-10 p-0 border-2 border-slate-300 dark:border-slate-600 hover:border-blue-600 hover:bg-blue-50"
-                          >
-                            <Minus className="w-4 h-4" />
+                      >
+                        <Minus className="w-4 h-4" />
                           </Button>
                           <span className="w-14 text-center font-black text-xl text-slate-900 dark:text-white">{item.quantity}</span>
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                            disabled={item.quantity >= item.product.stock}
+                        onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                        disabled={item.quantity >= item.product.stock}
                             className="w-10 h-10 p-0 border-2 border-slate-300 dark:border-slate-600 hover:border-blue-600 hover:bg-blue-50"
-                          >
-                            <Plus className="w-4 h-4" />
+                      >
+                        <Plus className="w-4 h-4" />
                           </Button>
-                        </div>
+                    </div>
                         <p className="text-2xl font-black text-blue-700 dark:text-blue-400">
                           {formatCurrency(item.subtotal)}
                         </p>
-                      </div>
+                  </div>
                     </motion.div>
                   ))}
                 </AnimatePresence>
-              )}
-            </CardContent>
-          </Card>
+            )}
+          </CardContent>
+        </Card>
 
           {/* Totals & Actions */}
-          <Card>
+        <Card>
             <CardContent className="pt-6 space-y-4">
               {/* Customer */}
               <div className="p-3 border-2 border-dashed rounded-lg">
@@ -489,7 +679,7 @@ const POS: React.FC = () => {
                     Müşteri Seç (F2)
                   </Button>
                 )}
-                </div>
+            </div>
 
               {/* Totals */}
               <div className="space-y-3">
@@ -540,22 +730,22 @@ const POS: React.FC = () => {
                   >
                     <CreditCard className="w-3 h-3 mr-1" />
                     F5: Ödeme
-                  </Button>
-                  <Button
+              </Button>
+              <Button
                     variant="outline"
                     size="sm"
                     onClick={() => items.length > 0 && clearCart()}
-                    disabled={items.length === 0}
+                disabled={items.length === 0}
                     className="h-10 text-xs font-semibold border-red-300 hover:bg-red-50 hover:border-red-600"
-                  >
+              >
                     <Trash2 className="w-3 h-3 mr-1" />
                     F8: Temizle
-                  </Button>
+              </Button>
                 </div>
-              </div>
+            </div>
           </CardContent>
         </Card>
-        </div>
+      </div>
       </div>
 
       {/* Customer Modal */}
@@ -798,6 +988,110 @@ const POS: React.FC = () => {
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* Kamera Modal */}
+      <AnimatePresence>
+        {showCamera && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black z-50 flex flex-col"
+          >
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-slate-700 p-4 flex items-center justify-between">
+              <h3 className="text-xl font-black text-white flex items-center gap-2">
+                <Camera className="w-6 h-6" />
+                BARKOD OKUYUCU
+              </h3>
+              <button
+                onClick={() => setShowCamera(false)}
+                className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+              >
+                <X className="w-6 h-6 text-white" />
+              </button>
+            </div>
+
+            {/* Scanner Container - FULL SCREEN */}
+            <div className="flex-1 relative">
+              <div 
+                id="barcode-scanner-pos" 
+                className="w-full h-full"
+              />
+              
+              {/* KIRMIZI LAZER TARAMA ÇİZGİSİ - Animasyonlu */}
+              <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                <div className="relative w-full max-w-md h-64">
+                  {/* Kırmızı tarama çizgisi */}
+                  <motion.div
+                    className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent shadow-[0_0_20px_rgba(239,68,68,0.8)]"
+                    style={{
+                      boxShadow: '0 0 20px rgba(239, 68, 68, 0.8), 0 0 40px rgba(239, 68, 68, 0.6), 0 0 60px rgba(239, 68, 68, 0.4)'
+                    }}
+                    animate={{
+                      top: ['0%', '100%', '0%'],
+                    }}
+                    transition={{
+                      duration: 2.5,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                    }}
+                  />
+                  
+                  {/* Çerçeve köşeleri */}
+                  <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-red-500" />
+                  <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-red-500" />
+                  <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-red-500" />
+                  <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-red-500" />
+                  
+                  {/* Pulse efekt */}
+                  <motion.div
+                    className="absolute inset-0 border-2 border-red-500/30 rounded-lg"
+                    animate={{
+                      opacity: [0.3, 0.6, 0.3],
+                      scale: [0.98, 1, 0.98],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+            
+            {/* Footer - Talimatlar */}
+            <div className="bg-gradient-to-r from-blue-600 to-slate-700 p-5 space-y-3">
+              <div className="bg-white/10 rounded-lg p-3 space-y-2">
+                <p className="text-base text-white text-center font-black">
+                  📸 KIRMIZI LAZER İÇİNE GETİRİN
+                </p>
+                <p className="text-sm text-blue-100 text-center font-bold">
+                  📱 Mobil Optimize • 9 Format • Arka Kamera • Otomatik
+                </p>
+              </div>
+              
+              <div className="flex flex-wrap justify-center gap-2 text-xs text-white font-bold">
+                <span className="bg-white/20 px-2 py-1 rounded">✓ EAN-13</span>
+                <span className="bg-white/20 px-2 py-1 rounded">✓ EAN-8</span>
+                <span className="bg-white/20 px-2 py-1 rounded">✓ UPC-A</span>
+                <span className="bg-white/20 px-2 py-1 rounded">✓ Code-128</span>
+                <span className="bg-white/20 px-2 py-1 rounded">✓ QR Code</span>
+              </div>
+              
+              <div className="space-y-1">
+                <p className="text-xs text-blue-100 text-center font-bold">
+                  💡 İYİ IŞIK • 📏 15-20 CM MESAFE • 🤚 HAREKETSİZ TUT
+                </p>
+                <p className="text-xs text-blue-200 text-center font-semibold">
+                  Barkod otomatik okunacak ve sepete eklenecek!
+                </p>
+              </div>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
