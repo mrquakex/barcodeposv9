@@ -165,7 +165,17 @@ export const applyMultiplePriceChanges = async (req: Request, res: Response) => 
 // 🕷️ MANUEL SCRAPING BAŞLAT
 export const runManualScraping = async (req: Request, res: Response) => {
   try {
-    console.log('🚀 Manuel scraping başlatıldı');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🚀 MANUEL SCRAPING BAŞLATILDI!');
+    console.log('👤 User:', (req as any).user?.username);
+    console.log('🕒 Time:', new Date().toLocaleString('tr-TR'));
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+    // Send immediate response
+    res.json({ 
+      success: true, 
+      message: 'Tarama başlatıldı - Sonuçlar WebSocket ile gelecek' 
+    });
 
     // Run scraping in background
     benimPOSScraperService.runScraping().then((result) => {
@@ -190,16 +200,19 @@ export const runManualScraping = async (req: Request, res: Response) => {
           timestamp: new Date(),
         });
       }
+    }).catch((error) => {
+      console.error('❌ SCRAPING PROMISE ERROR:', error);
+      io.emit('scraping-completed', {
+        success: false,
+        error: error.message,
+        timestamp: new Date(),
+      });
     });
-
-    // Immediately return response
-    res.json({
-      success: true,
-      message: 'Scraping başlatıldı, sonuçlar bildirim olarak gelecek',
-    });
+    
+    // Response already sent above (line 175-178)
   } catch (error: any) {
-    console.error('Manual scraping error:', error);
-    res.status(500).json({ error: 'Scraping başlatılamadı' });
+    console.error('❌ MANUAL SCRAPING ERROR:', error);
+    res.status(500).json({ error: 'Scraping başlatılamadı: ' + error.message });
   }
 };
 
