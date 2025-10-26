@@ -22,6 +22,11 @@ import Expenses from './pages/Expenses';
 import ProfitLoss from './pages/ProfitLoss';
 import CashRegister from './pages/CashRegister';
 import Shifts from './pages/Shifts';
+import Branches from './pages/Branches';
+import Employees from './pages/Employees';
+import ActivityLogs from './pages/ActivityLogs';
+import Profile from './pages/Profile';
+import UserManagement from './pages/UserManagement';
 
 const App: React.FC = () => {
   const { token } = useAuthStore();
@@ -51,6 +56,11 @@ const App: React.FC = () => {
           <Route path="/profit-loss" element={<ProfitLoss />} />
           <Route path="/cash-register" element={<CashRegister />} />
           <Route path="/shifts" element={<Shifts />} />
+          <Route path="/branches" element={<Branches />} />
+          <Route path="/employees" element={<Employees />} />
+          <Route path="/activity-logs" element={<ActivityLogs />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/user-management" element={<UserManagement />} />
           {/* More pages will be added here */}
         </Route>
 
