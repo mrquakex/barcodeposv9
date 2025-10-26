@@ -243,17 +243,19 @@ class BenimPOSScraperService {
                   price,
                 });
                 
-                // 📡 EMIT PRODUCT ADDED (Her ürün için!)
-                io.emit('scraping-product-added', {
-                  name,
-                  barcode,
-                  price,
-                  index: allProducts.length,
-                  page: currentPage,
-                });
+                // 📡 EMIT PRODUCT ADDED (Her 5 üründe bir - throttle!)
+                if ((i + 1) % 5 === 0 || i === rows.length - 1) {
+                  io.emit('scraping-product-added', {
+                    name,
+                    barcode,
+                    price,
+                    index: allProducts.length,
+                    page: currentPage,
+                  });
+                }
                 
-                // 📡 EMIT PROGRESS (Her 10 üründe bir)
-                if ((i + 1) % 10 === 0 || i === rows.length - 1) {
+                // 📡 EMIT PROGRESS (Her 20 üründe bir - daha az emit!)
+                if ((i + 1) % 20 === 0 || i === rows.length - 1) {
                   io.emit('scraping-progress', {
                     current: allProducts.length,
                     total: estimatedTotal,
