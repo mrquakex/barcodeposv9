@@ -1,26 +1,23 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import Groq from 'groq-sdk';
 
 class GeminiService {
-  private genAI: GoogleGenerativeAI;
-  private model: any;
+  private groq: Groq | null = null;
 
   constructor() {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY;
     
     if (!apiKey) {
-      console.warn('⚠️  GEMINI_API_KEY bulunamadı. AI özelliği çalışmayacak.');
+      console.warn('⚠️  GROQ_API_KEY bulunamadı. AI özelliği çalışmayacak.');
       return;
     }
 
-    this.genAI = new GoogleGenerativeAI(apiKey);
-    // Yeni model: gemini-1.5-flash (hızlı ve ücretsiz) veya gemini-1.5-pro (daha güçlü)
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    console.log('✅ Gemini AI başlatıldı! (Model: gemini-1.5-flash)');
+    this.groq = new Groq({ apiKey });
+    console.log('✅ Groq AI başlatıldı! (Model: llama-3.1-70b-versatile) ⚡');
   }
 
   async chat(message: string, context?: any): Promise<string> {
-    if (!this.model) {
-      throw new Error('Gemini AI yapılandırılmamış. API key\'inizi kontrol edin.');
+    if (!this.groq) {
+      throw new Error('Groq AI yapılandırılmamış. API key\'inizi kontrol edin.');
     }
 
     try {
@@ -44,13 +41,19 @@ Yanıtlarını:
 
 ${context ? `\n\nMevcut Veri:\n${JSON.stringify(context, null, 2)}` : ''}`;
 
-      const fullPrompt = `${systemPrompt}\n\nKullanıcı: ${message}\n\nAsistan:`;
+      const chatCompletion = await this.groq.chat.completions.create({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: message }
+        ],
+        model: 'llama-3.1-70b-versatile', // En güçlü ve hızlı model
+        temperature: 0.7,
+        max_tokens: 1024,
+      });
 
-      const result = await this.model.generateContent(fullPrompt);
-      const response = await result.response;
-      return response.text();
+      return chatCompletion.choices[0]?.message?.content || 'Üzgünüm, yanıt oluşturamadım.';
     } catch (error: any) {
-      console.error('Gemini AI hatası:', error);
+      console.error('Groq AI hatası:', error);
       throw new Error('AI yanıt oluştururken bir hata oluştu: ' + error.message);
     }
   }
@@ -60,8 +63,8 @@ ${context ? `\n\nMevcut Veri:\n${JSON.stringify(context, null, 2)}` : ''}`;
     products?: any[];
     customers?: any[];
   }): Promise<string> {
-    if (!this.model) {
-      throw new Error('Gemini AI yapılandırılmamış.');
+    if (!this.groq) {
+      throw new Error('Groq AI yapılandırılmamış.');
     }
 
     try {
@@ -82,9 +85,17 @@ Lütfen şu konularda öneriler sun:
 Yanıtını başlıklar halinde, maddeler şeklinde ve Türkçe yaz.
 `;
 
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      return response.text();
+      const chatCompletion = await this.groq.chat.completions.create({
+        messages: [
+          { role: 'system', content: 'Sen bir iş analisti AI asistanısın. POS sistemleri ve perakende işletmelerinde uzmansın.' },
+          { role: 'user', content: prompt }
+        ],
+        model: 'llama-3.1-70b-versatile',
+        temperature: 0.7,
+        max_tokens: 1500,
+      });
+
+      return chatCompletion.choices[0]?.message?.content || 'İş analizi oluşturulamadı.';
     } catch (error: any) {
       console.error('Business analysis hatası:', error);
       throw new Error('İş analizi yapılırken hata oluştu: ' + error.message);
@@ -92,8 +103,8 @@ Yanıtını başlıklar halinde, maddeler şeklinde ve Türkçe yaz.
   }
 
   async suggestProducts(customerHistory?: any[]): Promise<string> {
-    if (!this.model) {
-      throw new Error('Gemini AI yapılandırılmamış.');
+    if (!this.groq) {
+      throw new Error('Groq AI yapılandırılmamış.');
     }
 
     try {
@@ -111,9 +122,17 @@ Görevin:
 Yanıtını kısa ve öz tut. Max 5 öneri.
 `;
 
-      const result = await this.model.generateContent(prompt);
-      const response = await result.response;
-      return response.text();
+      const chatCompletion = await this.groq.chat.completions.create({
+        messages: [
+          { role: 'system', content: 'Sen bir ürün önerisi uzmanısın. Müşteri davranışlarını analiz edip en uygun ürünleri önerirsin.' },
+          { role: 'user', content: prompt }
+        ],
+        model: 'llama-3.1-70b-versatile',
+        temperature: 0.8,
+        max_tokens: 800,
+      });
+
+      return chatCompletion.choices[0]?.message?.content || 'Ürün önerisi oluşturulamadı.';
     } catch (error: any) {
       console.error('Product suggestion hatası:', error);
       throw new Error('Ürün önerisi yapılırken hata oluştu: ' + error.message);
@@ -122,4 +141,3 @@ Yanıtını kısa ve öz tut. Max 5 öneri.
 }
 
 export const geminiService = new GeminiService();
-
