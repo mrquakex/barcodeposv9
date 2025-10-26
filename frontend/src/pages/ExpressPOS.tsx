@@ -127,6 +127,8 @@ const ExpressPOS: React.FC = () => {
   const [scanQuality, setScanQuality] = useState<'poor' | 'good' | 'excellent'>('good');
   const [lastScanTime, setLastScanTime] = useState<number>(0);
   const [isTorchSupported, setIsTorchSupported] = useState(false);
+  const [brightnessLevel, setBrightnessLevel] = useState(0); // -2 (dark) to +2 (bright)
+  const [contrastLevel, setContrastLevel] = useState(0); // -2 to +2
   const videoStreamRef = useRef<MediaStream | null>(null);
   
   // Channel State - Kurumsal tek renk
@@ -366,6 +368,72 @@ const ExpressPOS: React.FC = () => {
       }
     } catch (error) {
       console.error('Zoom error:', error);
+    }
+  };
+
+  // 💡 BRIGHTNESS CONTROL (Anti-glare / Parlama önleyici)
+  const handleBrightnessChange = async (newBrightness: number) => {
+    if (!videoStreamRef.current) return;
+    
+    try {
+      const track = videoStreamRef.current.getVideoTracks()[0];
+      const capabilities = track.getCapabilities() as any;
+      
+      if (capabilities.brightness) {
+        await track.applyConstraints({
+          advanced: [{ brightness: newBrightness }]
+        } as any);
+        setBrightnessLevel(newBrightness);
+        toast.success(`💡 Parlaklık: ${newBrightness > 0 ? '+' : ''}${newBrightness}`, { duration: 1000 });
+      } else {
+        // CSS filter fallback
+        const videoElement = document.querySelector('#barcode-scanner video') as HTMLVideoElement;
+        if (videoElement) {
+          const brightnessValue = 1 + (newBrightness * 0.2); // -2 = 0.6, 0 = 1.0, +2 = 1.4
+          const contrastValue = 1 + (contrastLevel * 0.2);
+          videoElement.style.filter = `brightness(${brightnessValue}) contrast(${contrastValue})`;
+          setBrightnessLevel(newBrightness);
+          toast.success(`💡 Parlaklık: ${newBrightness > 0 ? '+' : ''}${newBrightness} (CSS)`, { duration: 1000 });
+        }
+      }
+    } catch (error) {
+      console.error('Brightness error:', error);
+      // CSS filter fallback
+      const videoElement = document.querySelector('#barcode-scanner video') as HTMLVideoElement;
+      if (videoElement) {
+        const brightnessValue = 1 + (newBrightness * 0.2);
+        const contrastValue = 1 + (contrastLevel * 0.2);
+        videoElement.style.filter = `brightness(${brightnessValue}) contrast(${contrastValue})`;
+        setBrightnessLevel(newBrightness);
+      }
+    }
+  };
+
+  // 🎨 CONTRAST CONTROL
+  const handleContrastChange = async (newContrast: number) => {
+    if (!videoStreamRef.current) return;
+    
+    try {
+      const track = videoStreamRef.current.getVideoTracks()[0];
+      const capabilities = track.getCapabilities() as any;
+      
+      if (capabilities.contrast) {
+        await track.applyConstraints({
+          advanced: [{ contrast: newContrast }]
+        } as any);
+        setContrastLevel(newContrast);
+      } else {
+        // CSS filter fallback
+        const videoElement = document.querySelector('#barcode-scanner video') as HTMLVideoElement;
+        if (videoElement) {
+          const brightnessValue = 1 + (brightnessLevel * 0.2);
+          const contrastValue = 1 + (newContrast * 0.2);
+          videoElement.style.filter = `brightness(${brightnessValue}) contrast(${contrastValue})`;
+          setContrastLevel(newContrast);
+        }
+      }
+    } catch (error) {
+      console.error('Contrast error:', error);
     }
   };
 
@@ -1576,6 +1644,8 @@ const ExpressPOS: React.FC = () => {
                   setZoomLevel(1.0);
                   setLastScanTime(0);
                   setScanQuality('good');
+                  setBrightnessLevel(0);
+                  setContrastLevel(0);
                   if (videoStreamRef.current) {
                     videoStreamRef.current.getTracks().forEach(track => track.stop());
                     videoStreamRef.current = null;
@@ -1722,6 +1792,75 @@ const ExpressPOS: React.FC = () => {
                     }}
                   />
                 </div>
+              </div>
+              
+              {/* 💡 BRIGHTNESS/CONTRAST CONTROLS - Sol Alt */}
+              <div className="absolute bottom-4 left-4 bg-black/80 backdrop-blur-md rounded-2xl p-3 shadow-2xl border border-white/10 space-y-3">
+                <div className="text-xs text-white font-black text-center pb-2 border-b border-white/20">
+                  💡 PARLAKLAMA KONTROLİ
+                </div>
+                
+                {/* Brightness Slider */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs text-gray-400 font-bold">
+                    <span>🌙 Karanlık</span>
+                    <span>☀️ Parlak</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleBrightnessChange(Math.max(brightnessLevel - 1, -2))}
+                      disabled={brightnessLevel <= -2}
+                      className="w-8 h-8 rounded-full bg-black/70 border border-white/30 text-white flex items-center justify-center disabled:opacity-30"
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    <div className="flex-1 relative">
+                      <input
+                        type="range"
+                        min="-2"
+                        max="2"
+                        step="1"
+                        value={brightnessLevel}
+                        onChange={(e) => handleBrightnessChange(Number(e.target.value))}
+                        className="w-full h-2 bg-gradient-to-r from-gray-700 via-gray-400 to-white rounded-full appearance-none cursor-pointer"
+                        style={{
+                          background: `linear-gradient(to right, #374151 0%, #9ca3af ${((brightnessLevel + 2) / 4) * 100}%, #ffffff ${((brightnessLevel + 2) / 4) * 100}%, #ffffff 100%)`
+                        }}
+                      />
+                    </div>
+                    <button
+                      onClick={() => handleBrightnessChange(Math.min(brightnessLevel + 1, 2))}
+                      disabled={brightnessLevel >= 2}
+                      className="w-8 h-8 rounded-full bg-black/70 border border-white/30 text-white flex items-center justify-center disabled:opacity-30"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="text-center">
+                    <span className={`text-xs font-black ${
+                      brightnessLevel > 0 ? 'text-yellow-400' :
+                      brightnessLevel < 0 ? 'text-blue-400' :
+                      'text-gray-400'
+                    }`}>
+                      {brightnessLevel > 0 ? `+${brightnessLevel}` : brightnessLevel} 
+                      {brightnessLevel > 0 ? ' (Karanlıkta)' : 
+                       brightnessLevel < 0 ? ' (Anti-Glare)' : ' (Normal)'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Reset Button */}
+                {(brightnessLevel !== 0 || contrastLevel !== 0) && (
+                  <button
+                    onClick={() => {
+                      handleBrightnessChange(0);
+                      handleContrastChange(0);
+                    }}
+                    className="w-full py-2 bg-gradient-to-r from-blue-600 to-slate-700 text-white text-xs font-black rounded-lg hover:from-blue-700 hover:to-slate-800 transition-all"
+                  >
+                    ↻ Sıfırla
+                  </button>
+                )}
               </div>
               
               {/* 🔦 TORCH BUTTON - Sağ Alt */}
