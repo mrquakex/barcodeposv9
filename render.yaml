@@ -29,8 +29,12 @@ services:
     plan: free
     branch: main
     rootDir: frontend
-    buildCommand: rm -rf node_modules/.vite && npm install && npm run build
+    buildCommand: rm -rf node_modules/.vite dist && npm ci && npm run build
     staticPublishPath: dist
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache
     routes:
       - type: rewrite
         source: /*
