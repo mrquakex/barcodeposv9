@@ -42,6 +42,25 @@ const PriceChanges: React.FC = () => {
     total: number;
     productName: string;
   } | null>(null);
+  
+  // 🆕 Taranan ürünler listesi (son 50 ürün)
+  const [scannedProducts, setScannedProducts] = useState<Array<{
+    name: string;
+    barcode: string | null;
+    price: number;
+    index: number;
+    page: number;
+  }>>([]);
+  
+  // 🆕 Auto-scroll ref
+  const scannedListRef = React.useRef<HTMLDivElement>(null);
+  
+  // 🆕 Auto-scroll when new product is added
+  useEffect(() => {
+    if (scannedListRef.current && scannedProducts.length > 0) {
+      scannedListRef.current.scrollTop = 0; // Scroll to top (newest items)
+    }
+  }, [scannedProducts]);
 
   // Fetch price changes
   const fetchPriceChanges = async (page: number = 1) => {
@@ -103,10 +122,27 @@ const PriceChanges: React.FC = () => {
       }
     });
 
+    // 📡 Real-time product added (HIZLI HIZLI!)
+    socket.on('scraping-product-added', (product) => {
+      setScannedProducts(prev => {
+        const newList = [...prev, product];
+        // Son 50 ürünü tut (performans için)
+        if (newList.length > 50) {
+          return newList.slice(-50);
+        }
+        return newList;
+      });
+    });
+
     socket.on('scraping-completed', (data) => {
       console.log('Scraping completed:', data);
       setScraping(false);
       setProgress(null); // Clear progress
+      
+      // 🧹 Taranan ürünleri temizle (3 saniye sonra)
+      setTimeout(() => {
+        setScannedProducts([]);
+      }, 3000);
       
       if (data.success) {
         const totalChanges = (data.priceChangesCount || 0) + (data.newProductsCount || 0);
@@ -155,8 +191,10 @@ const PriceChanges: React.FC = () => {
   const handleManualScrape = async () => {
     try {
       setScraping(true);
+      setScannedProducts([]); // 🧹 Eski listeyi temizle
+      setProgress(null); // 🧹 Progress'i sıfırla
       await api.post('/price-monitor/scrape');
-      toast.success('Fiyat taraması başlatıldı...');
+      toast.success('🚀 Fiyat taraması başlatıldı - Ürünler akmaya başlayacak!');
     } catch (error: any) {
       setScraping(false);
       toast.error(error.response?.data?.error || 'Tarama başlatılamadı');
@@ -317,6 +355,67 @@ const PriceChanges: React.FC = () => {
                   📦 {progress.productName}
                 </p>
               </div>
+            )}
+            
+            {/* 🆕 TARANAN ÜRÜNLER LİSTESİ - HIZLI HIZLI AKAN! */}
+            {scannedProducts.length > 0 && (
+              <motion.div
+                ref={scannedListRef}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-4 bg-slate-900/80 dark:bg-slate-950/80 rounded-xl p-4 border-2 border-green-500/30 max-h-64 overflow-y-auto"
+                style={{
+                  scrollBehavior: 'smooth',
+                }}
+              >
+                <div className="flex items-center gap-2 mb-3 sticky top-0 bg-slate-900/95 dark:bg-slate-950/95 pb-2 z-10">
+                  <motion.div
+                    className="w-2 h-2 rounded-full bg-green-500"
+                    animate={{
+                      scale: [1, 1.5, 1],
+                      opacity: [1, 0.5, 1],
+                    }}
+                    transition={{ repeat: Infinity, duration: 1 }}
+                  />
+                  <p className="text-sm font-bold text-green-400">
+                    ⚡ Taranan Ürünler (Son {scannedProducts.length})
+                  </p>
+                </div>
+                
+                <div className="space-y-1">
+                  {scannedProducts.slice().reverse().map((product, idx) => (
+                    <motion.div
+                      key={`${product.index}-${idx}`}
+                      initial={{ opacity: 0, x: -20, scale: 0.9 }}
+                      animate={{ opacity: 1, x: 0, scale: 1 }}
+                      transition={{ duration: 0.2 }}
+                      className="flex items-center justify-between gap-2 p-2 rounded-lg bg-slate-800/50 dark:bg-slate-900/50 border border-slate-700/30 hover:border-green-500/50 transition-all"
+                    >
+                      <div className="flex-1 min-w-0 flex items-center gap-2">
+                        <span className="text-xs font-mono text-green-400 flex-shrink-0">
+                          #{product.index}
+                        </span>
+                        <span className="text-xs font-semibold text-white truncate">
+                          {product.name}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        {product.barcode && (
+                          <span className="text-xs font-mono text-slate-400 hidden md:inline">
+                            {product.barcode.substring(0, 10)}...
+                          </span>
+                        )}
+                        <span className="text-xs font-bold text-yellow-400">
+                          {product.price.toFixed(2)} ₺
+                        </span>
+                        <span className="text-xs font-mono text-blue-400 hidden sm:inline">
+                          P{product.page}
+                        </span>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
             )}
           </motion.div>
         )}
