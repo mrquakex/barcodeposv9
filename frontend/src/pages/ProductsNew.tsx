@@ -872,14 +872,14 @@ const ProductsNew: React.FC = () => {
                         className="w-4 h-4"
                       />
                     </TableHead>
-                    <TableHead className="font-bold">Barkod</TableHead>
-                    <TableHead className="font-bold">Ürün Adı</TableHead>
-                    <TableHead className="font-bold">Kategori</TableHead>
-                    <TableHead className="font-bold">Fiyat</TableHead>
-                    <TableHead className="font-bold">Stok</TableHead>
-                    <TableHead className="font-bold">KDV</TableHead>
-                    <TableHead className="font-bold">Durum</TableHead>
-                    <TableHead className="text-right font-bold">İşlemler</TableHead>
+                    <TableHead className="font-medium">Barkod</TableHead>
+                    <TableHead className="font-medium">Ürün Adı</TableHead>
+                    <TableHead className="font-medium">Kategori</TableHead>
+                    <TableHead className="font-medium">Fiyat</TableHead>
+                    <TableHead className="font-medium">Stok</TableHead>
+                    <TableHead className="font-medium">KDV</TableHead>
+                    <TableHead className="font-medium">Durum</TableHead>
+                    <TableHead className="text-right font-medium">İşlemler</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

@@ -100,11 +100,11 @@ const Expenses: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-b-2">
-                <TableHead className="font-black text-slate-900 dark:text-white">Tarih</TableHead>
-                <TableHead className="font-black text-slate-900 dark:text-white">Kategori</TableHead>
-                <TableHead className="font-black text-slate-900 dark:text-white">Açıklama</TableHead>
-                <TableHead className="font-black text-slate-900 dark:text-white">Tutar</TableHead>
-                <TableHead className="font-black text-slate-900 dark:text-white">Kullanıcı</TableHead>
+                <TableHead className="font-medium text-slate-900 dark:text-white">Tarih</TableHead>
+                <TableHead className="font-medium text-slate-900 dark:text-white">Kategori</TableHead>
+                <TableHead className="font-medium text-slate-900 dark:text-white">Açıklama</TableHead>
+                <TableHead className="font-medium text-slate-900 dark:text-white">Tutar</TableHead>
+                <TableHead className="font-medium text-slate-900 dark:text-white">Kullanıcı</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

@@ -79,7 +79,7 @@ const BottomNav: React.FC = () => {
   return (
     <>
       {/* Bottom Navigation - Sadece mobilde görünür */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t-2 border-slate-200 dark:border-slate-800 shadow-2xl z-40">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 shadow-lg z-40">
         <div className="flex items-center justify-around px-2 py-2">
           {filteredMainNav.map((item) => {
             const Icon = item.icon;
@@ -92,14 +92,14 @@ const BottomNav: React.FC = () => {
                   key={item.label}
                   onClick={() => handleNavClick(item)}
                   className={cn(
-                    'flex flex-col items-center justify-center px-3 py-2 rounded-xl transition-all flex-1',
+                    'flex flex-col items-center justify-center px-3 py-2 rounded-lg transition-all flex-1',
                     isActive
-                      ? 'bg-gradient-to-r from-blue-600 to-slate-700 text-white shadow-lg'
+                      ? 'bg-gradient-to-r from-blue-600 to-slate-700 text-white shadow'
                       : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                   )}
                 >
-                  <Icon className={cn('w-6 h-6 mb-1', isActive && 'text-white')} />
-                  <span className="text-xs font-bold">{item.label}</span>
+                  <Icon className={cn('w-5 h-5 mb-1', isActive && 'text-white')} />
+                  <span className="text-xs font-medium">{item.label}</span>
                 </button>
               );
             }
@@ -110,14 +110,14 @@ const BottomNav: React.FC = () => {
                 to={item.path}
                 onClick={() => handleNavClick(item)}
                 className={cn(
-                  'flex flex-col items-center justify-center px-3 py-2 rounded-xl transition-all flex-1',
+                  'flex flex-col items-center justify-center px-3 py-2 rounded-lg transition-all flex-1',
                   isActive
-                    ? 'bg-gradient-to-r from-blue-600 to-slate-700 text-white shadow-lg'
+                    ? 'bg-gradient-to-r from-blue-600 to-slate-700 text-white shadow'
                     : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                 )}
               >
-                <Icon className={cn('w-6 h-6 mb-1', isActive && 'text-white')} />
-                <span className="text-xs font-bold">{item.label}</span>
+                <Icon className={cn('w-5 h-5 mb-1', isActive && 'text-white')} />
+                <span className="text-xs font-medium">{item.label}</span>
               </Link>
             );
           })}
@@ -139,17 +139,17 @@ const BottomNav: React.FC = () => {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="absolute bottom-0 left-0 right-0 bg-white dark:bg-slate-900 rounded-t-3xl shadow-2xl max-h-[80vh] overflow-y-auto"
+              className="absolute bottom-0 left-0 right-0 bg-white dark:bg-slate-900 rounded-t-2xl shadow-lg max-h-[80vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
-              <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-slate-700 p-4 flex items-center justify-between rounded-t-3xl z-10">
-                <h3 className="text-xl font-black text-white">Tüm Menüler</h3>
+              <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-slate-700 p-4 flex items-center justify-between rounded-t-2xl z-10">
+                <h3 className="text-lg font-semibold text-white">Tüm Menüler</h3>
                 <button
                   onClick={() => setShowMoreMenu(false)}
                   className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
                 >
-                  <X className="w-6 h-6 text-white" />
+                  <X className="w-5 h-5 text-white" />
                 </button>
               </div>
 
@@ -165,14 +165,14 @@ const BottomNav: React.FC = () => {
                       to={item.path}
                       onClick={() => setShowMoreMenu(false)}
                       className={cn(
-                        'flex flex-col items-center justify-center p-4 rounded-xl transition-all shadow-md',
+                        'flex flex-col items-center justify-center p-3 rounded-lg transition-all shadow-sm',
                         isActive
                           ? 'bg-gradient-to-r from-blue-600 to-slate-700 text-white'
                           : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
                       )}
                     >
-                      <Icon className={cn('w-8 h-8 mb-2', isActive && 'text-white')} />
-                      <span className="text-xs font-bold text-center">{item.label}</span>
+                      <Icon className={cn('w-6 h-6 mb-2', isActive && 'text-white')} />
+                      <span className="text-xs font-medium text-center">{item.label}</span>
                     </Link>
                   );
                 })}

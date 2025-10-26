@@ -223,13 +223,13 @@ const Sales: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50 dark:bg-slate-900">
-                  <TableHead className="font-bold">Tarih & Saat</TableHead>
-                  <TableHead className="font-bold">Satış ID</TableHead>
-                  <TableHead className="font-bold">Müşteri</TableHead>
-                  <TableHead className="font-bold">Ürün Sayısı</TableHead>
-                  <TableHead className="font-bold">Tutar</TableHead>
-                  <TableHead className="font-bold">Ödeme</TableHead>
-                  <TableHead className="font-bold text-right">İşlemler</TableHead>
+                  <TableHead className="font-medium">Tarih & Saat</TableHead>
+                  <TableHead className="font-medium">Satış ID</TableHead>
+                  <TableHead className="font-medium">Müşteri</TableHead>
+                  <TableHead className="font-medium">Ürün Sayısı</TableHead>
+                  <TableHead className="font-medium">Tutar</TableHead>
+                  <TableHead className="font-medium">Ödeme</TableHead>
+                  <TableHead className="font-medium text-right">İşlemler</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
