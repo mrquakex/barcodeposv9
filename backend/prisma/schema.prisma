@@ -7,166 +7,249 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Kullanıcı Modeli (Admin, Kasiyer, Yönetici)
+// ============================================
+// CORE MODELS
+// ============================================
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
   password  String
   name      String
-  role      String   @default("CASHIER")
+  role      String   @default("CASHIER") // ADMIN, MANAGER, CASHIER
+  branchId  String?
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  sales          Sale[]
-  stockMovements StockMovement[]
-  expenses       Expense[]
-  activityLogs   ActivityLog[]
-  conversations  Conversation[]
-  scheduledTasks ScheduledTask[]
+  branch           Branch?           @relation(fields: [branchId], references: [id])
+  sales            Sale[]
+  shifts           Shift[]
+  stockMovements   StockMovement[]
+  expenses         Expense[]
+  activityLogs     ActivityLog[]
+  conversations    Conversation[]
+  scheduledTasks   ScheduledTask[]
+  stockCounts      StockCount[]
+  stockTransfers   StockTransfer[]
+  cashTransactions CashTransaction[]
+  returns          Return[]
   
   @@map("users")
 }
 
-// Kategori Modeli
-model Category {
-  id        String    @id @default(uuid())
-  name      String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  
-  products  Product[]
-  
-  @@map("categories")
-}
-
-// Ürün Modeli
-model Product {
-  id          String    @id @default(uuid())
-  barcode     String    @unique
-  name        String
-  description String?
-  price       Float
-  cost        Float     @default(0)
-  stock       Int       @default(0)
-  unit        String    @default("Adet")
-  taxRate     Float     @default(18)
-  minStock    Int       @default(5)
-  imageUrl    String?
-  categoryId  String?
-  isActive    Boolean   @default(true)
-  isFavorite  Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  category          Category?    @relation(fields: [categoryId], references: [id])
-  saleItems         SaleItem[]
-  purchaseOrderItems PurchaseOrderItem[]
-  stockMovements    StockMovement[]
-  priceChanges      PriceChange[]
-  
-  @@map("products")
-}
-
-// Müşteri Modeli
-model Customer {
+model Branch {
   id        String   @id @default(uuid())
   name      String
-  email     String?  @unique
-  phone     String?
   address   String?
-  debt      Float    @default(0)
-  credit    Float    @default(0)
+  phone     String?
+  email     String?
+  timezone  String   @default("Europe/Istanbul")
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
-  sales     Sale[]
+  users              User[]
+  stockMovements     StockMovement[]
+  expenses           Expense[]
+  activityLogs       ActivityLog[]
+  stockCounts        StockCount[]
+  stockTransfersFrom StockTransfer[]     @relation("TransfersFrom")
+  stockTransfersTo   StockTransfer[]     @relation("TransfersTo")
+  shifts             Shift[]
   
-  @@map("customers")
+  @@map("branches")
 }
 
-// Satış Modeli
-model Sale {
-  id            String       @id @default(uuid())
-  saleNumber    String       @unique
-  totalAmount   Float
-  discountAmount Float       @default(0)
-  taxAmount     Float        @default(0)
-  netAmount     Float
-  paymentMethod String       @default("CASH")
-  isPaid        Boolean      @default(true)
-  notes         String?
-  userId        String
-  customerId    String?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+// ============================================
+// PRODUCT MODELS
+// ============================================
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String
+  parentId  String?
+  imageUrl  String?
+  sortOrder Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   
-  user          User         @relation(fields: [userId], references: [id])
-  customer      Customer?    @relation(fields: [customerId], references: [id])
-  saleItems     SaleItem[]
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryHierarchy")
+  products Product[]
   
-  @@map("sales")
+  @@map("categories")
 }
 
-// Satış Detay Modeli
-model SaleItem {
-  id        String   @id @default(uuid())
-  quantity  Int
-  unitPrice Float
-  taxRate   Float
-  total     Float
-  saleId    String
-  productId String
-  createdAt DateTime @default(now())
+model Product {
+  id          String    @id @default(uuid())
+  sku         String?   @unique
+  barcode     String    @unique
+  name        String
+  description String?   @db.Text
+  buyPrice    Float     @default(0) // Maliyet
+  sellPrice   Float     // Satış fiyatı
+  stock       Int       @default(0)
+  minStock    Int       @default(5)
+  unit        String    @default("Adet")
+  taxRate     Float     @default(18)
+  imageUrl    String?
+  categoryId  String?
+  supplierId  String?
+  isFavorite  Boolean   @default(false)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   
-  sale      Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
-  product   Product  @relation(fields: [productId], references: [id])
+  category             Category?              @relation(fields: [categoryId], references: [id])
+  supplier             Supplier?              @relation(fields: [supplierId], references: [id])
+  variants             ProductVariant[]
+  saleItems            SaleItem[]
+  purchaseOrderItems   PurchaseOrderItem[]
+  stockMovements       StockMovement[]
+  stockCountItems      StockCountItem[]
+  stockTransferItems   StockTransferItem[]
+  returnItems          ReturnItem[]
   
-  @@map("sale_items")
+  @@map("products")
 }
 
-// Market Ayarları
-model Settings {
-  id           String   @id @default(uuid())
-  storeName    String   @default("Market")
-  storeAddress String?
-  storePhone   String?
-  storeEmail   String?
-  storeTax     String?
-  logoUrl      String?
-  currency     String   @default("TL")
-  theme        String   @default("light")
-  receiptFooter String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+model ProductVariant {
+  id         String   @id @default(uuid())
+  productId  String
+  name       String   // "Kırmızı - S", "500ml"
+  sku        String   @unique
+  barcode    String?  @unique
+  attributes Json?    // {color: "red", size: "S"}
+  price      Float    // Ek fiyat veya farklı fiyat
+  stock      Int      @default(0)
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
   
-  @@map("settings")
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  @@map("product_variants")
 }
 
-// Tedarikçi Modeli
 model Supplier {
   id              String   @id @default(uuid())
   name            String
   contactPerson   String?
   email           String?  @unique
   phone           String?
-  address         String?
+  address         String?  @db.Text
   taxNumber       String?
-  paymentTerms    String?  // "30 gün", "Peşin" vb
-  balance         Float    @default(0) // Bakiye (borç)
+  paymentTerms    String?  // "30 gün", "Peşin"
+  balance         Float    @default(0)
+  notes           String?  @db.Text
   isActive        Boolean  @default(true)
-  notes           String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
+  products        Product[]
   purchaseOrders  PurchaseOrder[]
   payments        SupplierPayment[]
   
   @@map("suppliers")
 }
 
-// Satın Alma Siparişi
+// ============================================
+// INVENTORY MODELS
+// ============================================
+
+model StockMovement {
+  id              String   @id @default(uuid())
+  productId       String
+  type            String   // IN, OUT, TRANSFER, ADJUSTMENT, RETURN
+  quantity        Int
+  previousStock   Int
+  newStock        Int
+  referenceType   String?  // SALE, PURCHASE, TRANSFER, COUNT, RETURN
+  referenceId     String?
+  notes           String?  @db.Text
+  userId          String?
+  branchId        String?
+  createdAt       DateTime @default(now())
+  
+  product         Product  @relation(fields: [productId], references: [id])
+  user            User?    @relation(fields: [userId], references: [id])
+  branch          Branch?  @relation(fields: [branchId], references: [id])
+  
+  @@map("stock_movements")
+}
+
+model StockCount {
+  id           String   @id @default(uuid())
+  countNumber  String   @unique
+  type         String   // FULL, PARTIAL, CATEGORY
+  categoryId   String?
+  status       String   // IN_PROGRESS, COMPLETED
+  startedAt    DateTime @default(now())
+  completedAt  DateTime?
+  notes        String?  @db.Text
+  userId       String
+  branchId     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  items        StockCountItem[]
+  user         User     @relation(fields: [userId], references: [id])
+  branch       Branch?  @relation(fields: [branchId], references: [id])
+  
+  @@map("stock_counts")
+}
+
+model StockCountItem {
+  id             String     @id @default(uuid())
+  stockCountId   String
+  productId      String
+  systemQty      Int        // Sistemdeki miktar
+  countedQty     Int?       // Sayılan miktar
+  difference     Int?       // Fark
+  notes          String?
+  createdAt      DateTime   @default(now())
+  
+  stockCount     StockCount @relation(fields: [stockCountId], references: [id], onDelete: Cascade)
+  product        Product    @relation(fields: [productId], references: [id])
+  
+  @@map("stock_count_items")
+}
+
+model StockTransfer {
+  id             String   @id @default(uuid())
+  transferNumber String   @unique
+  fromBranchId   String
+  toBranchId     String
+  status         String   // PENDING, IN_TRANSIT, RECEIVED, CANCELLED
+  notes          String?  @db.Text
+  userId         String
+  createdAt      DateTime @default(now())
+  completedAt    DateTime?
+  updatedAt      DateTime @updatedAt
+  
+  items          StockTransferItem[]
+  fromBranch     Branch   @relation("TransfersFrom", fields: [fromBranchId], references: [id])
+  toBranch       Branch   @relation("TransfersTo", fields: [toBranchId], references: [id])
+  user           User     @relation(fields: [userId], references: [id])
+  
+  @@map("stock_transfers")
+}
+
+model StockTransferItem {
+  id               String        @id @default(uuid())
+  stockTransferId  String
+  productId        String
+  quantity         Int
+  receivedQty      Int           @default(0)
+  createdAt        DateTime      @default(now())
+  
+  stockTransfer    StockTransfer @relation(fields: [stockTransferId], references: [id], onDelete: Cascade)
+  product          Product       @relation(fields: [productId], references: [id])
+  
+  @@map("stock_transfer_items")
+}
+
 model PurchaseOrder {
   id              String   @id @default(uuid())
   orderNumber     String   @unique
@@ -177,7 +260,7 @@ model PurchaseOrder {
   orderDate       DateTime @default(now())
   expectedDate    DateTime?
   receivedDate    DateTime?
-  notes           String?
+  notes           String?  @db.Text
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
@@ -187,7 +270,6 @@ model PurchaseOrder {
   @@map("purchase_orders")
 }
 
-// Satın Alma Sipariş Detayı
 model PurchaseOrderItem {
   id              String   @id @default(uuid())
   purchaseOrderId String
@@ -204,66 +286,238 @@ model PurchaseOrderItem {
   @@map("purchase_order_items")
 }
 
-// Tedarikçi Ödemeleri
-model SupplierPayment {
-  id              String   @id @default(uuid())
-  supplierId      String
-  amount          Float
-  paymentMethod   String   @default("CASH")
-  paymentDate     DateTime @default(now())
-  notes           String?
-  createdAt       DateTime @default(now())
+// ============================================
+// CUSTOMER MODELS
+// ============================================
+
+model Customer {
+  id            String   @id @default(uuid())
+  name          String
+  email         String?  @unique
+  phone         String?
+  address       String?  @db.Text
+  taxNumber     String?
+  debt          Float    @default(0)
+  loyaltyPoints Int      @default(0)
+  totalSpent    Float    @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
   
-  supplier        Supplier @relation(fields: [supplierId], references: [id])
+  sales           Sale[]
+  invoices        Invoice[]
+  customerPoints  CustomerPoints[]
   
-  @@map("supplier_payments")
+  @@map("customers")
 }
 
-// Stok Hareketleri
-model StockMovement {
-  id              String   @id @default(uuid())
-  productId       String
-  type            String   // IN (giriş), OUT (çıkış), TRANSFER, ADJUSTMENT
-  quantity        Int
-  previousStock   Int
-  newStock        Int
-  referenceType   String?  // SALE, PURCHASE, TRANSFER, ADJUSTMENT
-  referenceId     String?
-  notes           String?
-  userId          String?
-  branchId        String?
-  createdAt       DateTime @default(now())
+model LoyaltyProgram {
+  id                String   @id @default(uuid())
+  name              String
+  pointsPerAmount   Float    // Her X TL'ye kaç puan (örn: 10 TL = 1 puan)
+  rewardThreshold   Int      // Ödül için gereken puan
+  rewardValue       Float    // Ödül değeri (TL)
+  isActive          Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
   
-  product         Product  @relation(fields: [productId], references: [id])
-  user            User?    @relation(fields: [userId], references: [id])
-  branch          Branch?  @relation(fields: [branchId], references: [id])
-  
-  @@map("stock_movements")
+  @@map("loyalty_programs")
 }
 
-// Gider Kategorileri
+model CustomerPoints {
+  id         String   @id @default(uuid())
+  customerId String
+  points     Int
+  type       String   // EARNED, REDEEMED, EXPIRED, ADJUSTED
+  saleId     String?
+  earnedDate DateTime @default(now())
+  expiryDate DateTime?
+  notes      String?
+  
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  
+  @@map("customer_points")
+}
+
+// ============================================
+// SALES MODELS
+// ============================================
+
+model Sale {
+  id             String       @id @default(uuid())
+  saleNumber     String       @unique
+  customerId     String?
+  userId         String
+  shiftId        String?
+  subtotal       Float        // Ara toplam
+  discountAmount Float        @default(0)
+  taxAmount      Float        @default(0)
+  total          Float        // Final toplam
+  paymentMethod  String       @default("CASH") // CASH, CARD, CREDIT, MIXED
+  paymentDetails Json?        // Mixed payment details
+  isPaid         Boolean      @default(true)
+  status         String       @default("COMPLETED") // COMPLETED, VOIDED, RETURNED
+  notes          String?      @db.Text
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  
+  customer       Customer?    @relation(fields: [customerId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
+  shift          Shift?       @relation(fields: [shiftId], references: [id])
+  items          SaleItem[]
+  invoice        Invoice?
+  returns        Return[]
+  
+  @@map("sales")
+}
+
+model SaleItem {
+  id        String   @id @default(uuid())
+  saleId    String
+  productId String
+  quantity  Int
+  unitPrice Float
+  taxRate   Float
+  discount  Float    @default(0)
+  total     Float
+  createdAt DateTime @default(now())
+  
+  sale      Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id])
+  
+  @@map("sale_items")
+}
+
+model Return {
+  id            String   @id @default(uuid())
+  returnNumber  String   @unique
+  saleId        String
+  reason        String   @db.Text
+  status        String   // PENDING, APPROVED, COMPLETED, REJECTED
+  refundAmount  Float
+  refundMethod  String   // CASH, CARD, CREDIT
+  userId        String
+  notes         String?  @db.Text
+  createdAt     DateTime @default(now())
+  completedAt   DateTime?
+  updatedAt     DateTime @updatedAt
+  
+  sale          Sale     @relation(fields: [saleId], references: [id])
+  user          User     @relation(fields: [userId], references: [id])
+  items         ReturnItem[]
+  
+  @@map("returns")
+}
+
+model ReturnItem {
+  id         String  @id @default(uuid())
+  returnId   String
+  productId  String
+  quantity   Int
+  price      Float
+  total      Float
+  createdAt  DateTime @default(now())
+  
+  return     Return  @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  product    Product @relation(fields: [productId], references: [id])
+  
+  @@map("return_items")
+}
+
+model Invoice {
+  id            String   @id @default(uuid())
+  invoiceNumber String   @unique
+  saleId        String   @unique
+  customerId    String
+  type          String   // E_INVOICE, E_ARCHIVE, STANDARD
+  status        String   // DRAFT, SENT, APPROVED, CANCELLED, REJECTED
+  subtotal      Float
+  taxAmount     Float
+  total         Float
+  eInvoiceData  Json?    // GİB response
+  pdfUrl        String?
+  xmlUrl        String?
+  sentAt        DateTime?
+  approvedAt    DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  sale          Sale     @relation(fields: [saleId], references: [id])
+  customer      Customer @relation(fields: [customerId], references: [id])
+  
+  @@map("invoices")
+}
+
+// ============================================
+// OPERATIONS MODELS
+// ============================================
+
+model Shift {
+  id            String   @id @default(uuid())
+  shiftNumber   String   @unique
+  userId        String
+  branchId      String?
+  startTime     DateTime @default(now())
+  endTime       DateTime?
+  startCash     Float    @default(0)
+  endCash       Float?
+  expectedCash  Float?
+  actualCash    Float?
+  difference    Float?   // actualCash - expectedCash
+  status        String   // OPEN, CLOSED
+  notes         String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  user              User              @relation(fields: [userId], references: [id])
+  branch            Branch?           @relation(fields: [branchId], references: [id])
+  sales             Sale[]
+  cashTransactions  CashTransaction[]
+  
+  @@map("shifts")
+}
+
+model CashTransaction {
+  id       String   @id @default(uuid())
+  shiftId  String
+  type     String   // IN, OUT
+  amount   Float
+  category String?  // SALE, EXPENSE, INITIAL, BANK_DEPOSIT, etc.
+  note     String   @db.Text
+  userId   String
+  createdAt DateTime @default(now())
+  
+  shift    Shift    @relation(fields: [shiftId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id])
+  
+  @@map("cash_transactions")
+}
+
+// ============================================
+// FINANCE MODELS
+// ============================================
+
 model ExpenseCategory {
-  id              String   @id @default(uuid())
-  name            String
-  description     String?
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   
-  expenses        Expense[]
+  expenses    Expense[]
   
   @@map("expense_categories")
 }
 
-// Giderler
 model Expense {
   id              String   @id @default(uuid())
   categoryId      String
   amount          Float
-  description     String
+  description     String   @db.Text
   paymentMethod   String   @default("CASH")
-  expenseDate     DateTime @default(now())
   receiptNumber   String?
+  expenseDate     DateTime @default(now())
   userId          String
   branchId        String?
   createdAt       DateTime @default(now())
@@ -276,72 +530,79 @@ model Expense {
   @@map("expenses")
 }
 
-// Kampanyalar
-model Campaign {
+model SupplierPayment {
   id              String   @id @default(uuid())
-  name            String
-  description     String?
-  type            String   // DISCOUNT, BUY_X_GET_Y, COMBO, COUPON
-  discountType    String?  // PERCENTAGE, FIXED
-  discountValue   Float?
-  startDate       DateTime
-  endDate         DateTime
-  minPurchase     Float?
-  isActive        Boolean  @default(true)
+  supplierId      String
+  amount          Float
+  paymentMethod   String   @default("CASH")
+  paymentDate     DateTime @default(now())
+  referenceNumber String?
+  notes           String?  @db.Text
+  createdAt       DateTime @default(now())
+  
+  supplier        Supplier @relation(fields: [supplierId], references: [id])
+  
+  @@map("supplier_payments")
+}
+
+model TaxRate {
+  id        String   @id @default(uuid())
+  name      String
+  rate      Float    // 0.18 for 18%
+  country   String   @default("TR")
+  isDefault Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("tax_rates")
+}
+
+model PaymentMethod {
+  id        String   @id @default(uuid())
+  name      String
+  type      String   // CASH, CARD, BANK_TRANSFER, MOBILE, CRYPTO
+  config    Json?    // Payment gateway config
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("payment_methods")
+}
+
+// ============================================
+// SYSTEM MODELS
+// ============================================
+
+model Settings {
+  id              String   @id @default(uuid())
+  storeName       String   @default("Store")
+  storeAddress    String?  @db.Text
+  storePhone      String?
+  storeEmail      String?
+  storeTaxNumber  String?
+  logoUrl         String?
+  currency        String   @default("TRY")
+  locale          String   @default("tr-TR")
+  timezone        String   @default("Europe/Istanbul")
+  theme           String   @default("light")
+  receiptFooter   String?  @db.Text
+  eInvoiceConfig  Json?    // E-Invoice provider config
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
-  coupons         Coupon[]
-  
-  @@map("campaigns")
+  @@map("settings")
 }
 
-// Kuponlar
-model Coupon {
-  id              String   @id @default(uuid())
-  code            String   @unique
-  campaignId      String?
-  discountType    String   // PERCENTAGE, FIXED
-  discountValue   Float
-  maxUses         Int?
-  usedCount       Int      @default(0)
-  minPurchase     Float?
-  startDate       DateTime
-  endDate         DateTime
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  campaign        Campaign? @relation(fields: [campaignId], references: [id])
-  
-  @@map("coupons")
-}
-
-// Şubeler
-model Branch {
-  id              String   @id @default(uuid())
-  name            String
-  address         String?
-  phone           String?
-  email           String?
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  stockMovements  StockMovement[]
-  expenses        Expense[]
-  activityLogs    ActivityLog[]
-  
-  @@map("branches")
-}
-
-// Aktivite Logları
 model ActivityLog {
   id              String   @id @default(uuid())
   userId          String?
   action          String   // CREATE, UPDATE, DELETE, LOGIN, LOGOUT
-  module          String   // USER, PRODUCT, SALE, etc.
-  description     String
+  module          String   // USER, PRODUCT, SALE, SHIFT, etc.
+  entityId        String?
+  description     String   @db.Text
+  oldValue        Json?
+  newValue        Json?
   ipAddress       String?
   userAgent       String?
   branchId        String?
@@ -353,75 +614,40 @@ model ActivityLog {
   @@map("activity_logs")
 }
 
-// Fiyat Değişiklik Takibi
-model PriceChange {
-  id              String   @id @default(uuid())
-  productId       String
-  source          String   // BENIMPOS, MANUAL, API
-  oldPrice        Float
-  newPrice        Float
-  difference      Float
-  percentage      Float
-  status          String   @default("PENDING") // PENDING, APPLIED, IGNORED
-  scrapedData     Json?    // Ek bilgiler (stok, kampanya vs)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  product         Product  @relation(fields: [productId], references: [id])
-  
-  @@map("price_changes")
-}
+// ============================================
+// AI MODELS
+// ============================================
 
-// Scraper Ayarları
-model ScraperConfig {
-  id              String   @id @default(uuid())
-  source          String   @unique // BENIMPOS
-  email           String
-  password        String   // Encrypted
-  isActive        Boolean  @default(true)
-  cronSchedule    String   @default("0 9 * * *") // Her gün 09:00
-  lastRun         DateTime?
-  lastStatus      String?  // SUCCESS, ERROR
-  errorMessage    String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  @@map("scraper_configs")
-}
-
-// AI Sohbet Geçmişi
 model Conversation {
-  id            String   @id @default(uuid())
-  userId        String
-  userMessage   String   @db.Text
-  aiResponse    String   @db.Text
-  actionType    String?  // NAVIGATE, CATEGORY_MOVE, UPDATE_PRICES, etc.
-  actionData    Json?    // Action parameters
-  actionResult  String?  @db.Text
-  conversationSession String? // Session ID to group related messages
-  metadata      Json?    // Extra data (response time, tokens used, etc.)
-  createdAt     DateTime @default(now())
+  id                  String   @id @default(uuid())
+  userId              String
+  userMessage         String   @db.Text
+  aiResponse          String   @db.Text
+  actionType          String?
+  actionData          Json?
+  actionResult        String?  @db.Text
+  conversationSession String?
+  metadata            Json?
+  createdAt           DateTime @default(now())
   
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@index([userId])
   @@index([conversationSession])
-  @@index([createdAt])
   @@map("conversations")
 }
 
-// Zamanlı Görevler (Scheduled Tasks)
 model ScheduledTask {
   id            String   @id @default(uuid())
   userId        String
   name          String
-  description   String?
-  actionType    String   // STOCK_ALERT, CUSTOMER_REMINDER, REPORT_GENERATION, etc.
-  actionData    Json     // Task parameters
-  schedule      String   // Cron expression: "0 9 * * *"
+  description   String?  @db.Text
+  actionType    String
+  actionData    Json
+  schedule      String   // Cron expression
   isActive      Boolean  @default(true)
   lastRun       DateTime?
-  lastStatus    String?  // SUCCESS, ERROR, SKIPPED
+  lastStatus    String?
   lastError     String?  @db.Text
   nextRun       DateTime?
   runCount      Int      @default(0)
@@ -435,4 +661,3 @@ model ScheduledTask {
   @@index([nextRun])
   @@map("scheduled_tasks")
 }
-
