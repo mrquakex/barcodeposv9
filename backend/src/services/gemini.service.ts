@@ -13,8 +13,9 @@ class GeminiService {
     }
 
     this.genAI = new GoogleGenerativeAI(apiKey);
-    this.model = this.genAI.getGenerativeModel({ model: 'gemini-pro' });
-    console.log('✅ Gemini AI başlatıldı!');
+    // Yeni model: gemini-1.5-flash (hızlı ve ücretsiz) veya gemini-1.5-pro (daha güçlü)
+    this.model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    console.log('✅ Gemini AI başlatıldı! (Model: gemini-1.5-flash)');
   }
 
   async chat(message: string, context?: any): Promise<string> {
