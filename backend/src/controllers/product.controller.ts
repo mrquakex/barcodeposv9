@@ -383,4 +383,65 @@ export const bulkUpsertProducts = async (req: Request, res: Response) => {
   }
 };
 
+// 🌟 FAVORİ ÜRÜN TOGGLE
+export const toggleFavorite = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const product = await prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!product) {
+      return res.status(404).json({ error: 'Ürün bulunamadı' });
+    }
+
+    const updatedProduct = await prisma.product.update({
+      where: { id },
+      data: {
+        isFavorite: !product.isFavorite,
+      },
+      include: {
+        category: true,
+      },
+    });
+
+    res.json({
+      success: true,
+      isFavorite: updatedProduct.isFavorite,
+      message: updatedProduct.isFavorite ? '❤️ Favorilere eklendi!' : '💔 Favorilerden çıkarıldı',
+      product: updatedProduct,
+    });
+  } catch (error) {
+    console.error('Toggle favorite error:', error);
+    res.status(500).json({ error: 'Favori durumu değiştirilemedi' });
+  }
+};
+
+// 🌟 FAVORİ ÜRÜNLERİ GETİR
+export const getFavoriteProducts = async (req: Request, res: Response) => {
+  try {
+    const products = await prisma.product.findMany({
+      where: {
+        isFavorite: true,
+        isActive: true, // Sadece aktif favoriler
+      },
+      include: {
+        category: true,
+      },
+      orderBy: {
+        name: 'asc', // Alfabetik sıralama
+      },
+    });
+
+    res.json({ 
+      products,
+      count: products.length 
+    });
+  } catch (error) {
+    console.error('Get favorite products error:', error);
+    res.status(500).json({ error: 'Favori ürünler getirilemedi' });
+  }
+};
+
 

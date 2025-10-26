@@ -14,7 +14,7 @@ import { formatCurrency } from '../lib/utils';
 import { 
   Plus, Search, Edit, Trash2, Package, FileSpreadsheet, Sparkles, Grid3x3, List,
   X, Filter, TrendingUp, TrendingDown, AlertCircle, CheckCircle2, Download,
-  BarChart3, ShoppingCart, Eye, MoreVertical, ChevronLeft, ChevronRight
+  BarChart3, ShoppingCart, Eye, MoreVertical, ChevronLeft, ChevronRight, Heart
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import StatCard from '../components/ui/StatCard';
@@ -194,6 +194,19 @@ const ProductsNew: React.FC = () => {
       fetchProducts();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Ürün silinemedi');
+    }
+  };
+
+  // 💖 FAVORİ TOGGLE
+  const handleToggleFavorite = async (id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation(); // Parent click olayını engelle
+    
+    try {
+      const response = await api.put(`/products/${id}/toggle-favorite`);
+      toast.success(response.data.message);
+      fetchProducts(); // Liste yenileniyor
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Favori durumu değiştirilemedi');
     }
   };
 
@@ -760,8 +773,9 @@ const ProductsNew: React.FC = () => {
                   )}
                 </div>
 
-                      {/* Checkbox */}
-                      <div className="absolute top-3 right-3">
+                      {/* Top Right Actions */}
+                      <div className="absolute top-3 right-3 flex flex-col gap-2">
+                        {/* Checkbox */}
                         <input
                           type="checkbox"
                           checked={selectedProducts.includes(product.id)}
@@ -769,6 +783,23 @@ const ProductsNew: React.FC = () => {
                           className="w-5 h-5 rounded cursor-pointer"
                           onClick={(e) => e.stopPropagation()}
                         />
+                        
+                        {/* Favorite Heart Button - Mobil ve Desktop */}
+                        <button
+                          onClick={(e) => handleToggleFavorite(product.id, e)}
+                          className={`p-2 rounded-full transition-all duration-300 shadow-lg ${
+                            product.isFavorite
+                              ? 'bg-red-500 hover:bg-red-600 scale-110'
+                              : 'bg-white/90 hover:bg-white'
+                          }`}
+                          title={product.isFavorite ? 'Favorilerden çıkar' : 'Favorilere ekle'}
+                        >
+                          <Heart 
+                            className={`w-5 h-5 ${
+                              product.isFavorite ? 'text-white fill-white' : 'text-gray-600'
+                            }`}
+                          />
+                        </button>
                       </div>
                   </div>
 
@@ -891,6 +922,25 @@ const ProductsNew: React.FC = () => {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
+                          {/* Favorite Heart Button - Mobil ve Desktop */}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e: any) => handleToggleFavorite(product.id, e)}
+                            className={`transition-all duration-300 ${
+                              product.isFavorite
+                                ? 'bg-red-50 hover:bg-red-100 text-red-600'
+                                : 'hover:bg-gray-50 hover:text-gray-600'
+                            }`}
+                            title={product.isFavorite ? 'Favorilerden çıkar' : 'Favorilere ekle'}
+                          >
+                            <Heart 
+                              className={`w-4 h-4 ${
+                                product.isFavorite ? 'fill-red-600' : ''
+                              }`}
+                            />
+                          </Button>
+                          
                           <Button
                             variant="ghost"
                             size="icon"

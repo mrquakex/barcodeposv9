@@ -9,6 +9,8 @@ import {
   bulkDeleteProducts,
   bulkUpsertProducts,
   getLowStockProducts,
+  toggleFavorite,
+  getFavoriteProducts,
 } from '../controllers/product.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 
@@ -18,12 +20,14 @@ router.use(authenticate);
 
 router.get('/', getAllProducts);
 router.get('/low-stock', getLowStockProducts);
+router.get('/favorites', getFavoriteProducts); // 🌟 Favoriler
 router.get('/:id', getProductById);
 router.get('/barcode/:barcode', getProductByBarcode);
 router.post('/', authorize('ADMIN', 'MANAGER'), createProduct);
 router.post('/bulk-delete', authorize('ADMIN', 'MANAGER'), bulkDeleteProducts);
 router.post('/bulk-upsert', authorize('ADMIN', 'MANAGER'), bulkUpsertProducts);
 router.put('/:id', authorize('ADMIN', 'MANAGER'), updateProduct);
+router.put('/:id/toggle-favorite', toggleFavorite); // 🌟 Favori toggle (herkes kullanabilir)
 router.delete('/:id', authorize('ADMIN', 'MANAGER'), deleteProduct);
 
 export default router;

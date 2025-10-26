@@ -53,6 +53,7 @@ model Product {
   imageUrl    String?
   categoryId  String?
   isActive    Boolean   @default(true)
+  isFavorite  Boolean   @default(false)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   
