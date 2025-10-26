@@ -841,7 +841,7 @@ const ExpressPOS: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         className="bg-white dark:bg-slate-900 border-b-2 border-slate-200 dark:border-slate-800 shadow-lg"
       >
-        <div className="flex items-center gap-2 px-4 py-2 overflow-x-auto scrollbar-thin">
+        <div className="flex items-center gap-2 px-3 py-1.5 overflow-x-auto scrollbar-thin">
           {channels.map((channel) => {
             const isActive = channel.id === activeChannelId;
             const channelTotal = channel.cart.reduce((sum, item) => {
@@ -856,9 +856,9 @@ const ExpressPOS: React.FC = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => switchChannel(channel.id)}
-                className={`relative flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all shadow-md min-w-[200px] ${
+                className={`relative flex items-center gap-2 px-3 py-1.5 rounded-lg cursor-pointer transition-all shadow-sm ${
                   isActive
-                    ? `${channel.bgColor} text-white scale-105 shadow-xl`
+                    ? 'bg-gradient-to-r from-blue-600 to-slate-700 text-white shadow-md'
                     : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                 }`}
               >
@@ -869,31 +869,35 @@ const ExpressPOS: React.FC = () => {
                       e.stopPropagation();
                       removeChannel(channel.id);
                     }}
-                    className={`absolute -top-2 -right-2 w-6 h-6 rounded-full ${
+                    className={`absolute -top-1 -right-1 w-4 h-4 rounded-full ${
                       isActive ? 'bg-white text-red-600' : 'bg-red-500 text-white'
-                    } flex items-center justify-center hover:scale-110 transition-all shadow-lg font-black text-xs`}
+                    } flex items-center justify-center hover:scale-110 transition-all shadow-md font-black text-[10px]`}
                   >
                     ×
                   </button>
                 )}
 
                 {/* Channel Info */}
-                <div className="flex-1">
-                  <p className="text-sm font-black">{channel.name}</p>
-                  <div className="flex items-center gap-2 text-xs font-bold mt-1">
-                    <span>{channelTotal.toFixed(2)} ₺</span>
-                    <span>•</span>
-                    <span>{channelItemCount} ürün</span>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <p className="text-xs font-bold">{channel.name}</p>
+                  <span className="text-[10px] opacity-75">•</span>
+                  <span className="text-xs font-bold">{channelTotal.toFixed(2)}₺</span>
+                  {channelItemCount > 0 && (
+                    <>
+                      <span className="text-[10px] opacity-75">•</span>
+                      <span className="text-xs font-semibold">{channelItemCount}</span>
+                    </>
+                  )}
                   {channel.customer && (
-                    <p className="text-xs font-semibold mt-1 opacity-90">
-                      👤 {channel.customer.name}
-                    </p>
+                    <>
+                      <span className="text-[10px] opacity-75">•</span>
+                      <span className="text-xs font-semibold truncate max-w-[60px]">{channel.customer.name}</span>
+                    </>
                   )}
                 </div>
 
-                {/* Keyboard Shortcut */}
-                <div className={`text-xs font-black px-2 py-1 rounded ${
+                {/* Keyboard Shortcut - Sadece desktop'ta göster */}
+                <div className={`hidden md:flex text-[10px] font-bold px-1.5 py-0.5 rounded ${
                   isActive ? 'bg-white/20' : 'bg-slate-300 dark:bg-slate-700'
                 }`}>
                   Ctrl+{channel.id}
@@ -908,11 +912,11 @@ const ExpressPOS: React.FC = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={addChannel}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-slate-700 text-white font-black shadow-lg hover:shadow-xl transition-all min-w-[140px]"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-slate-700 text-white font-bold shadow-sm hover:shadow-md transition-all text-xs"
             >
-              <Plus className="w-5 h-5" />
-              Yeni Kanal
-              <span className="text-xs opacity-75">(Alt+N)</span>
+              <Plus className="w-3.5 h-3.5" />
+              Yeni
+              <span className="hidden md:inline text-[10px] opacity-75">(Alt+N)</span>
             </motion.button>
           )}
         </div>
