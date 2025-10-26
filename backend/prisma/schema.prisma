@@ -22,6 +22,8 @@ model User {
   stockMovements StockMovement[]
   expenses       Expense[]
   activityLogs   ActivityLog[]
+  conversations  Conversation[]
+  scheduledTasks ScheduledTask[]
   
   @@map("users")
 }
@@ -385,5 +387,52 @@ model ScraperConfig {
   updatedAt       DateTime @updatedAt
   
   @@map("scraper_configs")
+}
+
+// AI Sohbet Geçmişi
+model Conversation {
+  id            String   @id @default(uuid())
+  userId        String
+  userMessage   String   @db.Text
+  aiResponse    String   @db.Text
+  actionType    String?  // NAVIGATE, CATEGORY_MOVE, UPDATE_PRICES, etc.
+  actionData    Json?    // Action parameters
+  actionResult  String?  @db.Text
+  conversationSession String? // Session ID to group related messages
+  metadata      Json?    // Extra data (response time, tokens used, etc.)
+  createdAt     DateTime @default(now())
+  
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([conversationSession])
+  @@index([createdAt])
+  @@map("conversations")
+}
+
+// Zamanlı Görevler (Scheduled Tasks)
+model ScheduledTask {
+  id            String   @id @default(uuid())
+  userId        String
+  name          String
+  description   String?
+  actionType    String   // STOCK_ALERT, CUSTOMER_REMINDER, REPORT_GENERATION, etc.
+  actionData    Json     // Task parameters
+  schedule      String   // Cron expression: "0 9 * * *"
+  isActive      Boolean  @default(true)
+  lastRun       DateTime?
+  lastStatus    String?  // SUCCESS, ERROR, SKIPPED
+  lastError     String?  @db.Text
+  nextRun       DateTime?
+  runCount      Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([isActive])
+  @@index([nextRun])
+  @@map("scheduled_tasks")
 }
 
