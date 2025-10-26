@@ -86,13 +86,51 @@ interface Sale {
   }>;
 }
 
+interface Channel {
+  id: string;
+  name: string;
+  color: string;
+  bgColor: string;
+  textColor: string;
+  cart: CartItem[];
+  customer: Customer | null;
+  createdAt: Date;
+}
+
+const CHANNEL_COLORS = [
+  { color: 'green', bgColor: 'bg-green-500', textColor: 'text-green-600', name: 'Kanal 1' },
+  { color: 'blue', bgColor: 'bg-blue-500', textColor: 'text-blue-600', name: 'Kanal 2' },
+  { color: 'orange', bgColor: 'bg-orange-500', textColor: 'text-orange-600', name: 'Kanal 3' },
+  { color: 'purple', bgColor: 'bg-purple-500', textColor: 'text-purple-600', name: 'Kanal 4' },
+  { color: 'pink', bgColor: 'bg-pink-500', textColor: 'text-pink-600', name: 'Kanal 5' },
+];
+
 const ExpressPOS: React.FC = () => {
   const { user } = useAuthStore();
   const barcodeInputRef = useRef<HTMLInputElement>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   
+  // Channel State
+  const [channels, setChannels] = useState<Channel[]>([
+    {
+      id: '1',
+      name: 'Kanal 1',
+      color: 'green',
+      bgColor: 'bg-green-500',
+      textColor: 'text-green-600',
+      cart: [],
+      customer: null,
+      createdAt: new Date(),
+    }
+  ]);
+  const [activeChannelId, setActiveChannelId] = useState<string>('1');
+  
+  // Active channel computed
+  const activeChannel = channels.find(ch => ch.id === activeChannelId) || channels[0];
+  const cart = activeChannel.cart;
+  const selectedCustomer = activeChannel.customer;
+  
   // State
-  const [cart, setCart] = useState<CartItem[]>([]);
   const [barcode, setBarcode] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -102,7 +140,6 @@ const ExpressPOS: React.FC = () => {
   
   // Müşteri State
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showCustomerModal, setShowCustomerModal] = useState(false);
   
   // Ödeme State
@@ -128,6 +165,82 @@ const ExpressPOS: React.FC = () => {
   const [lastSale, setLastSale] = useState<Sale | null>(null);
   const [showPrintModal, setShowPrintModal] = useState(false);
   
+  // ==================== CHANNEL MANAGEMENT ====================
+  
+  // Yeni kanal ekle
+  const addChannel = () => {
+    if (channels.length >= 5) {
+      toast.error('⚠️ Maksimum 5 kanal açabilirsiniz!');
+      return;
+    }
+
+    const newChannelIndex = channels.length;
+    const colorConfig = CHANNEL_COLORS[newChannelIndex];
+    const newChannel: Channel = {
+      id: (newChannelIndex + 1).toString(),
+      name: colorConfig.name,
+      color: colorConfig.color,
+      bgColor: colorConfig.bgColor,
+      textColor: colorConfig.textColor,
+      cart: [],
+      customer: null,
+      createdAt: new Date(),
+    };
+
+    setChannels(prev => [...prev, newChannel]);
+    setActiveChannelId(newChannel.id);
+    toast.success(`✅ ${newChannel.name} açıldı!`);
+    playSound('success');
+  };
+
+  // Kanal kapat
+  const removeChannel = (channelId: string) => {
+    if (channels.length === 1) {
+      toast.error('⚠️ En az 1 kanal açık olmalı!');
+      return;
+    }
+
+    const channel = channels.find(ch => ch.id === channelId);
+    if (!channel) return;
+
+    // Sepet doluysa onay iste
+    if (channel.cart.length > 0) {
+      if (!confirm(`🗑️ ${channel.name}'de ${channel.cart.length} ürün var. Silmek istediğinize emin misiniz?`)) {
+        return;
+      }
+    }
+
+    const newChannels = channels.filter(ch => ch.id !== channelId);
+    setChannels(newChannels);
+
+    // Aktif kanalı kapattıysak, ilk kanala geç
+    if (activeChannelId === channelId) {
+      setActiveChannelId(newChannels[0].id);
+    }
+
+    toast.success(`✅ ${channel.name} kapatıldı!`);
+  };
+
+  // Kanal değiştir
+  const switchChannel = (channelId: string) => {
+    const channel = channels.find(ch => ch.id === channelId);
+    if (!channel) return;
+
+    setActiveChannelId(channelId);
+    toast(`📌 ${channel.name} aktif`, { icon: '🔄', duration: 1000 });
+  };
+
+  // Aktif kanalı güncelle (sepet, müşteri)
+  const updateActiveChannel = (updates: Partial<Channel>) => {
+    setChannels(prev =>
+      prev.map(ch =>
+        ch.id === activeChannelId
+          ? { ...ch, ...updates }
+          : ch
+      )
+    );
+  };
+
   // Fetch data
   useEffect(() => {
     fetchCategories();
@@ -139,6 +252,23 @@ const ExpressPOS: React.FC = () => {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
+      // Channel shortcuts (Ctrl+1 to Ctrl+5)
+      if (e.ctrlKey && ['1', '2', '3', '4', '5'].includes(e.key)) {
+        e.preventDefault();
+        const channelId = e.key;
+        if (channels.find(ch => ch.id === channelId)) {
+          switchChannel(channelId);
+        }
+        return;
+      }
+
+      // Ctrl+N - Yeni kanal
+      if (e.ctrlKey && e.key === 'n') {
+        e.preventDefault();
+        addChannel();
+        return;
+      }
+
       if (e.key === 'F1') {
         e.preventDefault();
         barcodeInputRef.current?.focus();
@@ -179,7 +309,7 @@ const ExpressPOS: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [cart]);
+  }, [cart, channels, activeChannelId]);
 
   // Kamera ile barkod okuma
   useEffect(() => {
@@ -356,60 +486,60 @@ const ExpressPOS: React.FC = () => {
 
   // Sepete ürün ekle
   const addToCart = (product: Product) => {
-    setCart(prev => {
-      const existingItem = prev.find(item => item.product.id === product.id);
-      
-      if (existingItem) {
-        if (existingItem.quantity >= product.stock) {
-          toast.error('⚠️ Stok yetersiz!');
-          playSound('error');
-          return prev;
-        }
-        return prev.map(item =>
-          item.product.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        );
+    const currentCart = cart;
+    const existingItem = currentCart.find(item => item.product.id === product.id);
+    
+    if (existingItem) {
+      if (existingItem.quantity >= product.stock) {
+        toast.error('⚠️ Stok yetersiz!');
+        playSound('error');
+        return;
       }
-
-      return [...prev, { product, quantity: 1, discount: 0, note: '' }];
-    });
+      const newCart = currentCart.map(item =>
+        item.product.id === product.id
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      );
+      updateActiveChannel({ cart: newCart });
+    } else {
+      const newCart = [...currentCart, { product, quantity: 1, discount: 0, note: '' }];
+      updateActiveChannel({ cart: newCart });
+    }
     playSound('beep');
   };
 
   // Sepetten ürün çıkar
   const removeFromCart = (productId: string) => {
-    setCart(prev => prev.filter(item => item.product.id !== productId));
+    const newCart = cart.filter(item => item.product.id !== productId);
+    updateActiveChannel({ cart: newCart });
     playSound('error');
     toast.success('✅ Ürün sepetten çıkarıldı!');
   };
 
   // Miktar artır
   const increaseQuantity = (productId: string) => {
-    setCart(prev =>
-      prev.map(item => {
-        if (item.product.id === productId) {
-          if (item.quantity >= item.product.stock) {
-            toast.error('⚠️ Stok yetersiz!');
-            playSound('error');
-            return item;
-          }
-          return { ...item, quantity: item.quantity + 1 };
+    const newCart = cart.map(item => {
+      if (item.product.id === productId) {
+        if (item.quantity >= item.product.stock) {
+          toast.error('⚠️ Stok yetersiz!');
+          playSound('error');
+          return item;
         }
-        return item;
-      })
-    );
+        return { ...item, quantity: item.quantity + 1 };
+      }
+      return item;
+    });
+    updateActiveChannel({ cart: newCart });
   };
 
   // Miktar azalt
   const decreaseQuantity = (productId: string) => {
-    setCart(prev =>
-      prev.map(item =>
-        item.product.id === productId && item.quantity > 1
-          ? { ...item, quantity: item.quantity - 1 }
-          : item
-      )
+    const newCart = cart.map(item =>
+      item.product.id === productId && item.quantity > 1
+        ? { ...item, quantity: item.quantity - 1 }
+        : item
     );
+    updateActiveChannel({ cart: newCart });
   };
 
   // Sepeti temizle
@@ -417,8 +547,7 @@ const ExpressPOS: React.FC = () => {
     if (cart.length === 0) return;
     
     if (confirm('🗑️ Sepeti temizlemek istediğinize emin misiniz?')) {
-      setCart([]);
-      setSelectedCustomer(null);
+      updateActiveChannel({ cart: [], customer: null });
       toast.success('✅ Sepet temizlendi!');
     }
   };
@@ -440,13 +569,12 @@ const ExpressPOS: React.FC = () => {
       return;
     }
 
-    setCart(prev =>
-      prev.map(item =>
-        item.product.id === selectedCartItem.product.id
-          ? { ...item, discount, note: noteInput }
-          : item
-      )
+    const newCart = cart.map(item =>
+      item.product.id === selectedCartItem.product.id
+        ? { ...item, discount, note: noteInput }
+        : item
     );
+    updateActiveChannel({ cart: newCart });
 
     toast.success(`✅ İndirim uygulandı: %${discount}`);
     setShowDiscountModal(false);
@@ -455,7 +583,7 @@ const ExpressPOS: React.FC = () => {
 
   // Müşteri seç
   const selectCustomer = (customer: Customer) => {
-    setSelectedCustomer(customer);
+    updateActiveChannel({ customer });
     setShowCustomerModal(false);
     toast.success(`✅ Müşteri seçildi: ${customer.name}`);
   };
@@ -527,19 +655,18 @@ const ExpressPOS: React.FC = () => {
       const response = await api.post('/sales', saleData);
       
       playSound('success');
-      toast.success('🎉 Satış başarıyla tamamlandı!');
+      toast.success(`🎉 ${activeChannel.name} - Satış tamamlandı!`);
       
       // Fiş yazdırma modal göster
       setLastSale(response.data.sale);
       setShowPrintModal(true);
       
-      // Reset
-      setCart([]);
+      // Aktif kanalı temizle (ama kapat değil!)
+      updateActiveChannel({ cart: [], customer: null });
       setShowPaymentModal(false);
       setPayments([]);
       setCashAmount('');
       setCardAmount('');
-      setSelectedCustomer(null);
       fetchProducts();
       fetchRecentSales();
     } catch (error: any) {
@@ -552,20 +679,21 @@ const ExpressPOS: React.FC = () => {
 
   // Satışı tekrarla
   const repeatSale = (sale: Sale) => {
-    setCart([]);
+    const newCart: CartItem[] = [];
     sale.saleItems.forEach(item => {
       const product = products.find(p => p.id === item.product.id);
       if (product) {
-        setCart(prev => [...prev, { 
+        newCart.push({ 
           product, 
           quantity: item.quantity, 
           discount: 0, 
           note: '' 
-        }]);
+        });
       }
     });
+    updateActiveChannel({ cart: newCart });
     setShowRecentSales(false);
-    toast.success('✅ Satış sepete eklendi!');
+    toast.success(`✅ Satış ${activeChannel.name}'e eklendi!`);
   };
 
   // Fiş yazdır
@@ -666,7 +794,90 @@ const ExpressPOS: React.FC = () => {
 
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-blue-950/20">
-      {/* HEADER - Corporate Blue */}
+      {/* CHANNEL TABS - Çoklu Müşteri Kanalı */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white dark:bg-slate-900 border-b-2 border-slate-200 dark:border-slate-800 shadow-lg"
+      >
+        <div className="flex items-center gap-2 px-4 py-2 overflow-x-auto scrollbar-thin">
+          {channels.map((channel) => {
+            const isActive = channel.id === activeChannelId;
+            const channelTotal = channel.cart.reduce((sum, item) => {
+              const discountedPrice = item.product.price - (item.product.price * item.discount / 100);
+              return sum + discountedPrice * item.quantity;
+            }, 0);
+            const channelItemCount = channel.cart.reduce((sum, item) => sum + item.quantity, 0);
+
+            return (
+              <motion.div
+                key={channel.id}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => switchChannel(channel.id)}
+                className={`relative flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all shadow-md min-w-[200px] ${
+                  isActive
+                    ? `${channel.bgColor} text-white scale-105 shadow-xl`
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                }`}
+              >
+                {/* Close Button */}
+                {channels.length > 1 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeChannel(channel.id);
+                    }}
+                    className={`absolute -top-2 -right-2 w-6 h-6 rounded-full ${
+                      isActive ? 'bg-white text-red-600' : 'bg-red-500 text-white'
+                    } flex items-center justify-center hover:scale-110 transition-all shadow-lg font-black text-xs`}
+                  >
+                    ×
+                  </button>
+                )}
+
+                {/* Channel Info */}
+                <div className="flex-1">
+                  <p className="text-sm font-black">{channel.name}</p>
+                  <div className="flex items-center gap-2 text-xs font-bold mt-1">
+                    <span>{channelTotal.toFixed(2)} ₺</span>
+                    <span>•</span>
+                    <span>{channelItemCount} ürün</span>
+                  </div>
+                  {channel.customer && (
+                    <p className="text-xs font-semibold mt-1 opacity-90">
+                      👤 {channel.customer.name}
+                    </p>
+                  )}
+                </div>
+
+                {/* Keyboard Shortcut */}
+                <div className={`text-xs font-black px-2 py-1 rounded ${
+                  isActive ? 'bg-white/20' : 'bg-slate-300 dark:bg-slate-700'
+                }`}>
+                  Ctrl+{channel.id}
+                </div>
+              </motion.div>
+            );
+          })}
+
+          {/* Add Channel Button */}
+          {channels.length < 5 && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={addChannel}
+              className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-slate-700 text-white font-black shadow-lg hover:shadow-xl transition-all min-w-[140px]"
+            >
+              <Plus className="w-5 h-5" />
+              Yeni Kanal
+              <span className="text-xs opacity-75">(Ctrl+N)</span>
+            </motion.button>
+          )}
+        </div>
+      </motion.div>
+
+      {/* HEADER - Barkod ve Kontroller */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -1157,7 +1368,7 @@ const ExpressPOS: React.FC = () => {
                     Seçili: {selectedCustomer.name}
                   </p>
                   <button
-                    onClick={() => setSelectedCustomer(null)}
+                    onClick={() => updateActiveChannel({ customer: null })}
                     className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-semibold mt-1"
                   >
                     Seçimi Kaldır
