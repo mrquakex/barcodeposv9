@@ -52,7 +52,7 @@ export const getStockRecommendations = async (req: Request, res: Response) => {
 
 export const getProductRecommendations = async (req: Request, res: Response) => {
   try {
-    const customerId = req.query.customerId ? parseInt(req.query.customerId as string) : undefined;
+    const customerId = req.query.customerId as string | undefined;
     const recommendations = await aiService.getProductRecommendations(customerId);
     
     res.json({

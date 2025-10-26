@@ -29,13 +29,13 @@ interface Anomaly {
 }
 
 interface StockAnomaly {
-  productId: number;
+  productId: string;
   name: string;
   issue: string;
 }
 
 interface StockRecommendation {
-  productId: number;
+  productId: string;
   name: string;
   currentStock: number;
   recommendedOrder: number;
@@ -44,7 +44,7 @@ interface StockRecommendation {
 }
 
 interface ProductRecommendation {
-  productId: number;
+  productId: string;
   name: string;
   reason: string;
   score: number;

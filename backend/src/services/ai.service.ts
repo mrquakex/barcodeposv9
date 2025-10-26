@@ -25,7 +25,7 @@ class AIService {
           createdAt: { gte: thirtyDaysAgo },
         },
         select: {
-          total: true,
+          totalAmount: true,
           createdAt: true,
         },
         orderBy: {
@@ -105,7 +105,7 @@ class AIService {
           createdAt: { gte: thirtyDaysAgo },
         },
         select: {
-          total: true,
+          totalAmount: true,
           createdAt: true,
         },
       });
@@ -184,7 +184,7 @@ class AIService {
    */
   async getStockRecommendations(): Promise<
     Array<{
-      productId: number;
+      productId: string;
       name: string;
       currentStock: number;
       recommendedOrder: number;
@@ -209,7 +209,7 @@ class AIService {
       });
 
       // Ürün bazında günlük ortalama satış hesapla
-      const productSales: Record<number, { total: number; name: string; stock: number }> = {};
+      const productSales: Record<string, { total: number; name: string; stock: number }> = {};
 
       sales.forEach((item) => {
         if (!productSales[item.productId]) {
@@ -231,7 +231,7 @@ class AIService {
           // Kritik stok seviyesi (7 günden az)
           if (daysUntilStockout < 7) {
             return {
-              productId: parseInt(productId),
+              productId,
               name: data.name,
               currentStock: data.stock,
               recommendedOrder: Math.ceil(avgDailySales * 30), // 30 günlük stok
@@ -243,7 +243,7 @@ class AIService {
           // Orta öncelik (14 günden az)
           if (daysUntilStockout < 14) {
             return {
-              productId: parseInt(productId),
+              productId,
               name: data.name,
               currentStock: data.stock,
               recommendedOrder: Math.ceil(avgDailySales * 20), // 20 günlük stok
@@ -269,9 +269,9 @@ class AIService {
   /**
    * Ürün Önerisi - Müşteri alışveriş geçmişine göre
    */
-  async getProductRecommendations(customerId?: number): Promise<
+  async getProductRecommendations(customerId?: string): Promise<
     Array<{
-      productId: number;
+      productId: string;
       name: string;
       reason: string;
       score: number;
@@ -292,7 +292,7 @@ class AIService {
         });
 
         // Sık alınan ürünler
-        const productCounts: Record<number, { name: string; count: number }> = {};
+        const productCounts: Record<string, { name: string; count: number }> = {};
         customerSales.forEach((item) => {
           if (!productCounts[item.productId]) {
             productCounts[item.productId] = {
@@ -305,7 +305,7 @@ class AIService {
 
         return Object.entries(productCounts)
           .map(([productId, data]) => ({
-            productId: parseInt(productId),
+            productId,
             name: data.name,
             reason: 'Sıklıkla satın aldığınız ürün',
             score: data.count,
@@ -387,12 +387,12 @@ class AIService {
   /**
    * Satışları günlük bazda grupla
    */
-  private groupByDay(sales: Array<{ createdAt: Date; total: number }>): Record<string, number> {
+  private groupByDay(sales: Array<{ createdAt: Date; totalAmount: number }>): Record<string, number> {
     const grouped: Record<string, number> = {};
 
     sales.forEach((sale) => {
       const date = sale.createdAt.toISOString().split('T')[0];
-      grouped[date] = (grouped[date] || 0) + sale.total;
+      grouped[date] = (grouped[date] || 0) + sale.totalAmount;
     });
 
     return grouped;
