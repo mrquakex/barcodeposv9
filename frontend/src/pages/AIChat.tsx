@@ -204,8 +204,8 @@ const AIChat: React.FC = () => {
         {/* Top accent gradient */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-slate-700" />
         
-        {/* Messages Container */}
-        <div className="h-full overflow-y-auto px-4 md:px-8 py-4 md:py-6 space-y-3 md:space-y-4">
+        {/* Messages Container - Extra padding at bottom for input area */}
+        <div className="h-full overflow-y-auto px-4 md:px-8 py-4 md:py-6 pb-48 md:pb-52 space-y-3 md:space-y-4">
           {messages.map((message, index) => (
               <div
                 key={message.id}
