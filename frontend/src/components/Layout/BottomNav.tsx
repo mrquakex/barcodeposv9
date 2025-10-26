@@ -56,7 +56,7 @@ const BottomNav: React.FC = () => {
     { icon: Ticket, label: 'Kuponlar', path: '/coupons', roles: ['ADMIN', 'MANAGER'] },
     { icon: BarChart3, label: 'Raporlar', path: '/reports', roles: ['ADMIN', 'MANAGER'] },
     { icon: Bot, label: 'AI Asistan', path: '/ai-chat', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
-    { icon: Building, label: 'Şubeler', path: '/branches', roles: ['ADMIN'] },
+    { icon: Building2, label: 'Şubeler', path: '/branches', roles: ['ADMIN'] },
     { icon: UserCog, label: 'Kullanıcılar', path: '/user-management', roles: ['ADMIN'] },
     { icon: Shield, label: 'Aktivite Logları', path: '/activity-logs', roles: ['ADMIN'] },
     { icon: UserCircle, label: 'Profil', path: '/profile', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
