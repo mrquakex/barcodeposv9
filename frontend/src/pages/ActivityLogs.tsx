@@ -40,8 +40,14 @@ const ActivityLogs: React.FC = () => {
         <p className="text-muted-foreground mt-1">Sistem kullanım geçmişi</p>
       </motion.div>
 
-      <Card>
-        <CardContent className="p-6">
+      <Card className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white via-orange-50/20 to-blue-50 dark:from-slate-900 dark:via-orange-950/20 dark:to-blue-950/20 group">
+        {/* Top Accent Line */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 via-red-600 to-purple-600" />
+        
+        {/* Glassmorphism overlay on hover */}
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        
+        <CardContent className="p-6 relative">
           <Table>
             <TableHeader><TableRow><TableHead>Tarih</TableHead><TableHead>Kullanıcı</TableHead><TableHead>İşlem</TableHead><TableHead>Modül</TableHead><TableHead>Açıklama</TableHead><TableHead>IP</TableHead></TableRow></TableHeader>
             <TableBody>

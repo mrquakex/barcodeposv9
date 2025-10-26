@@ -37,8 +37,14 @@ const Campaigns: React.FC = () => {
         <Button className="gap-2"><Plus className="w-4 h-4" />Yeni Kampanya</Button>
       </motion.div>
 
-      <Card>
-        <CardContent className="p-6">
+      <Card className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white via-purple-50/20 to-blue-50 dark:from-slate-900 dark:via-purple-950/20 dark:to-blue-950/20 group">
+        {/* Top Accent Line */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-pink-600 to-blue-600" />
+        
+        {/* Glassmorphism overlay on hover */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        
+        <CardContent className="p-6 relative">
           <Table>
             <TableHeader><TableRow><TableHead>Kampanya</TableHead><TableHead>Tip</TableHead><TableHead>İndirim</TableHead><TableHead>Başlangıç</TableHead><TableHead>Bitiş</TableHead><TableHead>Durum</TableHead></TableRow></TableHeader>
             <TableBody>
