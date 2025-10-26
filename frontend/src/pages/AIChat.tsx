@@ -145,181 +145,97 @@ const AIChat: React.FC = () => {
 
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col relative overflow-hidden">
-      {/* Animated Background Gradients */}
+      {/* Subtle Background Gradient - Optimized */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <motion.div
-          animate={{
-            scale: [1, 1.2, 1],
-            rotate: [0, 90, 0],
-            opacity: [0.05, 0.1, 0.05],
-          }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-          className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-blue-500 to-purple-500 blur-3xl"
-        />
-        <motion.div
-          animate={{
-            scale: [1.2, 1, 1.2],
-            rotate: [90, 0, 90],
-            opacity: [0.05, 0.1, 0.05],
-          }}
-          transition={{
-            duration: 25,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-          className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-slate-500 to-cyan-500 blur-3xl"
-        />
+        <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-blue-600 to-slate-700 blur-3xl opacity-5" />
       </div>
 
-      {/* Header - ULTRA MODERN */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="mb-4 md:mb-6 relative z-10"
-      >
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-white/80 to-slate-50/80 dark:from-slate-900/80 dark:to-slate-800/80 backdrop-blur-xl border-0 shadow-2xl p-6 md:p-8">
+      {/* Header - Corporate */}
+      <div className="mb-4 md:mb-6 relative z-10">
+        <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border-2 border-blue-200 dark:border-slate-800 shadow-xl p-4 md:p-6">
           {/* Glassmorphism overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-slate-700/5 dark:from-blue-600/10 dark:to-slate-700/10" />
           
           {/* Top accent line */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-purple-600 to-slate-700 opacity-80" />
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-slate-700 opacity-80" />
           
-          <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-4 md:gap-6">
-              {/* AI Icon - Animated */}
-              <motion.div
-                animate={{
-                  scale: [1, 1.05, 1],
-                  rotate: [0, 5, 0, -5, 0],
-                }}
-                transition={{
-                  duration: 4,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
-                className="relative"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl blur-xl opacity-50 animate-pulse" />
-                <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-3xl bg-gradient-to-br from-blue-600 via-purple-600 to-slate-700 flex items-center justify-center shadow-2xl border-2 border-white/50 dark:border-white/20">
-                  <Brain className="w-9 h-9 md:w-12 md:h-12 text-white" />
+          <div className="relative flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3 md:gap-4">
+              {/* AI Icon - Corporate */}
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-slate-700 rounded-2xl blur-lg opacity-30" />
+                <div className="relative w-12 h-12 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-xl border-2 border-white/50 dark:border-white/20">
+                  <Brain className="w-6 h-6 md:w-9 md:h-9 text-white" />
                 </div>
-              </motion.div>
+              </div>
               
               <div>
-                <motion.h1
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="text-3xl md:text-5xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-slate-700 bg-clip-text text-transparent"
-                >
+                <h1 className="text-2xl md:text-3xl font-black bg-gradient-to-r from-blue-600 to-slate-700 bg-clip-text text-transparent">
                   AI Asistan
-                </motion.h1>
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="flex items-center gap-2 mt-2"
-                >
-                  <Zap className="w-4 h-4 text-blue-600 animate-pulse" />
-                  <p className="text-xs md:text-sm font-bold bg-gradient-to-r from-slate-600 to-slate-800 dark:from-slate-300 dark:to-slate-400 bg-clip-text text-transparent">
+                </h1>
+                <div className="flex items-center gap-2 mt-1">
+                  <Zap className="w-3 h-3 text-blue-600" />
+                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
                     Powered by Groq AI • Llama 3.3 70B
                   </p>
-                </motion.div>
+                </div>
               </div>
             </div>
             
-            {/* Status Badges - Floating */}
-            <div className="flex gap-3 flex-wrap justify-center">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.4 }}
-                className="relative group"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
-                <div className="relative flex items-center gap-2 px-4 md:px-6 py-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 backdrop-blur-sm border-2 border-green-300/50 dark:border-green-700/50 rounded-2xl shadow-xl">
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse shadow-lg shadow-green-500/50" />
-                  <Activity className="w-4 h-4 text-green-600 dark:text-green-400" />
-                  <span className="text-xs md:text-sm font-black text-green-700 dark:text-green-400">Sistem Entegre</span>
-                </div>
-              </motion.div>
+            {/* Status Badges - Corporate */}
+            <div className="flex gap-2 md:gap-3 flex-wrap justify-center">
+              <div className="flex items-center gap-2 px-3 md:px-4 py-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 border-2 border-green-300 dark:border-green-700 rounded-xl shadow-lg">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <Activity className="w-3 h-3 md:w-4 md:h-4 text-green-600 dark:text-green-400" />
+                <span className="text-xs font-bold text-green-700 dark:text-green-400">Sistem Entegre</span>
+              </div>
               
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.5 }}
-                className="relative group"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
-                <div className="relative flex items-center gap-2 px-4 md:px-6 py-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/50 dark:to-purple-950/50 backdrop-blur-sm border-2 border-blue-300/50 dark:border-blue-700/50 rounded-2xl shadow-xl">
-                  <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400 animate-pulse" />
-                  <span className="text-xs md:text-sm font-black text-blue-700 dark:text-blue-400">AI Online</span>
-                </div>
-              </motion.div>
+              <div className="flex items-center gap-2 px-3 md:px-4 py-2 bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/50 dark:to-slate-950/50 border-2 border-blue-300 dark:border-blue-700 rounded-xl shadow-lg">
+                <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-blue-600 dark:text-blue-400" />
+                <span className="text-xs font-bold text-blue-700 dark:text-blue-400">AI Online</span>
+              </div>
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
 
-      {/* Chat Container - ULTRA MODERN */}
-      <div className="flex-1 relative overflow-hidden rounded-3xl bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-0 shadow-2xl z-10">
+      {/* Chat Container - Corporate */}
+      <div className="flex-1 relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border-2 border-blue-200 dark:border-slate-800 shadow-xl z-10">
         {/* Top accent gradient */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-purple-600 to-slate-700" />
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-slate-700" />
         
         {/* Messages Container */}
-        <div className="h-full overflow-y-auto px-4 md:px-8 py-6 space-y-4 md:space-y-6 bg-gradient-to-b from-slate-50/50 to-white/50 dark:from-slate-900/50 dark:to-slate-950/50">
-          <AnimatePresence>
-            {messages.map((message, index) => (
-              <motion.div
+        <div className="h-full overflow-y-auto px-4 md:px-8 py-4 md:py-6 space-y-3 md:space-y-4">
+          {messages.map((message, index) => (
+              <div
                 key={message.id}
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                transition={{ duration: 0.4, delay: index * 0.05 }}
-                className={`flex gap-3 md:gap-4 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex gap-2 md:gap-3 ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {message.role === 'assistant' && (
-                  <motion.div
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    className="relative flex-shrink-0"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl blur-lg opacity-40" />
-                    <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-gradient-to-br from-blue-600 via-purple-600 to-slate-700 flex items-center justify-center shadow-2xl border-2 border-white/50 dark:border-white/20">
-                      <Bot className="w-5 h-5 md:w-7 md:h-7 text-white" />
+                  <div className="relative flex-shrink-0">
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-lg border-2 border-white/50 dark:border-white/20">
+                      <Bot className="w-4 h-4 md:w-5 md:h-5 text-white" />
                     </div>
-                  </motion.div>
+                  </div>
                 )}
 
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  className={`relative max-w-[85%] md:max-w-[70%] p-4 md:p-5 rounded-3xl shadow-xl group ${
+                <div className={`relative max-w-[85%] md:max-w-[70%] p-3 md:p-4 rounded-2xl shadow-lg ${
                     message.role === 'user'
-                      ? 'bg-gradient-to-br from-blue-600 via-blue-700 to-slate-700 text-white'
-                      : 'bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 text-slate-900 dark:text-white border-2 border-blue-200/50 dark:border-slate-700/50'
+                      ? 'bg-gradient-to-br from-blue-600 to-slate-700 text-white'
+                      : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-2 border-blue-200 dark:border-slate-700'
                   }`}
                 >
                   {/* Glassmorphism overlay for assistant messages */}
                   {message.role === 'assistant' && (
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-purple-600/5 dark:from-blue-600/10 dark:to-purple-600/10 rounded-3xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600/3 to-slate-700/3 dark:from-blue-600/5 dark:to-slate-700/5 rounded-2xl" />
                   )}
                   
-                  {/* Message glow effect */}
-                  <div className={`absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
-                    message.role === 'user'
-                      ? 'shadow-2xl shadow-blue-500/30'
-                      : 'shadow-2xl shadow-purple-500/20 dark:shadow-blue-500/20'
-                  }`} />
-                  
                   <div className="relative">
-                    <p className="text-base md:text-lg font-medium leading-relaxed whitespace-pre-wrap tracking-wide" style={{ fontFamily: 'Inter, system-ui, -apple-system, sans-serif', lineHeight: '1.8' }}>
+                    <p className="text-sm font-medium leading-relaxed whitespace-pre-wrap" style={{ lineHeight: '1.6' }}>
                       {message.content}
                     </p>
-                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/20 dark:border-slate-700/50">
-                      <p className={`text-xs font-semibold tracking-wider uppercase ${
+                    <div className="flex items-center justify-between mt-3 pt-2 border-t border-white/20 dark:border-slate-700/50">
+                      <p className={`text-xs font-medium ${
                         message.role === 'user' 
                           ? 'text-white/70' 
                           : 'text-slate-400 dark:text-slate-500'
@@ -330,163 +246,104 @@ const AIChat: React.FC = () => {
                         })}
                       </p>
                       {message.role === 'assistant' && (
-                        <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 opacity-60" />
+                        <Sparkles className="w-3 h-3 text-blue-600 dark:text-blue-400 opacity-50" />
                       )}
                     </div>
                   </div>
-                </motion.div>
+                </div>
 
                 {message.role === 'user' && (
-                  <motion.div
-                    whileHover={{ scale: 1.1, rotate: -5 }}
-                    className="relative flex-shrink-0"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-slate-700 rounded-2xl blur-lg opacity-40" />
-                    <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-2xl border-2 border-white/50 dark:border-white/20">
-                      <User className="w-5 h-5 md:w-7 md:h-7 text-white" />
+                  <div className="relative flex-shrink-0">
+                    <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-lg border-2 border-white/50 dark:border-white/20">
+                      <User className="w-4 h-4 md:w-5 md:h-5 text-white" />
                     </div>
-                  </motion.div>
+                  </div>
                 )}
-              </motion.div>
+              </div>
             ))}
-          </AnimatePresence>
 
           {loading && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex gap-3 md:gap-4"
-            >
-              <div className="relative flex-shrink-0">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl blur-lg opacity-40 animate-pulse" />
-                <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-gradient-to-br from-blue-600 via-purple-600 to-slate-700 flex items-center justify-center shadow-2xl border-2 border-white/50 dark:border-white/20">
-                  <Bot className="w-5 h-5 md:w-7 md:h-7 text-white" />
-                </div>
+            <div className="flex gap-3">
+              <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-lg border-2 border-white/50 dark:border-white/20">
+                <Bot className="w-4 h-4 md:w-5 md:h-5 text-white" />
               </div>
-              <div className="relative bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 p-4 md:p-5 rounded-3xl shadow-xl border-2 border-blue-200/50 dark:border-slate-700/50">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-purple-600/5 dark:from-blue-600/10 dark:to-purple-600/10 rounded-3xl" />
-                <div className="relative flex items-center gap-3">
-                  <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
-                  <span className="text-base font-medium text-slate-700 dark:text-slate-300 tracking-wide">AI yanıt hazırlıyor</span>
-                  <motion.div
-                    animate={{ opacity: [0.3, 1, 0.3] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                    className="flex gap-1"
-                  >
+              <div className="bg-white dark:bg-slate-800 p-3 md:p-4 rounded-2xl shadow-lg border-2 border-blue-200 dark:border-slate-700">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">AI yanıt hazırlıyor</span>
+                  <div className="flex gap-1">
                     {[1, 2, 3].map((i) => (
-                      <div key={i} className="w-2 h-2 rounded-full bg-blue-600" />
+                      <div key={i} className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" style={{ animationDelay: `${i * 200}ms` }} />
                     ))}
-                  </motion.div>
+                  </div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
 
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Quick Actions - ULTRA MODERN */}
+        {/* Quick Actions - Corporate */}
         {messages.length === 1 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="absolute bottom-24 left-0 right-0 px-4 md:px-8 py-6 border-t-2 border-blue-200/30 dark:border-slate-700/30 bg-gradient-to-r from-blue-50/80 to-purple-50/80 dark:from-slate-900/80 dark:to-slate-800/80 backdrop-blur-xl z-10"
-          >
-            <div className="flex items-center gap-2 mb-4">
-              <Zap className="w-4 h-4 text-blue-600" />
-              <p className="text-sm font-bold tracking-wide text-slate-700 dark:text-slate-300 uppercase">Hızlı Başlangıç</p>
+          <div className="absolute bottom-20 md:bottom-24 left-0 right-0 px-4 md:px-8 py-4 border-t-2 border-blue-200/30 dark:border-slate-700/30 bg-gradient-to-r from-blue-50/90 to-slate-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-sm z-10">
+            <div className="flex items-center gap-2 mb-3">
+              <Zap className="w-3 h-3 text-blue-600" />
+              <p className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">Hızlı Başlangıç</p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3">
               {quickActions.map((action, index) => (
-                <motion.button
+                <button
                   key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 + index * 0.1 }}
-                  whileHover={{ scale: 1.05, y: -5 }}
-                  whileTap={{ scale: 0.95 }}
                   onClick={() => handleQuickAction(action.prompt)}
                   disabled={loading}
-                  className="relative group"
+                  className="p-3 rounded-xl bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-slate-700 border-2 border-blue-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600 shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {/* Glow effect */}
-                  <div className={`absolute inset-0 bg-gradient-to-r ${
-                    action.color === 'blue' 
-                      ? 'from-blue-500 to-purple-500' 
-                      : 'from-slate-500 to-blue-500'
-                  } rounded-2xl blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-300`} />
-                  
-                  {/* Button */}
-                  <div className="relative p-4 md:p-5 rounded-2xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border-2 border-blue-200/50 dark:border-slate-700/50 shadow-xl group-hover:shadow-2xl transition-all group-disabled:opacity-50 group-disabled:cursor-not-allowed">
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-purple-600/5 dark:from-blue-600/10 dark:to-purple-600/10 rounded-2xl" />
-                    <div className="relative flex flex-col items-center gap-3">
-                      <motion.div
-                        whileHover={{ rotate: [0, -10, 10, -10, 0] }}
-                        transition={{ duration: 0.5 }}
-                      >
-                        <action.icon className="w-8 h-8 md:w-10 md:h-10 text-blue-600 dark:text-blue-400" />
-                      </motion.div>
-                      <p className="text-sm font-semibold text-center text-slate-700 dark:text-slate-300 tracking-wide">{action.label}</p>
-                    </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <action.icon className="w-6 h-6 md:w-7 md:h-7 text-blue-600 dark:text-blue-400" />
+                    <p className="text-xs font-semibold text-center text-slate-700 dark:text-slate-300">{action.label}</p>
                   </div>
-                </motion.button>
+                </button>
               ))}
             </div>
-          </motion.div>
+          </div>
         )}
 
-        {/* Input Area - FLOATING MODERN */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 border-t-2 border-blue-200/30 dark:border-slate-700/30 bg-gradient-to-r from-slate-50/95 to-blue-50/95 dark:from-slate-950/95 dark:to-slate-900/95 backdrop-blur-xl z-20">
-          <div className="flex gap-3 md:gap-4">
+        {/* Input Area - Corporate */}
+        <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4 border-t-2 border-blue-200/30 dark:border-slate-700/30 bg-gradient-to-r from-slate-50/95 to-blue-50/95 dark:from-slate-950/95 dark:to-slate-900/95 backdrop-blur-sm z-20">
+          <div className="flex gap-2 md:gap-3">
             {/* Input Field */}
-            <div className="flex-1 relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl blur-lg opacity-0 group-focus-within:opacity-30 transition-opacity duration-300" />
-              <textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Sorunuzu yazın..."
-                className="relative w-full px-5 py-4 rounded-2xl bg-white dark:bg-slate-800 border-2 border-blue-200/50 dark:border-slate-700/50 focus:border-blue-500 dark:focus:border-blue-600 focus:outline-none resize-none font-medium text-base tracking-wide text-slate-900 dark:text-white placeholder-slate-400 shadow-xl focus:shadow-2xl transition-all"
-                rows={2}
-                disabled={loading}
-              />
-            </div>
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Sorunuzu yazın..."
+              className="flex-1 px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-blue-200 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-600 focus:outline-none resize-none font-medium text-sm text-slate-900 dark:text-white placeholder-slate-400 shadow-lg focus:shadow-xl transition-all"
+              rows={2}
+              disabled={loading}
+            />
             
             {/* Send Button */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <button
               onClick={handleSend}
               disabled={!input.trim() || loading}
-              className="relative group disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 md:px-6 py-3 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 text-white font-bold shadow-lg hover:shadow-xl flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
-              {/* Glow effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
-              
-              {/* Button */}
-              <div className="relative px-6 md:px-8 py-4 rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-slate-700 text-white font-black shadow-2xl flex items-center gap-3 border-2 border-white/20">
-                {loading ? (
-                  <Loader2 className="w-5 h-5 md:w-6 md:h-6 animate-spin" />
-                ) : (
-                  <>
-                    <Send className="w-5 h-5 md:w-6 md:h-6" />
-                    <span className="hidden md:inline">Gönder</span>
-                  </>
-                )}
-              </div>
-            </motion.button>
+              {loading ? (
+                <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" />
+              ) : (
+                <>
+                  <Send className="w-4 h-4 md:w-5 md:h-5" />
+                  <span className="hidden md:inline text-sm">Gönder</span>
+                </>
+              )}
+            </button>
           </div>
           
           {/* Tips */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="text-xs text-center mt-3 text-slate-400 dark:text-slate-500 font-medium tracking-wide"
-          >
-            Tüm sistem verilerinizi anlayabiliyorum • Enter ile gönder • Shift+Enter ile yeni satır
-          </motion.p>
+          <p className="text-xs text-center mt-2 text-slate-400 dark:text-slate-500 font-medium">
+            Tüm sistem verilerinizi anlayabiliyorum • Enter ile gönder
+          </p>
         </div>
       </div>
     </div>
