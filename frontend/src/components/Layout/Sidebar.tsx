@@ -21,6 +21,7 @@ import {
   Shield,
   UserCog,
   Receipt,
+  Brain,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { cn } from '../../lib/utils';
@@ -44,6 +45,7 @@ const Sidebar: React.FC = () => {
     { icon: Gift, label: 'Kampanyalar', path: '/campaigns', roles: ['ADMIN', 'MANAGER'] },
     { icon: Ticket, label: 'Kuponlar', path: '/coupons', roles: ['ADMIN', 'MANAGER'] },
     { icon: BarChart3, label: 'Raporlar', path: '/reports', roles: ['ADMIN', 'MANAGER'] },
+    { icon: Brain, label: 'AI İçgörüleri', path: '/ai-insights', roles: ['ADMIN', 'MANAGER'] },
     { icon: Building, label: 'Şubeler', path: '/branches', roles: ['ADMIN'] },
     { icon: UserCog, label: 'Kullanıcılar', path: '/user-management', roles: ['ADMIN'] },
     { icon: Shield, label: 'Aktivite Logları', path: '/activity-logs', roles: ['ADMIN'] },

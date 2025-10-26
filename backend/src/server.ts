@@ -21,6 +21,7 @@ import financeRoutes from './routes/finance.routes';
 import campaignRoutes from './routes/campaign.routes';
 import branchRoutes from './routes/branch.routes';
 import activityRoutes from './routes/activity.routes';
+import aiRoutes from './routes/ai.routes';
 import prisma from './lib/prisma';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -92,11 +93,7 @@ app.use('/api/finance', financeRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/branches', branchRoutes);
 app.use('/api/activity-logs', activityRoutes);
-// Temporarily disabled routes
-// app.use('/api/ai', aiRoutes);
-// app.use('/api/gdpr', gdprRoutes);
-// app.use('/api/analytics', analyticsRoutes);
-// app.use('/api/gamification', gamificationRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

@@ -25,6 +25,7 @@ import Coupons from './pages/Coupons';
 import Branches from './pages/Branches';
 import ActivityLogs from './pages/ActivityLogs';
 import UserManagement from './pages/UserManagement';
+import AIInsights from './pages/AIInsights';
 
 const App: React.FC = () => {
   return (
@@ -58,6 +59,7 @@ const App: React.FC = () => {
             <Route path="branches" element={<Branches />} />
             <Route path="user-management" element={<UserManagement />} />
             <Route path="activity-logs" element={<ActivityLogs />} />
+            <Route path="ai-insights" element={<AIInsights />} />
             <Route path="settings" element={<Settings />} />
             <Route path="profile" element={<Profile />} />
           </Route>

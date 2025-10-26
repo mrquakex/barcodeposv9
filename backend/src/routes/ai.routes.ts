@@ -5,12 +5,12 @@ import {
   getStockRecommendations,
   getProductRecommendations,
 } from '../controllers/ai.controller';
-import { authenticateToken } from '../middleware/auth.middleware';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
 
 // Tüm AI endpoint'leri authentication gerektir
-router.use(authenticateToken);
+router.use(authenticate);
 
 // Satış tahmini
 router.get('/predictions/sales', getSalesPredictions);
