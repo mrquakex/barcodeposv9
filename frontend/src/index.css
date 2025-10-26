@@ -4,48 +4,50 @@
 
 @layer base {
 :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Apple-inspired Light Theme */
+    --background: 0 0% 96.5%;  /* #F5F5F7 - Apple's signature light gray */
+    --foreground: 0 0% 11.4%;  /* #1D1D1F - Apple's near-black */
+    --card: 0 0% 100%;         /* Pure white cards */
+    --card-foreground: 0 0% 11.4%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 40%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 80%;
-    --input: 214.3 31.8% 85%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+    --popover-foreground: 0 0% 11.4%;
+    --primary: 211 100% 50%;   /* #007AFF - iOS Blue */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96.5%;
+    --secondary-foreground: 0 0% 11.4%;
+    --muted: 0 0% 96.5%;
+    --muted-foreground: 0 0% 52.5%;  /* #86868B - Apple's secondary gray */
+    --accent: 0 0% 96.5%;
+    --accent-foreground: 0 0% 11.4%;
+    --destructive: 0 100% 67%;  /* #FF3B30 - iOS Red */
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 82.4%;      /* #D2D2D7 - Apple's border */
+    --input: 0 0% 96.5%;
+    --ring: 211 100% 50%;
+    --radius: 0.75rem;         /* 12px - Apple standard */
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    /* Apple-inspired Dark Theme */
+    --background: 0 0% 0%;     /* Pure black - Apple style */
+    --foreground: 0 0% 98%;    /* Off-white */
+    --card: 0 0% 7%;           /* #1C1C1E - Apple's dark card */
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 211 100% 50%;   /* #007AFF - Same iOS Blue */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 18%;     /* #2C2C2E - Apple's secondary dark */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 60%;  /* #98989D - Dark mode secondary text */
+    --accent: 0 0% 18%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 100% 67%; /* #FF453A - iOS Red (dark mode) */
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 23%;        /* #3A3A3C - Apple's dark border */
+    --input: 0 0% 18%;
+    --ring: 211 100% 50%;
   }
 }
 
@@ -58,19 +60,17 @@
   }
 }
 
-/* Glassmorphism Effects */
-.glass {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+/* Apple-style subtle elevation (very minimal shadows) */
+.apple-shadow {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px 0 rgba(0, 0, 0, 0.02);
 }
 
-.glass-dark {
-  background: rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+.apple-shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.apple-shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
 }
 
 /* Neon Glow */

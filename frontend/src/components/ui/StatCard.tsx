@@ -20,38 +20,38 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, description, icon: Ic
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      whileHover={{ y: -2 }}
+      transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+      whileHover={{ y: -2, transition: { duration: 0.2 } }}
       className="group"
     >
-      <Card className="relative overflow-hidden shadow hover:shadow-md transition-all duration-200">
-        {/* Subtle Top Accent Line */}
-        <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${color}`} />
+      <Card className="relative overflow-hidden apple-shadow hover:apple-shadow-md transition-all duration-300 bg-white dark:bg-[#1C1C1E]">
+        {/* Apple-style minimal accent (no gradient) */}
+        <div className={`absolute top-0 left-0 right-0 h-0.5 bg-primary opacity-80`} />
         
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4">
-          <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-300">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 pt-5">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
             {title}
           </CardTitle>
-          <div className={`p-2 rounded-lg bg-gradient-to-br ${color} shadow`}>
-            <Icon className="h-4 w-4 text-white" />
+          <div className="p-2 rounded-xl bg-primary/10 transition-colors group-hover:bg-primary/15">
+            <Icon className="h-5 w-5 text-primary" />
           </div>
         </CardHeader>
         
-        <CardContent className="space-y-2">
-          <div className="text-2xl font-semibold text-slate-900 dark:text-white">
+        <CardContent className="space-y-3 pb-5">
+          <div className="text-3xl font-semibold text-foreground tracking-tight">
             {value}
           </div>
           
           <div className="flex items-center justify-between">
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+            <p className="text-sm font-normal text-muted-foreground">
               {description}
             </p>
             {trend && (
               <span 
-                className={`text-xs font-medium px-2 py-0.5 rounded ${
+                className={`text-xs font-medium px-2 py-1 rounded-md ${
                   trend.isPositive 
-                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
-                    : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                    ? 'bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400' 
+                    : 'bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400'
                 }`}
               >
                 {trend.isPositive ? '↑' : '↓'} {Math.abs(trend.value)}%

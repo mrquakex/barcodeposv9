@@ -119,9 +119,9 @@ const Dashboard: React.FC = () => {
             {/* Top Warning Line */}
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-orange-500 via-red-500 to-orange-500" />
             
-            <CardContent className="flex flex-col md:flex-row items-start md:items-center gap-4 py-5 md:py-6 relative">
-              <div className="flex-shrink-0 p-3 rounded-lg bg-orange-500 shadow">
-                <AlertCircle className="h-5 w-5 text-white" />
+            <CardContent className="flex flex-col md:flex-row items-start md:items-center gap-4 py-6 relative">
+              <div className="flex-shrink-0 p-3 rounded-xl bg-orange-500/15">
+                <AlertCircle className="h-6 w-6 text-orange-600 dark:text-orange-500" />
               </div>
               
               <div className="flex-1">
@@ -137,7 +137,7 @@ const Dashboard: React.FC = () => {
               </div>
               
               <button 
-                className="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium shadow transition-all duration-200"
+                className="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white text-sm font-medium apple-shadow transition-all duration-200"
                 onClick={() => navigate('/products')}
               >
                 Görüntüle
