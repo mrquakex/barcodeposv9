@@ -27,6 +27,8 @@ import {
   Scan,
   ChevronDown,
   ChevronRight,
+  FileText,
+  Wallet,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { cn } from '../../lib/utils';
@@ -54,11 +56,11 @@ const Sidebar: React.FC = () => {
       label: 'Ürünler', 
       roles: ['ADMIN', 'MANAGER', 'CASHIER'],
       children: [
-        { icon: Package, label: 'Ürünler', path: '/products', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
-        { icon: FolderOpen, label: 'Kategoriler', path: '/categories', roles: ['ADMIN', 'MANAGER'] },
-        { icon: Building2, label: 'Tedarikçiler', path: '/suppliers', roles: ['ADMIN', 'MANAGER'] },
-        { icon: ShoppingBag, label: 'Satın Alma', path: '/purchase-orders', roles: ['ADMIN', 'MANAGER'] },
-        { icon: TrendingUp, label: 'Stok Hareketleri', path: '/stock-movements', roles: ['ADMIN', 'MANAGER'] },
+    { icon: Package, label: 'Ürünler', path: '/products', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
+    { icon: FolderOpen, label: 'Kategoriler', path: '/categories', roles: ['ADMIN', 'MANAGER'] },
+    { icon: Building2, label: 'Tedarikçiler', path: '/suppliers', roles: ['ADMIN', 'MANAGER'] },
+    { icon: ShoppingBag, label: 'Satın Alma', path: '/purchase-orders', roles: ['ADMIN', 'MANAGER'] },
+    { icon: TrendingUp, label: 'Stok Hareketleri', path: '/stock-movements', roles: ['ADMIN', 'MANAGER'] },
       ]
     },
     { icon: Users, label: 'Müşteriler', path: '/customers', roles: ['ADMIN', 'MANAGER'] },
@@ -69,6 +71,8 @@ const Sidebar: React.FC = () => {
       children: [
         { icon: PiggyBank, label: 'Finans', path: '/finance', roles: ['ADMIN', 'MANAGER'] },
         { icon: DollarSign, label: 'Giderler', path: '/expenses', roles: ['ADMIN', 'MANAGER'] },
+        { icon: FileText, label: 'Faturalar', path: '/invoices', roles: ['ADMIN', 'MANAGER'] },
+        { icon: Wallet, label: 'Kasa Yönetimi', path: '/cash-register', roles: ['ADMIN', 'MANAGER'] },
       ]
     },
     { icon: BarChart3, label: 'Raporlar', path: '/reports', roles: ['ADMIN', 'MANAGER'] },
@@ -86,9 +90,9 @@ const Sidebar: React.FC = () => {
       label: 'Yönetim', 
       roles: ['ADMIN'],
       children: [
-        { icon: Building, label: 'Şubeler', path: '/branches', roles: ['ADMIN'] },
-        { icon: UserCog, label: 'Kullanıcılar', path: '/user-management', roles: ['ADMIN'] },
-        { icon: Shield, label: 'Aktivite Logları', path: '/activity-logs', roles: ['ADMIN'] },
+    { icon: Building, label: 'Şubeler', path: '/branches', roles: ['ADMIN'] },
+    { icon: UserCog, label: 'Kullanıcılar', path: '/user-management', roles: ['ADMIN'] },
+    { icon: Shield, label: 'Aktivite Logları', path: '/activity-logs', roles: ['ADMIN'] },
       ]
     },
     { icon: Bot, label: 'AI Asistan', path: '/ai-chat', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
@@ -131,8 +135,8 @@ const Sidebar: React.FC = () => {
           <p className="text-[13px] text-muted-foreground mt-1 font-medium whitespace-nowrap">
             Market Yönetim Sistemi
           </p>
-        </div>
-        
+      </div>
+
         {!isExpanded && (
           <div className="flex items-center justify-center">
             <h1 className="text-[20px] font-semibold text-primary">B</h1>
@@ -150,11 +154,11 @@ const Sidebar: React.FC = () => {
 
           // Parent category (with or without children)
           if (!hasChildren && item.path) {
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={cn(
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={cn(
                   'flex items-center gap-3',
                   'px-3 py-2.5',
                   'rounded-[10px]',              // Apple 10px radius
@@ -162,7 +166,7 @@ const Sidebar: React.FC = () => {
                   'font-medium',                 // Medium weight (Apple)
                   'text-[15px]',                 // 15px font
                   'group relative',
-                  isActive
+                isActive
                     ? 'bg-primary/10 text-primary'  // Apple tinted style for active
                     : 'text-foreground hover:bg-muted'
                 )}
@@ -247,7 +251,7 @@ const Sidebar: React.FC = () => {
                         <span className="whitespace-nowrap">
                           {child.label}
                         </span>
-                      </Link>
+            </Link>
                     );
                   })}
                 </div>
