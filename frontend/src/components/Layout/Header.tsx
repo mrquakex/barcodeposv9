@@ -3,6 +3,7 @@ import { Moon, Sun, Sparkles, Calendar, Clock, LogOut, ChevronDown } from 'lucid
 import { useThemeStore } from '../../store/themeStore';
 import { useAuthStore } from '../../store/authStore';
 import Button from '../ui/Button';
+import GlobalSearch from '../GlobalSearch';
 
 const Header: React.FC = () => {
   const { theme, toggleTheme } = useThemeStore();
@@ -20,11 +21,11 @@ const Header: React.FC = () => {
   return (
     <header className="h-16 border-b border-border bg-background px-3 md:px-6 flex items-center justify-between">
       <div className="flex items-center gap-3 md:gap-6">
-        <div>
+      <div>
           {/* Desktop: Full welcome message (Apple style) */}
           <div className="hidden md:flex items-center gap-2 mb-1">
             <h2 className="text-[20px] font-semibold text-foreground tracking-tight">
-              Hoş Geldiniz
+          Hoş Geldiniz
             </h2>
           </div>
           
@@ -36,7 +37,7 @@ const Header: React.FC = () => {
                 hour: '2-digit', 
                 minute: '2-digit'
               })}
-            </span>
+          </span>
           </div>
           
           {/* Desktop: Date & Time (Apple style) */}
@@ -45,11 +46,11 @@ const Header: React.FC = () => {
               <Calendar className="w-4 h-4 text-primary" />
               <span>
                 {currentTime.toLocaleDateString('tr-TR', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          })}
               </span>
             </div>
             <div className="flex items-center gap-1.5 text-slate-900 dark:text-white font-semibold text-sm">
@@ -67,6 +68,11 @@ const Header: React.FC = () => {
       </div>
 
       <div className="flex items-center gap-3">
+        {/* Global Search (Spotlight) */}
+        <div className="hidden md:block">
+          <GlobalSearch />
+        </div>
+
         {/* AI Status Badge */}
         <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/30 dark:to-slate-950/30 border border-blue-200 dark:border-blue-900 rounded-lg shadow-sm">
           <Sparkles className="w-5 h-5 text-blue-600" />
