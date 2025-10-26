@@ -16,6 +16,7 @@ const Suppliers: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', address: '', contactPerson: '', taxNumber: '', paymentTerms: '' });
 
   useEffect(() => {
@@ -36,14 +37,38 @@ const Suppliers: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post('/suppliers', formData);
-      toast.success('Tedarikçi eklendi!');
+      if (editingId) {
+        await api.put(`/suppliers/${editingId}`, formData);
+        toast.success('Tedarikçi güncellendi!');
+      } else {
+        await api.post('/suppliers', formData);
+        toast.success('Tedarikçi eklendi!');
+      }
       fetchSuppliers();
-      setShowForm(false);
-      setFormData({ name: '', email: '', phone: '', address: '', contactPerson: '', taxNumber: '', paymentTerms: '' });
+      resetForm();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Hata oluştu');
     }
+  };
+
+  const handleEdit = (supplier: Supplier) => {
+    setEditingId(supplier.id);
+    setFormData({
+      name: supplier.name,
+      email: supplier.email || '',
+      phone: supplier.phone || '',
+      address: supplier.address || '',
+      contactPerson: supplier.contactPerson || '',
+      taxNumber: supplier.taxNumber || '',
+      paymentTerms: supplier.paymentTerms || '',
+    });
+    setShowForm(true);
+  };
+
+  const resetForm = () => {
+    setShowForm(false);
+    setEditingId(null);
+    setFormData({ name: '', email: '', phone: '', address: '', contactPerson: '', taxNumber: '', paymentTerms: '' });
   };
 
   const handleDelete = async (id: string) => {
@@ -76,7 +101,7 @@ const Suppliers: React.FC = () => {
       {showForm && (
         <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
           <Card>
-            <CardHeader><CardTitle>Yeni Tedarikçi Ekle</CardTitle></CardHeader>
+            <CardHeader><CardTitle>{editingId ? 'Tedarikçi Düzenle' : 'Yeni Tedarikçi Ekle'}</CardTitle></CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="grid gap-4 md:grid-cols-2">
                 <div><Label>Firma Adı *</Label><Input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} /></div>
@@ -85,7 +110,7 @@ const Suppliers: React.FC = () => {
                 <div><Label>Telefon</Label><Input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} /></div>
                 <div><Label>Adres</Label><Input value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} /></div>
                 <div><Label>Vergi No</Label><Input value={formData.taxNumber} onChange={e => setFormData({...formData, taxNumber: e.target.value})} /></div>
-                <div className="md:col-span-2 flex gap-2"><Button type="submit">Kaydet</Button><Button type="button" variant="outline" onClick={() => setShowForm(false)}>İptal</Button></div>
+                <div className="md:col-span-2 flex gap-2"><Button type="submit">{editingId ? 'Güncelle' : 'Kaydet'}</Button><Button type="button" variant="outline" onClick={resetForm}>İptal</Button></div>
               </form>
             </CardContent>
           </Card>
@@ -109,7 +134,7 @@ const Suppliers: React.FC = () => {
                   <TableCell>{supplier.contactPerson || '-'}</TableCell>
                   <TableCell><div className="text-sm">{supplier.email}</div><div className="text-xs text-muted-foreground">{supplier.phone}</div></TableCell>
                   <TableCell><span className={supplier.balance > 0 ? 'text-red-600 font-semibold' : 'text-green-600'}>{formatCurrency(supplier.balance)}</span></TableCell>
-                  <TableCell><div className="flex gap-2"><Button variant="ghost" size="icon"><Edit className="w-4 h-4" /></Button><Button variant="ghost" size="icon" onClick={() => handleDelete(supplier.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button></div></TableCell>
+                  <TableCell><div className="flex gap-2"><Button variant="ghost" size="icon" onClick={() => handleEdit(supplier)}><Edit className="w-4 h-4" /></Button><Button variant="ghost" size="icon" onClick={() => handleDelete(supplier.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button></div></TableCell>
                 </TableRow>
               ))}
             </TableBody>
