@@ -1800,8 +1800,8 @@ const ExpressPOS: React.FC = () => {
                 )}
               </AnimatePresence>
               
-              {/* 📊 ADVANCED KAMERA BİLGİLERİ - Üst Sol */}
-              <div className="absolute top-4 left-4 bg-black/80 backdrop-blur-md rounded-2xl p-3 space-y-1.5 text-white text-xs font-bold shadow-2xl border border-white/10">
+              {/* 📊 ADVANCED KAMERA BİLGİLERİ - Üst Sol (MOBILDE GİZLİ) */}
+              <div className="hidden md:block absolute top-4 left-4 bg-black/80 backdrop-blur-md rounded-2xl p-3 space-y-1.5 text-white text-xs font-bold shadow-2xl border border-white/10">
                 <div className="flex items-center gap-2 pb-1.5 border-b border-white/20">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                   <span className="text-green-400">CANLI</span>
@@ -1858,7 +1858,7 @@ const ExpressPOS: React.FC = () => {
                 )}
               </div>
               
-              {/* 🎯 DURUM GÖSTERGESİ - Üst Orta */}
+              {/* 🎯 DURUM GÖSTERGESİ - Üst Orta (Mobilde minimal) */}
               <div className="absolute top-4 left-1/2 -translate-x-1/2">
                 <motion.div
                   animate={{
@@ -1868,17 +1868,26 @@ const ExpressPOS: React.FC = () => {
                     duration: 0.5,
                     repeat: scanStatus === 'scanning' ? Infinity : 0,
                   }}
-                  className={`px-6 py-3 rounded-full font-black text-sm shadow-2xl ${
+                  className={`px-3 md:px-6 py-1.5 md:py-3 rounded-full font-black text-xs md:text-sm shadow-2xl ${
                     scanStatus === 'success' ? 'bg-green-500 text-white' :
                     scanStatus === 'error' ? 'bg-red-500 text-white' :
                     scanStatus === 'scanning' ? 'bg-yellow-500 text-black animate-pulse' :
-                    'bg-blue-600 text-white'
+                    'bg-blue-600/90 text-white'
                   }`}
                 >
-                  {scanStatus === 'success' ? '✅ BAŞARILI!' :
-                   scanStatus === 'error' ? '❌ BULUNAMADI!' :
-                   scanStatus === 'scanning' ? '🔍 ARANIYOR...' :
-                   '📸 TARANMAYA HAZIR'}
+                  {/* Mobilde sadece emoji, desktop'ta tam yazı */}
+                  <span className="md:hidden">
+                    {scanStatus === 'success' ? '✅' :
+                     scanStatus === 'error' ? '❌' :
+                     scanStatus === 'scanning' ? '🔍' :
+                     '📸'}
+                  </span>
+                  <span className="hidden md:inline">
+                    {scanStatus === 'success' ? '✅ BAŞARILI!' :
+                     scanStatus === 'error' ? '❌ BULUNAMADI!' :
+                     scanStatus === 'scanning' ? '🔍 ARANIYOR...' :
+                     '📸 TARANMAYA HAZIR'}
+                  </span>
                 </motion.div>
               </div>
               
@@ -1923,8 +1932,8 @@ const ExpressPOS: React.FC = () => {
                 </div>
               </div>
               
-              {/* 💡 ADVANCED BRIGHTNESS CONTROLS - Sol Alt */}
-              <div className="absolute bottom-4 left-4 bg-black/90 backdrop-blur-md rounded-2xl p-4 shadow-2xl border-2 border-blue-500/30 space-y-3 max-w-[280px]">
+              {/* 💡 ADVANCED BRIGHTNESS CONTROLS - Sol Alt (MOBILDE GİZLİ) */}
+              <div className="hidden md:block absolute bottom-4 left-4 bg-black/90 backdrop-blur-md rounded-2xl p-4 shadow-2xl border-2 border-blue-500/30 space-y-3 max-w-[280px]">
                 <div className="text-sm text-white font-black text-center pb-2 border-b-2 border-white/20 flex items-center justify-center gap-2">
                   <span className="text-xl">💡</span>
                   PARLAMA KONTROLİ
@@ -2066,12 +2075,12 @@ const ExpressPOS: React.FC = () => {
                 </div>
               </div>
               
-              {/* 🔦 TORCH BUTTON - Sağ Alt */}
+              {/* 🔦 TORCH BUTTON - Sağ Alt (MOBILDE GİZLİ - Otomatik) */}
               {isTorchSupported && (
                 <motion.button
                   onClick={toggleTorch}
                   whileTap={{ scale: 0.9 }}
-                  className={`absolute bottom-20 right-4 w-16 h-16 rounded-full shadow-2xl border-4 flex items-center justify-center transition-all ${
+                  className={`hidden md:flex absolute bottom-20 right-4 w-16 h-16 rounded-full shadow-2xl border-4 items-center justify-center transition-all ${
                     torchEnabled 
                       ? 'bg-yellow-400 border-yellow-500 text-yellow-900' 
                       : 'bg-black/70 border-white/30 text-white'
@@ -2081,8 +2090,8 @@ const ExpressPOS: React.FC = () => {
                 </motion.button>
               )}
               
-              {/* 🔍 ZOOM CONTROLS - Sağ Ortası */}
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-3">
+              {/* 🔍 ZOOM CONTROLS - Sağ Ortası (MOBILDE GİZLİ - Otomatik) */}
+              <div className="hidden md:flex absolute right-4 top-1/2 -translate-y-1/2 flex-col gap-3">
                 {/* Zoom In */}
                 <motion.button
                   onClick={() => handleZoomChange(Math.min(zoomLevel + 0.5, 3.0))}
@@ -2110,19 +2119,19 @@ const ExpressPOS: React.FC = () => {
               </div>
             </div>
             
-            {/* Footer - Profesyonel Talimatlar */}
-            <div className="bg-gradient-to-r from-blue-600 to-slate-700 p-5 space-y-3">
-              <div className="bg-white/10 rounded-lg p-3 space-y-2">
-                <p className="text-base text-white text-center font-black">
+            {/* Footer - Profesyonel Talimatlar (MOBILDE MİNİMAL) */}
+            <div className="bg-gradient-to-r from-blue-600 to-slate-700 p-3 md:p-5 space-y-2 md:space-y-3">
+              <div className="bg-white/10 rounded-lg p-2 md:p-3 space-y-1 md:space-y-2">
+                <p className="text-sm md:text-base text-white text-center font-black">
                   🎯 KIRMIZI LAZER İÇİNE GETİRİN
                 </p>
-                <p className="text-sm text-blue-100 text-center font-bold">
+                <p className="text-xs md:text-sm text-blue-100 text-center font-bold hidden md:block">
                   ⚡ 30 FPS Ultra Hız • Full HD 1920x1080 • 9 Format
                 </p>
               </div>
               
-              {/* Desteklenen Formatlar */}
-              <div className="flex flex-wrap justify-center gap-2 text-xs text-white font-bold">
+              {/* Desteklenen Formatlar (MOBILDE GİZLİ) */}
+              <div className="hidden md:flex flex-wrap justify-center gap-2 text-xs text-white font-bold">
                 <span className="bg-white/20 px-2 py-1 rounded flex items-center gap-1">
                   <Check className="w-3 h-3" /> EAN-13
                 </span>
@@ -2140,8 +2149,8 @@ const ExpressPOS: React.FC = () => {
                 </span>
               </div>
               
-              {/* Profesyonel İpuçları */}
-              <div className="grid grid-cols-3 gap-2 text-center">
+              {/* Profesyonel İpuçları (MOBILDE GİZLİ) */}
+              <div className="hidden md:grid grid-cols-3 gap-2 text-center">
                 <div className="bg-white/10 rounded-lg p-2">
                   <div className="text-2xl mb-1">💡</div>
                   <div className="text-xs text-white font-bold">İyi Işık</div>
@@ -2156,15 +2165,15 @@ const ExpressPOS: React.FC = () => {
                 </div>
               </div>
               
-              {/* Feedback Bilgileri */}
-              <div className="bg-gradient-to-r from-green-500/20 to-blue-500/20 rounded-lg p-2 border border-white/20">
+              {/* Feedback Bilgileri (MOBILDE GİZLİ) */}
+              <div className="hidden md:block bg-gradient-to-r from-green-500/20 to-blue-500/20 rounded-lg p-2 border border-white/20">
                 <p className="text-xs text-white text-center font-bold">
                   🎵 Ses + 📳 Titreşim + 🎨 Flash Feedback
                 </p>
               </div>
               
-              {/* Advanced Controls Info */}
-              <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-lg p-3 border border-white/20 space-y-1">
+              {/* Advanced Controls Info (MOBILDE GİZLİ) */}
+              <div className="hidden md:block bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-lg p-3 border border-white/20 space-y-1">
                 <p className="text-xs text-white text-center font-black mb-2">
                   🚀 ADVANCED CONTROLS
                 </p>
