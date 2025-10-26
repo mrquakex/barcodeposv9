@@ -85,11 +85,11 @@ const Login: React.FC = () => {
       </div>
 
       {/* Main Content */}
-      <div className="relative z-10 w-full max-w-6xl mx-auto px-4 py-8">
-        <div className="grid md:grid-cols-2 gap-8 items-center">
+      <div className="relative z-10 w-full max-w-6xl mx-auto px-3 md:px-4 py-4 md:py-8">
+        <div className="grid md:grid-cols-2 gap-4 md:gap-8 items-center">
           
           {/* Left Side - Branding & Info */}
-          <div className="hidden md:flex flex-col space-y-8 text-white p-8">
+          <div className="hidden lg:flex flex-col space-y-8 text-white p-8">
             <div className="space-y-6">
               <div className="inline-flex items-center gap-3 group">
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-2xl transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
@@ -136,12 +136,12 @@ const Login: React.FC = () => {
 
           {/* Right Side - Login Form */}
           <div className="w-full">
-            <div className="bg-white/10 backdrop-blur-2xl rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
+            <div className="bg-white/10 backdrop-blur-2xl rounded-2xl md:rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
               {/* Form Header */}
-              <div className="bg-gradient-to-r from-blue-900/40 to-slate-800/40 p-8 text-center border-b border-white/10">
+              <div className="bg-gradient-to-r from-blue-900/40 to-slate-800/40 p-4 md:p-8 text-center border-b border-white/10">
                 {/* Date & Time */}
-                <div className="mb-4 space-y-1">
-                  <div className="text-blue-300 text-sm font-bold tracking-wide flex items-center justify-center gap-2">
+                <div className="mb-3 md:mb-4 space-y-1">
+                  <div className="text-blue-300 text-xs md:text-sm font-bold tracking-wide flex items-center justify-center gap-2">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
@@ -152,7 +152,7 @@ const Login: React.FC = () => {
                       day: 'numeric' 
                     })}
                   </div>
-                  <div className="text-white text-3xl font-black tracking-wider tabular-nums">
+                  <div className="text-white text-2xl md:text-3xl font-black tracking-wider tabular-nums">
                     {currentDateTime.toLocaleTimeString('tr-TR', { 
                       hour: '2-digit', 
                       minute: '2-digit', 
@@ -161,25 +161,25 @@ const Login: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-blue-600 to-slate-700 shadow-xl mb-4 animate-pulse">
-                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="inline-flex items-center justify-center w-16 md:w-20 h-16 md:h-20 rounded-full bg-gradient-to-br from-blue-600 to-slate-700 shadow-xl mb-3 md:mb-4 animate-pulse">
+                  <svg className="w-8 md:w-10 h-8 md:h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
                 
-                <div className="space-y-2">
-                  <div className="flex items-center justify-center gap-2">
-                    <h2 className="text-3xl font-black text-white">Hoş Geldiniz</h2>
-                    <span className="px-3 py-1 rounded-full bg-gradient-to-r from-blue-600 to-slate-700 text-white text-xs font-black shadow-lg">
+                <div className="space-y-1 md:space-y-2">
+                  <div className="flex flex-col md:flex-row items-center justify-center gap-2">
+                    <h2 className="text-2xl md:text-3xl font-black text-white">Hoş Geldiniz</h2>
+                    <span className="px-2 md:px-3 py-0.5 md:py-1 rounded-full bg-gradient-to-r from-blue-600 to-slate-700 text-white text-xs font-black shadow-lg">
                       ENTERPRISE
                     </span>
                   </div>
-                  <p className="text-gray-300 font-semibold">Devam etmek için giriş yapın</p>
+                  <p className="text-sm md:text-base text-gray-300 font-semibold">Devam etmek için giriş yapın</p>
                 </div>
               </div>
 
               {/* Form Body */}
-              <div className="p-8">
+              <div className="p-4 md:p-8">
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {/* Email Input */}
             <div className="space-y-2">
@@ -273,7 +273,7 @@ const Login: React.FC = () => {
                   <Button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full h-14 bg-gradient-to-r from-blue-700 to-slate-700 hover:from-blue-600 hover:to-slate-600 text-white font-bold text-lg rounded-xl shadow-lg hover:shadow-2xl hover:shadow-blue-500/30 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full h-12 md:h-14 bg-gradient-to-r from-blue-700 to-slate-700 hover:from-blue-600 hover:to-slate-600 text-white font-bold text-base md:text-lg rounded-xl shadow-lg hover:shadow-2xl hover:shadow-blue-500/30 transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
               {isLoading ? (
                       <span className="flex items-center justify-center gap-3">
@@ -295,8 +295,8 @@ const Login: React.FC = () => {
           </form>
 
                 {/* Demo Accounts */}
-                <div className="mt-8 p-6 rounded-2xl bg-gradient-to-br from-blue-900/20 to-slate-800/20 border border-white/10 backdrop-blur-sm">
-                  <div className="flex items-center gap-2 mb-4">
+                <div className="mt-6 md:mt-8 p-4 md:p-6 rounded-2xl bg-gradient-to-br from-blue-900/20 to-slate-800/20 border border-white/10 backdrop-blur-sm">
+                  <div className="flex items-center gap-2 mb-3 md:mb-4">
                     <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
