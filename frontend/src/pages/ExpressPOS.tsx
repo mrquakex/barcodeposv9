@@ -317,9 +317,33 @@ const ExpressPOS: React.FC = () => {
 
     const startScanner = async () => {
       if (showCamera) {
+        // HTTPS kontrolü
+        if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+          toast.error('🔒 Kamera sadece HTTPS bağlantısında çalışır!', { duration: 6000 });
+          setShowCamera(false);
+          return;
+        }
+
+        // getUserMedia desteği kontrolü
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          toast.error('❌ Tarayıcınız kamera kullanımını desteklemiyor!', { duration: 6000 });
+          setShowCamera(false);
+          return;
+        }
+
         try {
+          // Önce kamera iznini test et
+          console.log('📸 Kamera izni isteniyor...');
+          const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment' } 
+          });
+          
+          // İzin alındı, stream'i hemen kapat (html5-qrcode kendi açacak)
+          stream.getTracks().forEach(track => track.stop());
+          console.log('✅ Kamera izni alındı!');
+
           const scanner = new Html5Qrcode('barcode-scanner', {
-            verbose: true, // Debug için
+            verbose: false, // Çok fazla log basmasın
             formatsToSupport: [
               Html5QrcodeSupportedFormats.EAN_13,
               Html5QrcodeSupportedFormats.EAN_8,
@@ -334,29 +358,18 @@ const ExpressPOS: React.FC = () => {
           });
           scannerRef.current = scanner;
 
-          // HIGH QUALITY config - Mobil için optimize
+          // MOBİL için optimize config
           const config = {
-            fps: 30, // Daha hızlı tarama (10 -> 30)
-            qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
-              // Mobilde %90 alan kullan (daha büyük hedef)
-              const minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
-              const qrboxSize = Math.floor(minEdgeSize * 0.9);
-              return {
-                width: qrboxSize,
-                height: Math.floor(qrboxSize * 0.5), // Barkod için yatay dikdörtgen
-              };
-            },
-            aspectRatio: 1.777778, // 16:9
-            disableFlip: false, // Çevrilmiş barkodları da oku
-            rememberLastUsedCamera: true,
+            fps: 10, // Mobilde 10 FPS yeterli (30 çok ağır)
+            qrbox: { width: 250, height: 150 }, // Sabit boyut (daha stabil)
+            aspectRatio: 1.777778,
+            disableFlip: false,
           };
 
-          // HD video için constraints
+          // MOBİL için basit constraints
           const videoConstraints = {
             facingMode: 'environment',
-            width: { ideal: 1920, min: 1280 }, // HD genişlik
-            height: { ideal: 1080, min: 720 }, // HD yükseklik
-            frameRate: { ideal: 30, min: 15 }, // Yüksek FPS
+            // Mobilde çok yüksek çözünürlük sorun yaratır
           };
 
           await scanner.start(
@@ -365,19 +378,16 @@ const ExpressPOS: React.FC = () => {
             async (decodedText, decodedResult) => {
               // Çift okuma önleme
               if (isProcessing) {
-                console.log('⏳ Zaten işleniyor, atlanıyor...');
                 return;
               }
 
               isProcessing = true;
-              console.log('✅ BARKOD OKUNDU:', decodedText);
-              console.log('📊 Format:', decodedResult.result.format?.formatName);
-              
+              console.log('✅ BARKOD:', decodedText);
               playSound('beep');
               
               // Ürünü bul ve sepete ekle
               try {
-                toast.loading('🔍 Ürün aranıyor...');
+                toast.loading('🔍 Aranıyor...');
                 const response = await api.get(`/products/barcode/${decodedText}`);
                 const product = response.data.product;
 
@@ -391,36 +401,50 @@ const ExpressPOS: React.FC = () => {
                 }
 
                 addToCart(product);
-                toast.success(`✅ ${product.name} eklendi! (₺${product.price})`, { 
-                  duration: 3000,
+                toast.success(`✅ ${product.name} eklendi!`, { 
+                  duration: 2000,
                   icon: '🛒' 
                 });
                 playSound('success');
                 
-                // 1 saniye bekle, sonra kamerayı kapat
+                // Kapat
                 setTimeout(() => {
                   setShowCamera(false);
-                }, 1000);
+                }, 800);
               } catch (error: any) {
                 toast.dismiss();
-                console.error('❌ Ürün bulunamadı:', error);
-                toast.error(`❌ Barkod: ${decodedText} - Ürün bulunamadı!`, { duration: 5000 });
+                console.error('❌ Ürün yok:', decodedText);
+                toast.error(`❌ Ürün bulunamadı: ${decodedText}`, { duration: 4000 });
                 playSound('error');
                 isProcessing = false;
               }
             },
             (errorMessage) => {
-              // Okuma hatası (normal, sürekli tarıyor)
-              // Çok fazla log basmasın diye yorum satırı
-              // console.log('Scanning...', errorMessage);
+              // Scanning - log basma
             }
           );
 
-          toast.success('📸 Kamera AÇILDI! HD kalitede taranıyor...', { duration: 3000 });
-          console.log('✅ Scanner başlatıldı - HD kalite, 30 FPS');
+          toast.success('📸 Kamera açıldı! Barkodu göster...', { duration: 2000 });
+          console.log('✅ Scanner başlatıldı');
         } catch (error: any) {
-          console.error('❌ Scanner error:', error);
-          toast.error(`❌ Kamera açılamadı! Hata: ${error.message}`, { duration: 5000 });
+          console.error('❌ Kamera hatası:', error);
+          
+          // Detaylı hata mesajı
+          let errorMsg = 'Kamera açılamadı!';
+          
+          if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+            errorMsg = '🚫 Kamera izni reddedildi! Ayarlardan izin verin.';
+          } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+            errorMsg = '📷 Kamera bulunamadı!';
+          } else if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+            errorMsg = '⚠️ Kamera başka bir uygulama tarafından kullanılıyor!';
+          } else if (error.name === 'OverconstrainedError') {
+            errorMsg = '⚙️ Kamera ayarları uygun değil!';
+          } else if (error.message) {
+            errorMsg = `❌ ${error.message}`;
+          }
+          
+          toast.error(errorMsg, { duration: 6000 });
           setShowCamera(false);
         }
       }
@@ -1365,7 +1389,7 @@ const ExpressPOS: React.FC = () => {
                   📸 KIRMIZI ÇERÇEVE İÇİNE GETİRİN
                 </p>
                 <p className="text-sm text-blue-100 text-center font-bold">
-                  ⚡ HD Kalite • 30 FPS • Sürekli Odaklanma
+                  ⚡ Mobil Optimize • 9 Format • Otomatik Odak
                 </p>
               </div>
               
