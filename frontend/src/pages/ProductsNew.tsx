@@ -262,7 +262,7 @@ const ProductsNew: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
           <p className="text-muted-foreground">Yükleniyor...</p>
         </div>
       </div>
@@ -278,9 +278,9 @@ const ProductsNew: React.FC = () => {
         className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4"
       >
           <div>
-          <h1 className="text-2xl md:text-4xl font-black bg-gradient-to-r from-blue-600 to-slate-700 bg-clip-text text-transparent flex items-center gap-3">
-            <div className="p-2 md:p-3 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 shadow-lg">
-              <Package className="w-6 md:w-8 h-6 md:h-8 text-white" />
+          <h1 className="text-2xl font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-gradient-to-br from-blue-600 to-slate-700 shadow">
+              <Package className="w-5 h-5 text-white" />
             </div>
               Ürün Yönetimi
             </h1>

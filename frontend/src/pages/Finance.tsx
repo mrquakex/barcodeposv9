@@ -37,7 +37,7 @@ const Finance: React.FC = () => {
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-4xl font-black bg-gradient-to-r from-blue-600 to-slate-700 bg-clip-text text-transparent">Finans Yönetimi</h1>
+        <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">Finans Yönetimi</h1>
         <p className="text-muted-foreground mt-2 font-semibold">Gelir, gider ve kar zarar analizi</p>
       </motion.div>
 
@@ -79,7 +79,7 @@ const Finance: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         
         <CardHeader className="bg-gradient-to-r from-blue-50/50 to-slate-50/50 dark:from-blue-950/30 dark:to-slate-950/30 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm relative">
-          <CardTitle className="text-xl font-black text-slate-900 dark:text-white">📊 Nakit Akışı (Son 30 Gün)</CardTitle>
+          <CardTitle className="text-base font-semibold text-slate-900 dark:text-white">📊 Nakit Akışı (Son 30 Gün)</CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
           <ResponsiveContainer width="100%" height={400}>

@@ -226,7 +226,7 @@ const Customers: React.FC = () => {
         className="flex items-center justify-between mb-6"
       >
         <div>
-          <h1 className="text-4xl font-black bg-gradient-to-r from-blue-600 to-slate-700 bg-clip-text text-transparent">
+          <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">
             Müşteriler
           </h1>
           <p className="text-muted-foreground mt-2 font-semibold">Müşteri kayıtlarınızı yönetin • {customers.length} müşteri</p>
@@ -286,7 +286,7 @@ const Customers: React.FC = () => {
             className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border-2 border-blue-400 dark:border-blue-900"
           >
             <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-slate-700 px-6 py-5 flex items-center justify-between rounded-t-3xl">
-              <h2 className="text-2xl font-black text-white flex items-center gap-3">
+              <h2 className="text-xl font-semibold text-white flex items-center gap-2">
                 <Users className="w-7 h-7" />
                 {editingId ? 'Müşteri Düzenle' : 'Yeni Müşteri Ekle'}
               </h2>
@@ -393,13 +393,13 @@ const Customers: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow className="bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/20 dark:to-slate-950/20 border-b-2">
-                <TableHead className="font-black text-slate-900 dark:text-white">Ad Soyad</TableHead>
-                <TableHead className="font-black text-slate-900 dark:text-white">Email</TableHead>
-                <TableHead className="font-black text-slate-900 dark:text-white">Telefon</TableHead>
-                <TableHead className="font-black text-slate-900 dark:text-white">Borç</TableHead>
-                <TableHead className="font-black text-slate-900 dark:text-white">Alacak</TableHead>
-                <TableHead className="font-black text-slate-900 dark:text-white">Kayıt Tarihi</TableHead>
-                <TableHead className="text-right font-black text-slate-900 dark:text-white">İşlemler</TableHead>
+                <TableHead className="font-semibold text-slate-900 dark:text-white">Ad Soyad</TableHead>
+                <TableHead className="font-semibold text-slate-900 dark:text-white">Email</TableHead>
+                <TableHead className="font-semibold text-slate-900 dark:text-white">Telefon</TableHead>
+                <TableHead className="font-semibold text-slate-900 dark:text-white">Borç</TableHead>
+                <TableHead className="font-semibold text-slate-900 dark:text-white">Alacak</TableHead>
+                <TableHead className="font-semibold text-slate-900 dark:text-white">Kayıt Tarihi</TableHead>
+                <TableHead className="text-right font-semibold text-slate-900 dark:text-white">İşlemler</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

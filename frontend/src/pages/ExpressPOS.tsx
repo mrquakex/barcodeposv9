@@ -1372,7 +1372,7 @@ const ExpressPOS: React.FC = () => {
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-blue-600 to-slate-700 shadow-2xl p-3 md:p-4"
+        className="bg-gradient-to-r from-blue-600 to-slate-700 shadow-lg p-3 md:p-4"
       >
         {/* Mobil: İki satır - Input üstte, butonlar altta */}
         <div className="flex flex-col md:flex-row items-stretch md:items-center gap-2 md:gap-3">
@@ -1401,7 +1401,7 @@ const ExpressPOS: React.FC = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setShowCamera(!showCamera)}
-              className="flex-1 md:flex-none h-12 md:h-auto px-4 md:px-4 py-3 rounded-xl bg-white text-blue-600 font-black shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+              className="flex-1 md:flex-none h-12 md:h-auto px-4 md:px-4 py-3 rounded-lg bg-white text-blue-600 font-semibold shadow hover:shadow-md transition-all flex items-center justify-center gap-2"
             >
               <Camera className="w-5 h-5" />
               <span className="md:hidden">KAMERA</span>
@@ -1429,7 +1429,7 @@ const ExpressPOS: React.FC = () => {
             </button>
 
             {/* Toplam Badge */}
-            <div className="flex-1 md:flex-none px-4 md:px-6 h-12 md:h-auto py-3 rounded-xl bg-white text-blue-600 font-black text-lg md:text-xl shadow-lg flex items-center justify-center gap-2">
+            <div className="flex-1 md:flex-none px-4 md:px-6 h-12 md:h-auto py-3 rounded-lg bg-white text-blue-600 font-semibold text-base shadow flex items-center justify-center gap-2">
               <DollarSign className="w-5 md:w-6 h-5 md:h-6" />
               <span className="text-base md:text-xl">{totalAmount.toFixed(2)} ₺</span>
             </div>
@@ -1453,7 +1453,7 @@ const ExpressPOS: React.FC = () => {
           animate={{ opacity: 1, x: 0 }}
           className="hidden xl:flex w-64 flex-col bg-white dark:bg-slate-900 border-r-3 border-blue-400 dark:border-slate-800 shadow-xl p-4"
         >
-          <h3 className="text-lg font-black text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+          <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
             <Tag className="w-5 h-5 text-blue-600" />
             FAVORİLER
           </h3>
@@ -1475,11 +1475,11 @@ const ExpressPOS: React.FC = () => {
                 onClick={() => addToCart(product)}
                 className="w-full p-3 rounded-xl bg-gradient-to-br from-blue-50 to-slate-50 dark:from-slate-800 dark:to-blue-950 border-2 border-blue-400 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-600 transition-all shadow-md hover:shadow-lg"
               >
-                <p className="font-black text-xs text-slate-900 dark:text-white mb-1 line-clamp-2 text-left">
+                <p className="font-semibold text-xs text-slate-900 dark:text-white mb-1 line-clamp-2 text-left">
                   {product.name}
                 </p>
                 <div className="flex items-center justify-between">
-                  <span className="text-base font-black text-blue-600">{product.price.toFixed(2)} ₺</span>
+                  <span className="text-sm font-semibold text-blue-600">{product.price.toFixed(2)} ₺</span>
                   <span className={`text-xs font-bold px-2 py-0.5 rounded ${
                     product.stock > 10 ? 'bg-green-100 text-green-700' :
                     product.stock > 0 ? 'bg-yellow-100 text-yellow-700' :
@@ -1512,7 +1512,7 @@ const ExpressPOS: React.FC = () => {
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`px-4 md:px-6 py-2 md:py-3 rounded-xl font-black text-xs md:text-sm whitespace-nowrap shadow-lg transition-all ${
+                className={`px-4 md:px-6 py-2 md:py-3 rounded-lg font-medium text-xs md:text-sm whitespace-nowrap shadow transition-all ${
                   selectedCategory === category.id
                     ? 'bg-gradient-to-r from-blue-600 to-slate-700 text-white scale-105'
                     : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-700'
@@ -1564,7 +1564,7 @@ const ExpressPOS: React.FC = () => {
                     }`}
                   >
                     <div className={viewMode === 'grid' ? 'w-full' : 'flex-1'}>
-                      <p className={`font-black text-slate-900 dark:text-white ${
+                      <p className={`font-semibold text-slate-900 dark:text-white ${
                         viewMode === 'grid' ? 'text-xs md:text-sm mb-2 line-clamp-2 min-h-[2rem] md:min-h-[2.5rem]' : 'text-sm line-clamp-1'
                       }`}>
                         {product.name.toUpperCase()}
@@ -1576,7 +1576,7 @@ const ExpressPOS: React.FC = () => {
                       )}
                     </div>
                     <div className={`flex items-center ${viewMode === 'grid' ? 'justify-between' : 'gap-3'}`}>
-                      <span className={`font-black text-blue-600 ${viewMode === 'grid' ? 'text-base md:text-lg' : 'text-base'}`}>
+                      <span className={`font-semibold text-blue-600 ${viewMode === 'grid' ? 'text-base' : 'text-sm'}`}>
                         {product.price.toFixed(2)} ₺
                       </span>
                       <span className={`text-[10px] md:text-xs font-bold px-1.5 md:px-2 py-0.5 md:py-1 rounded ${
@@ -1598,16 +1598,16 @@ const ExpressPOS: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="w-full md:w-80 lg:w-96 flex flex-col bg-white dark:bg-slate-900 md:border-l-3 border-blue-400 dark:border-slate-800 shadow-2xl max-h-[50vh] md:max-h-none"
+          className="w-full md:w-80 lg:w-96 flex flex-col bg-white dark:bg-slate-900 md:border-l border-slate-200 dark:border-slate-800 shadow-lg max-h-[50vh] md:max-h-none"
         >
           {/* Sepet Header */}
           <div className="p-3 md:p-4 bg-gradient-to-r from-blue-600 to-slate-700 text-white">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-lg md:text-xl font-black flex items-center gap-2">
+              <h2 className="text-base font-semibold flex items-center gap-2">
                 <Receipt className="w-5 md:w-6 h-5 md:h-6" />
                 SEPET
               </h2>
-              <span className="px-2 md:px-3 py-0.5 md:py-1 rounded-full bg-white text-blue-600 font-black text-sm">
+              <span className="px-2 md:px-3 py-0.5 md:py-1 rounded-full bg-white text-blue-600 font-semibold text-sm">
                 {totalItems}
               </span>
             </div>
@@ -1654,7 +1654,7 @@ const ExpressPOS: React.FC = () => {
                   >
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
-                        <h3 className="font-black text-sm text-slate-900 dark:text-white mb-1">
+                        <h3 className="font-semibold text-sm text-slate-900 dark:text-white mb-1">
                           {item.product.name}
                         </h3>
                         {item.discount > 0 && (
@@ -1693,7 +1693,7 @@ const ExpressPOS: React.FC = () => {
                         >
                           <Minus className="w-3 h-3" />
                         </button>
-                        <span className="text-base font-black text-slate-900 dark:text-white w-8 text-center">
+                        <span className="text-base font-semibold text-slate-900 dark:text-white w-8 text-center">
                           {item.quantity}
                         </span>
                         <button
@@ -1710,7 +1710,7 @@ const ExpressPOS: React.FC = () => {
                             {(item.product.price * item.quantity).toFixed(2)} ₺
                           </p>
                         )}
-                        <p className="text-base font-black text-blue-600">
+                        <p className="text-base font-semibold text-blue-600">
                           {((item.product.price - (item.product.price * item.discount / 100)) * item.quantity).toFixed(2)} ₺
                         </p>
                       </div>

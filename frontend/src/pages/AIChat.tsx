@@ -384,7 +384,7 @@ const AIChat: React.FC = () => {
       </div>
 
       {/* Chat Container - Corporate */}
-      <div className="flex-1 relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border-2 border-blue-200 dark:border-slate-800 shadow-xl z-10">
+      <div className="flex-1 relative overflow-hidden rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow z-10">
         {/* Top accent gradient */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-slate-700" />
         
@@ -403,7 +403,7 @@ const AIChat: React.FC = () => {
                   </div>
                 )}
 
-                <div className={`relative max-w-[85%] md:max-w-[70%] p-3 md:p-4 rounded-2xl shadow-lg ${
+                <div className={`relative max-w-[85%] md:max-w-[70%] p-3 rounded-lg shadow ${
                     message.role === 'user'
                       ? 'bg-gradient-to-br from-blue-600 to-slate-700 text-white'
                       : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white border-2 border-blue-200 dark:border-slate-700'
@@ -411,7 +411,7 @@ const AIChat: React.FC = () => {
                 >
                   {/* Glassmorphism overlay for assistant messages */}
                   {message.role === 'assistant' && (
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600/3 to-slate-700/3 dark:from-blue-600/5 dark:to-slate-700/5 rounded-2xl" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600/3 to-slate-700/3 dark:from-blue-600/5 dark:to-slate-700/5 rounded-lg" />
                   )}
                   
                   <div className="relative">
@@ -451,7 +451,7 @@ const AIChat: React.FC = () => {
               <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-lg border-2 border-white/50 dark:border-white/20">
                 <Bot className="w-4 h-4 md:w-5 md:h-5 text-white" />
               </div>
-              <div className="bg-white dark:bg-slate-800 p-3 md:p-4 rounded-2xl shadow-lg border-2 border-blue-200 dark:border-slate-700">
+              <div className="bg-white dark:bg-slate-800 p-3 rounded-lg shadow border border-slate-200 dark:border-slate-700">
                 <div className="flex items-center gap-2">
                   <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Yanıt hazırlanıyor</span>
@@ -470,7 +470,7 @@ const AIChat: React.FC = () => {
 
         {/* Quick Actions - Corporate */}
         {messages.length === 1 && (
-          <div className="absolute bottom-20 md:bottom-24 left-0 right-0 px-4 md:px-8 py-4 border-t-2 border-blue-200/30 dark:border-slate-700/30 bg-gradient-to-r from-blue-50/90 to-slate-50/90 dark:from-slate-900/90 dark:to-slate-800/90 backdrop-blur-sm z-10">
+          <div className="absolute bottom-20 md:bottom-24 left-0 right-0 px-4 md:px-8 py-3 border-t border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm z-10">
             <div className="flex items-center gap-2 mb-3">
               <Zap className="w-3 h-3 text-blue-600" />
               <p className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">Hızlı Başlangıç</p>

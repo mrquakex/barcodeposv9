@@ -88,7 +88,7 @@ const Dashboard: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         className="mb-6"
       >
-        <h1 className="text-4xl font-black bg-gradient-to-r from-blue-600 to-slate-700 bg-clip-text text-transparent">
+        <h1 className="text-2xl font-semibold text-slate-800 dark:text-white">
           Dashboard
         </h1>
         <p className="text-muted-foreground mt-2 font-semibold">Genel bakış ve istatistikler</p>
@@ -118,38 +118,28 @@ const Dashboard: React.FC = () => {
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-orange-500 via-red-500 to-orange-500" />
             
             <CardContent className="flex flex-col md:flex-row items-start md:items-center gap-4 py-5 md:py-6 relative">
-              <motion.div 
-                className="flex-shrink-0 p-3 md:p-4 rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 shadow-lg"
-                animate={{ rotate: [0, -5, 5, -5, 0] }}
-                transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-              >
-                <AlertCircle className="h-6 w-6 md:h-7 md:w-7 text-white" />
-              </motion.div>
+              <div className="flex-shrink-0 p-3 rounded-lg bg-orange-500 shadow">
+                <AlertCircle className="h-5 w-5 text-white" />
+              </div>
               
               <div className="flex-1">
                 <p className="text-sm md:text-base font-bold text-slate-700 dark:text-slate-200 mb-1">
                   ⚠️ Düşük Stok Uyarısı
                 </p>
                 <p className="text-xs md:text-sm font-semibold text-slate-600 dark:text-slate-400">
-                  <motion.span 
-                    className="inline-block font-black text-orange-600 dark:text-orange-400 text-xl md:text-2xl"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: [0, 1.2, 1] }}
-                    transition={{ delay: 0.3, duration: 0.5 }}
-                  >
+                  <span className="inline-block font-semibold text-orange-600 dark:text-orange-400 text-lg">
                     {stats.lowStockProducts}
-                  </motion.span>
+                  </span>
                   <span className="ml-2">ürün stok seviyesinin altında!</span>
                 </p>
               </div>
               
-              <motion.button 
-                className="px-4 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs md:text-sm font-bold shadow-md hover:shadow-lg transition-all duration-300"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              <button 
+                className="px-4 py-2 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium shadow transition-all duration-200"
+                onClick={() => navigate('/products')}
               >
-                Görüntüle →
-              </motion.button>
+                Görüntüle
+              </button>
             </CardContent>
           </Card>
         </motion.div>
@@ -305,9 +295,9 @@ const Dashboard: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           
           <CardHeader className="bg-gradient-to-r from-purple-50/50 to-blue-50/50 dark:from-purple-950/30 dark:to-blue-950/30 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm relative">
-            <CardTitle className="flex items-center gap-3 text-xl font-black bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-400 bg-clip-text text-transparent">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow-lg">
-                <Brain className="w-7 h-7 text-white" />
+            <CardTitle className="flex items-center gap-3 text-lg font-semibold text-slate-800 dark:text-white">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center shadow">
+                <Brain className="w-5 h-5 text-white" />
               </div>
               Analitikler
             </CardTitle>
@@ -331,7 +321,10 @@ const Dashboard: React.FC = () => {
                   <h3 className="font-black text-base text-slate-900 dark:text-white">Stok Durumu</h3>
                 </div>
                 <p className="text-sm text-muted-foreground font-semibold mb-2">{stats.lowStockProducts} ürün kritik seviyede</p>
-                <p className="text-3xl font-black text-orange-600">⚠️ Dikkat</p>
+                <p className="text-xl font-semibold text-orange-600 flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5" />
+                  Dikkat
+                </p>
               </div>
 
               <div className="p-5 rounded-xl bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950/20 dark:to-blue-950/20 border-2 border-slate-200 dark:border-slate-800 shadow-md">
@@ -347,16 +340,16 @@ const Dashboard: React.FC = () => {
             </div>
 
             {/* Feature Badges */}
-            <div className="flex flex-wrap gap-3 pt-4 border-t-2">
-              <div className="px-5 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-slate-700 text-white text-sm font-black flex items-center gap-2 shadow-lg">
-                <Sparkles className="w-5 h-5" />
+            <div className="flex flex-wrap gap-2 pt-4 border-t">
+              <div className="px-3 py-1.5 rounded-md bg-blue-600 text-white text-sm font-medium flex items-center gap-2 shadow-sm">
+                <Sparkles className="w-4 h-4" />
                 Canlı İzleme
               </div>
-              <div className="px-5 py-3 rounded-xl bg-gradient-to-r from-slate-700 to-blue-600 text-white text-sm font-black flex items-center gap-2 shadow-lg">
-                <Brain className="w-5 h-5" />
+              <div className="px-3 py-1.5 rounded-md bg-slate-700 text-white text-sm font-medium flex items-center gap-2 shadow-sm">
+                <Brain className="w-4 h-4" />
                 Raporlama
               </div>
-              <div className="px-5 py-3 rounded-xl bg-gradient-to-r from-blue-700 to-slate-600 text-white text-sm font-black shadow-lg">
+              <div className="px-3 py-1.5 rounded-md bg-blue-700 text-white text-sm font-medium shadow-sm">
                 Dashboard
               </div>
             </div>
