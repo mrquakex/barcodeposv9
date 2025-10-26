@@ -30,6 +30,7 @@ import {
   Clock,
   Users,
   Package,
+  Zap,
 } from 'lucide-react';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import api from '../lib/api';
@@ -119,6 +120,14 @@ const ExpressPOS: React.FC = () => {
   });
   const [scanStatus, setScanStatus] = useState<'idle' | 'scanning' | 'success' | 'error'>('idle');
   const [flashEffect, setFlashEffect] = useState<'none' | 'success' | 'error'>('none');
+  
+  // 🚀 ADVANCED KAMERA CONTROLS
+  const [torchEnabled, setTorchEnabled] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1.0);
+  const [scanQuality, setScanQuality] = useState<'poor' | 'good' | 'excellent'>('good');
+  const [lastScanTime, setLastScanTime] = useState<number>(0);
+  const [isTorchSupported, setIsTorchSupported] = useState(false);
+  const videoStreamRef = useRef<MediaStream | null>(null);
   
   // Channel State - Kurumsal tek renk
   const [channels, setChannels] = useState<Channel[]>([
@@ -320,6 +329,46 @@ const ExpressPOS: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyPress);
   }, [cart, channels, activeChannelId]);
 
+  // 🔦 TORCH CONTROL
+  const toggleTorch = async () => {
+    if (!videoStreamRef.current) return;
+    
+    try {
+      const track = videoStreamRef.current.getVideoTracks()[0];
+      const capabilities = track.getCapabilities() as any;
+      
+      if (capabilities.torch) {
+        await track.applyConstraints({
+          advanced: [{ torch: !torchEnabled }]
+        } as any);
+        setTorchEnabled(!torchEnabled);
+        toast.success(torchEnabled ? '🔦 El Feneri Kapandı' : '🔦 El Feneri Açıldı', { duration: 1000 });
+      }
+    } catch (error) {
+      console.error('Torch toggle error:', error);
+      toast.error('❌ El feneri kullanılamıyor');
+    }
+  };
+
+  // 🔍 ZOOM CONTROL
+  const handleZoomChange = async (newZoom: number) => {
+    if (!videoStreamRef.current) return;
+    
+    try {
+      const track = videoStreamRef.current.getVideoTracks()[0];
+      const capabilities = track.getCapabilities() as any;
+      
+      if (capabilities.zoom) {
+        await track.applyConstraints({
+          advanced: [{ zoom: newZoom }]
+        } as any);
+        setZoomLevel(newZoom);
+      }
+    } catch (error) {
+      console.error('Zoom error:', error);
+    }
+  };
+
   // Kamera ile barkod okuma
   useEffect(() => {
     let isProcessing = false; // Çift okuma önleme
@@ -341,13 +390,28 @@ const ExpressPOS: React.FC = () => {
         }
 
         try {
-          // Önce kamera iznini test et
+          // Önce kamera iznini test et ve torch desteğini kontrol et
           console.log('📸 Kamera izni isteniyor...');
           const stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { facingMode: 'environment' } 
+            video: { 
+              facingMode: 'environment',
+              width: { ideal: 1920 },
+              height: { ideal: 1080 }
+            } 
           });
           
-          // İzin alındı, stream'i hemen kapat (html5-qrcode kendi açacak)
+          // Stream'i kaydet (torch için gerekli)
+          videoStreamRef.current = stream;
+          
+          // Torch desteğini kontrol et
+          const track = stream.getVideoTracks()[0];
+          const capabilities = track.getCapabilities() as any;
+          if (capabilities.torch) {
+            setIsTorchSupported(true);
+            console.log('✅ Torch destekleniyor!');
+          }
+          
+          // Stream'i kapat (html5-qrcode kendi açacak)
           stream.getTracks().forEach(track => track.stop());
           console.log('✅ Kamera izni alındı!');
 
@@ -429,17 +493,29 @@ const ExpressPOS: React.FC = () => {
 
               isProcessing = true;
               
+              // ⏱️ SCAN TIME BAŞLAT
+              const scanStartTime = Date.now();
+              
               // BARKOD TEMİZLE (boşluk, özel karakter, normalize)
               const cleanBarcode = decodedText.trim().replace(/\s+/g, '').toUpperCase();
               console.log('✅ BARKOD (RAW):', decodedText);
               console.log('✅ BARKOD (CLEAN):', cleanBarcode);
               
+              // 📊 SCAN QUALITY HESAPLA (barkod uzunluğuna göre)
+              const quality = cleanBarcode.length >= 13 ? 'excellent' : 
+                            cleanBarcode.length >= 8 ? 'good' : 'poor';
+              setScanQuality(quality);
+              
               // 📊 Scan counter artır
               setCameraInfo(prev => ({ ...prev, scanCount: prev.scanCount + 1 }));
               setScanStatus('scanning');
               
-              // 🎵 Beep sesi
-              playSound('beep');
+              // 🎵 Beep sesi (scan quality'ye göre farklı)
+              if (quality === 'excellent') {
+                playSound('beep'); // Normal beep
+              } else {
+                playSound('beep'); // Aynı ses ama farklı pitch olabilir
+              }
               
               // 📳 Vibration (hafif)
               if (navigator.vibrate) {
@@ -480,6 +556,11 @@ const ExpressPOS: React.FC = () => {
                 // ✅ BAŞARILI FEEDBACK
                 setScanStatus('success');
                 setFlashEffect('success');
+                
+                // ⏱️ SCAN TIME KAYDET
+                const scanTime = Date.now() - scanStartTime;
+                setLastScanTime(scanTime);
+                console.log(`⚡ Tarama süresi: ${scanTime}ms`);
                 
                 // 📳 Başarılı vibration (çift titreşim)
                 if (navigator.vibrate) {
@@ -524,6 +605,15 @@ const ExpressPOS: React.FC = () => {
             }
           );
 
+          // Video elementinden stream'i al (torch ve zoom için)
+          setTimeout(() => {
+            const videoElement = document.querySelector('#barcode-scanner video') as HTMLVideoElement;
+            if (videoElement && videoElement.srcObject) {
+              videoStreamRef.current = videoElement.srcObject as MediaStream;
+              console.log('✅ Video stream yakalandı (torch/zoom için)');
+            }
+          }, 1000);
+          
           toast.success('📸 Kamera açıldı! Barkodu göster...', { duration: 2000 });
           console.log('✅ Scanner başlatıldı');
         } catch (error: any) {
@@ -1482,6 +1572,14 @@ const ExpressPOS: React.FC = () => {
                   setScanStatus('idle');
                   setFlashEffect('none');
                   setCameraInfo(prev => ({ ...prev, scanCount: 0 }));
+                  setTorchEnabled(false);
+                  setZoomLevel(1.0);
+                  setLastScanTime(0);
+                  setScanQuality('good');
+                  if (videoStreamRef.current) {
+                    videoStreamRef.current.getTracks().forEach(track => track.stop());
+                    videoStreamRef.current = null;
+                  }
                 }}
                 className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
               >
@@ -1516,16 +1614,49 @@ const ExpressPOS: React.FC = () => {
                 )}
               </AnimatePresence>
               
-              {/* 📊 KAMERA BİLGİLERİ - Üst Sol */}
-              <div className="absolute top-4 left-4 bg-black/70 backdrop-blur-sm rounded-xl p-3 space-y-1 text-white text-xs font-bold">
-                <div className="flex items-center gap-2">
+              {/* 📊 ADVANCED KAMERA BİLGİLERİ - Üst Sol */}
+              <div className="absolute top-4 left-4 bg-black/80 backdrop-blur-md rounded-2xl p-3 space-y-1.5 text-white text-xs font-bold shadow-2xl border border-white/10">
+                <div className="flex items-center gap-2 pb-1.5 border-b border-white/20">
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                  <span>CANLI</span>
+                  <span className="text-green-400">CANLI</span>
                 </div>
-                <div className="text-green-400">📷 {cameraInfo.deviceName}</div>
-                <div className="text-blue-400">📐 {cameraInfo.resolution}</div>
-                <div className="text-yellow-400">⚡ {cameraInfo.fps} FPS</div>
-                <div className="text-purple-400">📊 {cameraInfo.scanCount} Tarama</div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400">📷 Cihaz</span>
+                  <span className="text-green-400">{cameraInfo.deviceName.length > 15 ? cameraInfo.deviceName.slice(0, 15) + '...' : cameraInfo.deviceName}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400">📐 Çözünürlük</span>
+                  <span className="text-blue-400">{cameraInfo.resolution}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400">⚡ FPS</span>
+                  <span className="text-yellow-400">{cameraInfo.fps}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400">🔍 Zoom</span>
+                  <span className="text-purple-400">{zoomLevel.toFixed(1)}x</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400">📊 Tarama</span>
+                  <span className="text-pink-400">{cameraInfo.scanCount}</span>
+                </div>
+                {lastScanTime > 0 && (
+                  <div className="flex items-center justify-between pt-1.5 border-t border-white/20">
+                    <span className="text-gray-400">⏱️ Son</span>
+                    <span className="text-cyan-400">{lastScanTime}ms</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400">🎯 Kalite</span>
+                  <span className={`${
+                    scanQuality === 'excellent' ? 'text-green-400' :
+                    scanQuality === 'good' ? 'text-yellow-400' :
+                    'text-red-400'
+                  }`}>
+                    {scanQuality === 'excellent' ? '⭐⭐⭐' :
+                     scanQuality === 'good' ? '⭐⭐' : '⭐'}
+                  </span>
+                </div>
               </div>
               
               {/* 🎯 DURUM GÖSTERGESİ - Üst Orta */}
@@ -1592,6 +1723,49 @@ const ExpressPOS: React.FC = () => {
                   />
                 </div>
               </div>
+              
+              {/* 🔦 TORCH BUTTON - Sağ Alt */}
+              {isTorchSupported && (
+                <motion.button
+                  onClick={toggleTorch}
+                  whileTap={{ scale: 0.9 }}
+                  className={`absolute bottom-20 right-4 w-16 h-16 rounded-full shadow-2xl border-4 flex items-center justify-center transition-all ${
+                    torchEnabled 
+                      ? 'bg-yellow-400 border-yellow-500 text-yellow-900' 
+                      : 'bg-black/70 border-white/30 text-white'
+                  }`}
+                >
+                  <Zap className={`w-8 h-8 ${torchEnabled ? 'animate-pulse' : ''}`} />
+                </motion.button>
+              )}
+              
+              {/* 🔍 ZOOM CONTROLS - Sağ Ortası */}
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-3">
+                {/* Zoom In */}
+                <motion.button
+                  onClick={() => handleZoomChange(Math.min(zoomLevel + 0.5, 3.0))}
+                  whileTap={{ scale: 0.9 }}
+                  disabled={zoomLevel >= 3.0}
+                  className="w-12 h-12 rounded-full bg-black/70 backdrop-blur-sm border-2 border-white/30 text-white flex items-center justify-center shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Plus className="w-6 h-6" />
+                </motion.button>
+                
+                {/* Zoom Level Display */}
+                <div className="w-12 h-12 rounded-full bg-black/80 backdrop-blur-md border-2 border-white/30 text-white flex items-center justify-center shadow-xl">
+                  <span className="text-xs font-black">{zoomLevel.toFixed(1)}x</span>
+                </div>
+                
+                {/* Zoom Out */}
+                <motion.button
+                  onClick={() => handleZoomChange(Math.max(zoomLevel - 0.5, 1.0))}
+                  whileTap={{ scale: 0.9 }}
+                  disabled={zoomLevel <= 1.0}
+                  className="w-12 h-12 rounded-full bg-black/70 backdrop-blur-sm border-2 border-white/30 text-white flex items-center justify-center shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Minus className="w-6 h-6" />
+                </motion.button>
+              </div>
             </div>
             
             {/* Footer - Profesyonel Talimatlar */}
@@ -1645,6 +1819,31 @@ const ExpressPOS: React.FC = () => {
                 <p className="text-xs text-white text-center font-bold">
                   🎵 Ses + 📳 Titreşim + 🎨 Flash Feedback
                 </p>
+              </div>
+              
+              {/* Advanced Controls Info */}
+              <div className="bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-lg p-3 border border-white/20 space-y-1">
+                <p className="text-xs text-white text-center font-black mb-2">
+                  🚀 ADVANCED CONTROLS
+                </p>
+                <div className="grid grid-cols-2 gap-2 text-center">
+                  <div className="bg-white/10 rounded-lg p-2">
+                    <div className="text-lg mb-0.5">🔦</div>
+                    <div className="text-xs text-white font-bold">
+                      {isTorchSupported ? 'El Feneri' : 'Desteklenmiyor'}
+                    </div>
+                    {isTorchSupported && (
+                      <div className={`text-xs font-bold ${torchEnabled ? 'text-yellow-300' : 'text-gray-400'}`}>
+                        {torchEnabled ? 'AÇIK' : 'KAPALI'}
+                      </div>
+                    )}
+                  </div>
+                  <div className="bg-white/10 rounded-lg p-2">
+                    <div className="text-lg mb-0.5">🔍</div>
+                    <div className="text-xs text-white font-bold">Digital Zoom</div>
+                    <div className="text-xs text-cyan-300 font-bold">1.0x - 3.0x</div>
+                  </div>
+                </div>
               </div>
             </div>
           </motion.div>
