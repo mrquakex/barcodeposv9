@@ -97,27 +97,22 @@ interface Channel {
   createdAt: Date;
 }
 
-const CHANNEL_COLORS = [
-  { color: 'green', bgColor: 'bg-green-500', textColor: 'text-green-600', name: 'Kanal 1' },
-  { color: 'blue', bgColor: 'bg-blue-500', textColor: 'text-blue-600', name: 'Kanal 2' },
-  { color: 'orange', bgColor: 'bg-orange-500', textColor: 'text-orange-600', name: 'Kanal 3' },
-  { color: 'purple', bgColor: 'bg-purple-500', textColor: 'text-purple-600', name: 'Kanal 4' },
-  { color: 'pink', bgColor: 'bg-pink-500', textColor: 'text-pink-600', name: 'Kanal 5' },
-];
+// Kurumsal tek renk - Tüm kanallar blue-slate gradient
+const getChannelName = (index: number) => `Kanal ${index + 1}`;
 
 const ExpressPOS: React.FC = () => {
   const { user } = useAuthStore();
   const barcodeInputRef = useRef<HTMLInputElement>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
   
-  // Channel State
+  // Channel State - Kurumsal tek renk
   const [channels, setChannels] = useState<Channel[]>([
     {
       id: '1',
       name: 'Kanal 1',
-      color: 'green',
-      bgColor: 'bg-green-500',
-      textColor: 'text-green-600',
+      color: 'blue-slate',
+      bgColor: 'bg-gradient-to-r from-blue-600 to-slate-700',
+      textColor: 'text-blue-600',
       cart: [],
       customer: null,
       createdAt: new Date(),
@@ -175,13 +170,12 @@ const ExpressPOS: React.FC = () => {
     }
 
     const newChannelIndex = channels.length;
-    const colorConfig = CHANNEL_COLORS[newChannelIndex];
     const newChannel: Channel = {
       id: (newChannelIndex + 1).toString(),
-      name: colorConfig.name,
-      color: colorConfig.color,
-      bgColor: colorConfig.bgColor,
-      textColor: colorConfig.textColor,
+      name: getChannelName(newChannelIndex),
+      color: 'blue-slate', // Kurumsal tek renk
+      bgColor: 'bg-gradient-to-r from-blue-600 to-slate-700',
+      textColor: 'text-blue-600',
       cart: [],
       customer: null,
       createdAt: new Date(),
@@ -889,13 +883,15 @@ const ExpressPOS: React.FC = () => {
                 {/* Close Button */}
                 {channels.length > 1 && (
                   <button
+                    type="button"
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       removeChannel(channel.id);
                     }}
-                    className={`absolute -top-1 -right-1 w-4 h-4 rounded-full ${
+                    className={`absolute -top-1 -right-1 w-5 h-5 rounded-full ${
                       isActive ? 'bg-white text-red-600' : 'bg-red-500 text-white'
-                    } flex items-center justify-center hover:scale-110 transition-all shadow-md font-black text-[10px]`}
+                    } flex items-center justify-center hover:scale-125 transition-all shadow-lg font-black text-xs z-10`}
                   >
                     ×
                   </button>
