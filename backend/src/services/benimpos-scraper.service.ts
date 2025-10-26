@@ -1,6 +1,7 @@
 import puppeteer, { Browser, Page } from 'puppeteer';
 import * as cheerio from 'cheerio';
 import prisma from '../lib/prisma';
+import { io } from '../server'; // ✅ Socket.IO import
 
 interface ScrapedProduct {
   name: string;
@@ -18,6 +19,13 @@ interface PriceChangeResult {
   newPrice: number;
   difference: number;
   percentage: number;
+}
+
+interface NewProductResult {
+  name: string;
+  barcode: string | null;
+  price: number;
+  source: string;
 }
 
 class BenimPOSScraperService {
@@ -80,25 +88,41 @@ class BenimPOSScraperService {
       // Fill login form
       console.log('✍️  Login formu doldruluyor...');
       
-      // Email input
-      await this.page.waitForSelector('input[type="email"], input[name="email"]', { timeout: 10000 });
-      await this.page.type('input[type="email"], input[name="email"]', config.email, { delay: 100 });
+      // ✅ CORRECT SELECTORS FROM REAL BENIMPOS HTML (Turkish field names!)
+      // Email input: name="eposta" (NOT "email"!)
+      await this.page.waitForSelector('input[name="eposta"]', { timeout: 10000 });
+      await this.page.type('input[name="eposta"]', config.email, { delay: 100 });
 
-      // Password input
-      await this.page.waitForSelector('input[type="password"], input[name="password"]', { timeout: 10000 });
-      await this.page.type('input[type="password"], input[name="password"]', config.password, { delay: 100 });
+      // Password input: name="parola" (NOT "password"!)
+      await this.page.waitForSelector('input[name="parola"]', { timeout: 10000 });
+      await this.page.type('input[name="parola"]', config.password, { delay: 100 });
 
-      // Wait a bit
+      // Wait a bit (anti-bot)
       await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000));
 
-      // Click submit button
+      // Click submit button: name="giris" (Turkish!)
       console.log('🚀 Login formu gönderiliyor...');
-      await this.page.click('button[type="submit"]');
+      await this.page.click('button[type="submit"][name="giris"]');
 
-      // Wait for navigation
-      await this.page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 30000 });
-
-      console.log('✅ Login başarılı!');
+      // ✅ SMART WAIT: Instead of waiting for navigation, wait for a specific element
+      // that appears only after successful login (e.g. dashboard menu, sidebar)
+      console.log('⏳ Login sonrası sayfa yükleniyor...');
+      
+      try {
+        // Wait for sidebar (appears after login) - from Console analysis: .leftbar
+        await this.page.waitForSelector('.leftbar, a[href*="dashboard"], .fa-th-large', { timeout: 20000 });
+        console.log('✅ Login başarılı!');
+      } catch (error: any) {
+        // Fallback: Check URL
+        const currentUrl = this.page.url();
+        console.log('📍 Current URL:', currentUrl);
+        
+        if (currentUrl.includes('dashboard') || currentUrl.includes('products') || !currentUrl.includes('login')) {
+          console.log('✅ Login başarılı! (URL kontrolü)');
+        } else {
+          throw new Error('Login başarısız veya timeout');
+        }
+      }
       
       return { browser: this.browser, page: this.page };
     } catch (error: any) {
@@ -110,79 +134,118 @@ class BenimPOSScraperService {
 
   /**
    * Scrape products from BenimPOS
+   * 🆕 Now with PAGINATION support - scrapes ALL products!
    */
   async scrapeProducts(page: Page): Promise<ScrapedProduct[]> {
     console.log('🕷️  Ürünler sayfası scraping başlatılıyor...');
 
     try {
-      // Go to products page
-      await page.goto('https://www.benimpos.com/products', {
-        waitUntil: 'networkidle2',
-        timeout: 30000,
-      });
+      const allProducts: ScrapedProduct[] = [];
+      let currentPage = 1;
+      let hasMorePages = true;
 
-      // Wait for products to load
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      while (hasMorePages) {
+        console.log(`\n📄 Sayfa ${currentPage} taranıyor...`);
 
-      // Get HTML content
-      const html = await page.content();
+        // Go to products page with pagination
+        // BenimPOS might use different pagination URL patterns - try multiple formats
+        let url: string;
+        if (currentPage === 1) {
+          url = 'https://www.benimpos.com/products';
+        } else {
+          // Try clicking "next" button on page instead of URL navigation
+          try {
+            // Look for DataTables "next" button and click it
+            const nextButton = await page.$('.paginate_button.next:not(.disabled)');
+            if (nextButton) {
+              console.log(`🖱️  "İleri" butonuna tıklanıyor... (Sayfa ${currentPage})`);
+              await nextButton.click();
+              await page.waitForTimeout(2000); // Wait for AJAX to load
+              continue; // Skip goto, continue with scraping
+            } else {
+              // No next button found, try URL parameters
+              url = `https://www.benimpos.com/products?start=${(currentPage - 1) * 50}&length=50`;
+            }
+          } catch (error) {
+            // Fallback to URL navigation
+            url = `https://www.benimpos.com/products?start=${(currentPage - 1) * 50}&length=50`;
+          }
+        }
+        
+        await page.goto(url, {
+          waitUntil: 'networkidle2',
+          timeout: 30000,
+        });
 
-      // Parse with Cheerio
-      const $ = cheerio.load(html);
+        // Wait for products to load
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
-      const products: ScrapedProduct[] = [];
+        // Get HTML content
+        const html = await page.content();
 
-      // Try different selectors (site yapısına göre güncellenecek)
-      const productSelectors = [
-        '.product-item',
-        '.product-card',
-        '[data-product]',
-        '.item',
-      ];
+        // Parse with Cheerio
+        const $ = cheerio.load(html);
 
-      let foundProducts = false;
+        // ✅ BENIMPOS USES TABLE STRUCTURE
+        // Table ID: #myReportTable
+        // Each product: tbody > tr
+        const table = $('#myReportTable');
+        const rows = table.find('tbody tr');
 
-      for (const selector of productSelectors) {
-        const items = $(selector);
-        if (items.length > 0) {
-          console.log(`✅ ${items.length} ürün bulundu (${selector})`);
-          foundProducts = true;
+        console.log(`✅ ${rows.length} ürün satırı bulundu (Sayfa ${currentPage})`);
 
-          items.each((i, el) => {
-            const $el = $(el);
-            
-            // Extract product data (selectors will need adjustment based on actual HTML)
-            const name = $el.find('.product-name, .name, h3, h4').first().text().trim();
-            const priceText = $el.find('.price, .product-price, .amount').first().text().trim();
-            const barcodeText = $el.find('.barcode, [data-barcode]').first().text().trim() 
-                              || $el.attr('data-barcode')
-                              || null;
-            
-            // Parse price
-            const price = parseFloat(priceText.replace(/[^\d.,]/g, '').replace(',', '.'));
+        if (rows.length > 0) {
+          rows.each((i, row) => {
+            const $row = $(row);
+            const tds = $row.find('td');
 
-            if (name && !isNaN(price)) {
-              products.push({
-                name,
-                barcode: barcodeText,
-                price,
-              });
+            if (tds.length >= 10) {
+              // TD[3]: Barkod - link içinde
+              const barcodeLink = $(tds[3]).find('a').text().trim();
+              
+              // TD[4]: Ürün Adı - link içinde
+              const nameLink = $(tds[4]).find('a').text().trim();
+              
+              // TD[9]: Fiyat - input value içinde
+              const priceInput = $(tds[9]).find('input').val() as string;
+              
+              // Parse values
+              const barcode = barcodeLink || null;
+              const name = nameLink || 'Bilinmeyen Ürün';
+              const price = parseFloat(priceInput?.replace(/[^\d.,]/g, '').replace(',', '.') || '0');
+
+              if (name && !isNaN(price) && price > 0) {
+                allProducts.push({
+                  name,
+                  barcode,
+                  price,
+                });
+              }
             }
           });
 
-          break;
+          console.log(`✅ ${allProducts.length} toplam ürün (şu ana kadar)`);
+
+          // Check if there's a next page
+          // BenimPOS uses DataTables pagination - check if we got full 50 rows
+          if (rows.length >= 50) {
+            // Full page = probably more pages exist
+            currentPage++;
+            console.log(`➡️  Bir sonraki sayfaya geçiliyor... (Sayfa ${currentPage})`);
+            await new Promise(resolve => setTimeout(resolve, 1500)); // Wait before next page
+          } else {
+            // Less than 50 rows = last page
+            hasMorePages = false;
+            console.log(`✅ Son sayfa! (Sayfa ${currentPage}) - ${rows.length} ürün bulundu (50'den az)`);
+          }
+        } else {
+          hasMorePages = false;
+          console.warn(`⚠️  Sayfa ${currentPage}'de ürün bulunamadı! Tarama tamamlandı.`);
         }
       }
 
-      if (!foundProducts) {
-        console.warn('⚠️  Ürün bulunamadı! HTML yapısı kontrol edilmeli.');
-        // Save HTML for debugging
-        console.log('📝 HTML içeriği ilk 500 karakter:');
-        console.log(html.substring(0, 500));
-      }
-
-      console.log(`✅ Toplam ${products.length} ürün çıkarıldı`);
-      return products;
+      console.log(`\n🎉 TOPLAM ${allProducts.length} ÜRÜN TARANACAK!`);
+      return allProducts;
 
     } catch (error: any) {
       console.error('❌ Scraping hatası:', error.message);
@@ -192,14 +255,30 @@ class BenimPOSScraperService {
 
   /**
    * Compare scraped prices with our database
+   * 🆕 Artık yeni ürünleri de tespit ediyor!
    */
-  async comparePrices(scrapedProducts: ScrapedProduct[]): Promise<PriceChangeResult[]> {
+  async comparePrices(scrapedProducts: ScrapedProduct[]): Promise<{ 
+    priceChanges: PriceChangeResult[]; 
+    newProducts: NewProductResult[];
+  }> {
     console.log('⚖️  Fiyat karşılaştırması yapılıyor...');
 
-    const changes: PriceChangeResult[] = [];
+    const priceChanges: PriceChangeResult[] = [];
+    const newProducts: NewProductResult[] = [];
+    const total = scrapedProducts.length;
 
-    for (const scraped of scrapedProducts) {
+    for (let i = 0; i < total; i++) {
+      const scraped = scrapedProducts[i];
+      
       try {
+        // 📡 Real-time progress emit
+        io.emit('scraping-progress', {
+          current: i + 1,
+          total,
+          productName: scraped.name,
+          status: 'scanning'
+        });
+
         // Find product in our database by barcode or name
         let ourProduct = null;
 
@@ -218,49 +297,188 @@ class BenimPOSScraperService {
           });
         }
 
-        if (ourProduct && Math.abs(ourProduct.price - scraped.price) > 0.01) {
-          const difference = scraped.price - ourProduct.price;
-          const percentage = (difference / ourProduct.price) * 100;
+        if (ourProduct) {
+          // ✅ Ürün bizde VAR - fiyat kontrolü
+          if (Math.abs(ourProduct.price - scraped.price) > 0.01) {
+            const difference = scraped.price - ourProduct.price;
+            const percentage = (difference / ourProduct.price) * 100;
 
-          changes.push({
-            productId: ourProduct.id,
-            productName: ourProduct.name,
-            barcode: ourProduct.barcode,
-            oldPrice: ourProduct.price,
-            newPrice: scraped.price,
-            difference,
-            percentage,
-          });
-
-          // Save to database
-          await prisma.priceChange.create({
-            data: {
+            priceChanges.push({
               productId: ourProduct.id,
-              source: 'BENIMPOS',
+              productName: ourProduct.name,
+              barcode: ourProduct.barcode,
               oldPrice: ourProduct.price,
               newPrice: scraped.price,
               difference,
               percentage,
+            });
+
+            // Save to database
+            await prisma.priceChange.create({
+              data: {
+                productId: ourProduct.id,
+                source: 'BENIMPOS',
+                oldPrice: ourProduct.price,
+                newPrice: scraped.price,
+                difference,
+                percentage,
+                status: 'PENDING',
+                scrapedData: { ...scraped.additionalData, isNewProduct: false },
+              },
+            });
+          }
+        } else {
+          // 🆕 Ürün bizde YOK - yeni ürün!
+          newProducts.push({
+            name: scraped.name,
+            barcode: scraped.barcode,
+            price: scraped.price,
+            source: 'BENIMPOS',
+          });
+
+          // Save as "new product suggestion" (using priceChange table with special flag)
+          await prisma.priceChange.create({
+            data: {
+              productId: 'NEW_PRODUCT', // Dummy ID for new products
+              source: 'BENIMPOS',
+              oldPrice: 0,
+              newPrice: scraped.price,
+              difference: scraped.price,
+              percentage: 100,
               status: 'PENDING',
-              scrapedData: scraped.additionalData || {},
+              scrapedData: { 
+                isNewProduct: true, 
+                name: scraped.name,
+                barcode: scraped.barcode,
+                price: scraped.price,
+                ...scraped.additionalData 
+              },
             },
           });
         }
+
+        // Small delay to avoid overload
+        await new Promise(resolve => setTimeout(resolve, 50));
+        
       } catch (error: any) {
         console.error(`❌ Ürün karşılaştırma hatası (${scraped.name}):`, error.message);
       }
     }
 
-    console.log(`✅ ${changes.length} fiyat değişikliği tespit edildi`);
-    return changes;
+      console.log(`\n📊 ===== TARAMA SONUÇLARI =====`);
+    console.log(`✅ ${priceChanges.length} fiyat değişikliği tespit edildi`);
+    console.log(`🆕 ${newProducts.length} yeni ürün bulundu`);
+    
+    // Detaylı log - Fiyat değişiklikleri
+    if (priceChanges.length > 0) {
+      console.log(`\n💰 FİYAT DEĞİŞİKLİKLERİ:`);
+      priceChanges.forEach((change, i) => {
+        const direction = change.difference > 0 ? '⬆️ ARTIŞ' : '⬇️ DÜŞÜŞ';
+        console.log(`  ${i + 1}. ${change.productName} (${change.barcode})`);
+        console.log(`     ${change.oldPrice} TL → ${change.newPrice} TL (${direction}: ${change.percentage.toFixed(2)}%)`);
+      });
+    }
+    
+    // Detaylı log - Yeni ürünler
+    if (newProducts.length > 0) {
+      console.log(`\n🆕 YENİ ÜRÜNLER:`);
+      newProducts.forEach((product, i) => {
+        console.log(`  ${i + 1}. ${product.name} (${product.barcode || 'Barkod yok'})`);
+        console.log(`     Fiyat: ${product.price} TL`);
+      });
+    }
+    
+    console.log(`\n==============================\n`);
+    
+    return { priceChanges, newProducts };
+  }
+
+  /**
+   * 🎭 DEMO MODE - For testing progress bar
+   */
+  async runDemoScraping(): Promise<{ 
+    success: boolean; 
+    priceChanges: PriceChangeResult[];
+    newProducts: NewProductResult[];
+  }> {
+    console.log('🎭 DEMO MODE: Simulating scraping...');
+    
+    // Demo products
+    const demoProducts = [
+      { name: 'Coca Cola 330ml', barcode: '12345', price: 15.50 },
+      { name: 'Fanta 330ml', barcode: '12346', price: 14.00 },
+      { name: 'Sprite 330ml', barcode: '12347', price: 14.50 },
+      { name: 'Pepsi 330ml', barcode: '12348', price: 15.00 },
+      { name: 'Red Bull 250ml', barcode: '12349', price: 35.00 },
+      { name: 'Ülker Çikolata', barcode: '12350', price: 8.50 },
+      { name: 'Eti Crax', barcode: '12351', price: 6.00 },
+      { name: 'Lay\'s Klasik', barcode: '12352', price: 12.00 },
+      { name: 'Ruffles Peynir', barcode: '12353', price: 13.50 },
+      { name: 'Doritos Acı', barcode: '12354', price: 14.00 },
+    ];
+
+    const priceChanges: PriceChangeResult[] = [];
+    const newProducts: NewProductResult[] = [];
+
+    for (let i = 0; i < demoProducts.length; i++) {
+      const product = demoProducts[i];
+      
+      // Emit progress
+      io.emit('scraping-progress', {
+        current: i + 1,
+        total: demoProducts.length,
+        productName: product.name,
+        status: 'scanning'
+      });
+
+      // Simulate processing time
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      // Randomly decide if it's a price change or new product
+      if (Math.random() > 0.5) {
+        // Existing product with price change
+        priceChanges.push({
+          productId: `demo-${i}`,
+          productName: product.name,
+          barcode: product.barcode,
+          oldPrice: product.price - 2,
+          newPrice: product.price,
+          difference: 2,
+          percentage: (2 / (product.price - 2)) * 100,
+        });
+      } else {
+        // New product
+        newProducts.push({
+          name: product.name,
+          barcode: product.barcode,
+          price: product.price,
+          source: 'BENIMPOS_DEMO',
+        });
+      }
+    }
+
+    console.log(`🎭 DEMO: ${priceChanges.length} fiyat değişikliği, ${newProducts.length} yeni ürün`);
+    return { success: true, priceChanges, newProducts };
   }
 
   /**
    * Run full scraping process
+   * 🆕 Artık yeni ürünleri de tespit ediyor!
    */
-  async runScraping(): Promise<{ success: boolean; changes: PriceChangeResult[]; error?: string }> {
+  async runScraping(demoMode: boolean = false): Promise<{ 
+    success: boolean; 
+    priceChanges: PriceChangeResult[];
+    newProducts: NewProductResult[];
+    error?: string;
+  }> {
     const startTime = Date.now();
     console.log('🚀 BenimPOS scraping başlatılıyor...', new Date().toISOString());
+
+    // 🎭 DEMO MODE (BenimPOS login sorunları için geçici)
+    if (demoMode) {
+      const result = await this.runDemoScraping();
+      return result;
+    }
 
     try {
       // Update scraper config - set lastRun
@@ -275,14 +493,22 @@ class BenimPOSScraperService {
       // 2. Scrape products
       const scrapedProducts = await this.scrapeProducts(page);
 
-      // 3. Compare prices
-      const changes = await this.comparePrices(scrapedProducts);
+      // 3. Compare prices + detect new products
+      const { priceChanges, newProducts } = await this.comparePrices(scrapedProducts);
 
       // 4. Cleanup
       await this.cleanup();
 
       const duration = ((Date.now() - startTime) / 1000).toFixed(2);
-      console.log(`✅ Scraping tamamlandı! Süre: ${duration}s`);
+      
+      // ✅ DETAYLI ÖZET
+      console.log(`\n🎉 ===== SCRAPING TAMAMLANDI! =====`);
+      console.log(`⏱️  Süre: ${duration}s`);
+      console.log(`📊 Taranan Ürün: ${scrapedProducts.length}`);
+      console.log(`✅ Geçerli Ürün: ${scrapedProducts.length}`);
+      console.log(`💰 Fiyat Değişikliği: ${priceChanges.length}`);
+      console.log(`🆕 Yeni Ürün: ${newProducts.length}`);
+      console.log(`===================================\n`);
 
       // Update scraper config - success
       await prisma.scraperConfig.updateMany({
@@ -293,7 +519,7 @@ class BenimPOSScraperService {
         }
       });
 
-      return { success: true, changes };
+      return { success: true, priceChanges, newProducts };
 
     } catch (error: any) {
       console.error('❌ Scraping başarısız:', error.message);
@@ -308,7 +534,7 @@ class BenimPOSScraperService {
       });
 
       await this.cleanup();
-      return { success: false, changes: [], error: error.message };
+      return { success: false, priceChanges: [], newProducts: [], error: error.message };
     }
   }
 

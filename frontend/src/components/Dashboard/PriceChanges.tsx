@@ -32,14 +32,28 @@ const PriceChanges: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [scraping, setScraping] = useState(false);
   const [stats, setStats] = useState<any>({});
+  const [currentPage, setCurrentPage] = useState(1); // ✅ Sayfalama
+  const [totalPages, setTotalPages] = useState(1);
+  const itemsPerPage = 10;
+  
+  // 🆕 Real-time progress state
+  const [progress, setProgress] = useState<{
+    current: number;
+    total: number;
+    productName: string;
+  } | null>(null);
 
   // Fetch price changes
-  const fetchPriceChanges = async () => {
+  const fetchPriceChanges = async (page: number = 1) => {
     try {
       setLoading(true);
-      const response = await api.get('/price-monitor/changes?status=PENDING&limit=5');
+      const response = await api.get(`/price-monitor/changes?status=PENDING&limit=${itemsPerPage}&offset=${(page - 1) * itemsPerPage}`);
       setPriceChanges(response.data.priceChanges);
       setStats(response.data.stats);
+      
+      // Calculate total pages
+      const totalPending = response.data.stats?.PENDING || 0;
+      setTotalPages(Math.ceil(totalPending / itemsPerPage));
     } catch (error: any) {
       console.error('Fetch price changes error:', error);
     } finally {
@@ -48,17 +62,32 @@ const PriceChanges: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchPriceChanges();
+    fetchPriceChanges(currentPage);
 
-    // Socket.IO connection
-    const socket = io(import.meta.env.VITE_API_URL || 'http://localhost:5000');
+    // Socket.IO connection (WITHOUT /api prefix!)
+    const socketURL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
+    const socket = io(socketURL);
+
+    // 📡 Real-time progress
+    socket.on('scraping-progress', (data) => {
+      setProgress({
+        current: data.current,
+        total: data.total,
+        productName: data.productName,
+      });
+    });
 
     socket.on('scraping-completed', (data) => {
       console.log('Scraping completed:', data);
       setScraping(false);
+      setProgress(null); // Clear progress
       
       if (data.success) {
-        toast.success(`${data.changesCount} fiyat değişikliği tespit edildi!`);
+        const totalChanges = (data.priceChangesCount || 0) + (data.newProductsCount || 0);
+        toast.success(
+          `✅ ${data.priceChangesCount || 0} fiyat değişikliği, 🆕 ${data.newProductsCount || 0} yeni ürün tespit edildi!`,
+          { duration: 5000 }
+        );
         fetchPriceChanges();
       } else {
         toast.error('Scraping başarısız: ' + data.error);
@@ -72,7 +101,7 @@ const PriceChanges: React.FC = () => {
     return () => {
       socket.disconnect();
     };
-  }, []);
+  }, [currentPage]); // ✅ currentPage değiştiğinde yeni sayfa yükle
 
   // Apply price change
   const handleApply = async (id: string) => {
@@ -110,17 +139,51 @@ const PriceChanges: React.FC = () => {
 
   if (loading) {
     return (
-      <Card className="border-0 shadow-xl">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-blue-600" />
+      <Card className="relative overflow-hidden border-0 shadow-xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-900 dark:to-slate-800">
+        {/* Animated gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-slate-600 opacity-[0.03] animate-pulse" />
+        
+        {/* Top Accent Line */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-slate-600" />
+        
+        <CardHeader className="relative z-10">
+          <CardTitle className="flex items-center gap-2 text-sm md:text-base font-bold">
+            <motion.div
+              className="p-2.5 rounded-2xl bg-gradient-to-br from-blue-500 to-slate-600 shadow-lg"
+              animate={{ rotate: [0, 10, -10, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <AlertCircle className="w-4 h-4 md:w-5 md:h-5 text-white" />
+            </motion.div>
             Fiyat Değişiklikleri
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-2" />
-            Yükleniyor...
+        
+        <CardContent className="relative z-10">
+          <div className="text-center py-8">
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              className="w-12 h-12 mx-auto mb-4"
+            >
+              <RefreshCw className="w-12 h-12 text-blue-600 dark:text-blue-400" />
+            </motion.div>
+            
+            <p className="text-base font-semibold text-slate-700 dark:text-slate-300 mb-2">
+              Yükleniyor...
+            </p>
+            
+            {/* Modern Progress Bar */}
+            <div className="max-w-xs mx-auto">
+              <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-blue-500 to-slate-600"
+                  animate={{ x: ["-100%", "100%"] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                  style={{ width: "50%" }}
+                />
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -135,7 +198,7 @@ const PriceChanges: React.FC = () => {
       {/* Top Accent Line */}
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-red-500 opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
       
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 pt-6">
+      <CardHeader className="relative z-10 flex flex-row items-center justify-between space-y-0 pb-3 pt-6">
         <CardTitle className="text-sm md:text-base font-bold flex items-center gap-2">
           <motion.div
             className="p-2.5 rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 shadow-lg"
@@ -152,21 +215,54 @@ const PriceChanges: React.FC = () => {
           variant="outline"
           onClick={handleManualScrape}
           disabled={scraping}
-          className="gap-2"
+          className="relative z-20 gap-2 hover:bg-orange-50 dark:hover:bg-orange-900/20 border-orange-300 dark:border-orange-700 font-semibold"
         >
           <RefreshCw className={`w-4 h-4 ${scraping ? 'animate-spin' : ''}`} />
           <span className="hidden md:inline">{scraping ? 'Taranıyor...' : 'Tara'}</span>
         </Button>
       </CardHeader>
       
-      <CardContent>
-        {priceChanges.length === 0 ? (
+      <CardContent className="relative z-10">
+        {/* 🆕 Real-time Progress Bar */}
+        {scraping && progress && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-900/20 dark:to-slate-900/20 border-2 border-blue-300 dark:border-blue-700"
+          >
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm font-bold text-blue-700 dark:text-blue-300">
+                Taranıyor... {progress.current}/{progress.total}
+              </p>
+              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                %{Math.round((progress.current / progress.total) * 100)}
+              </p>
+            </div>
+            
+            {/* Progress bar */}
+            <div className="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden mb-2">
+              <motion.div
+                className="h-full bg-gradient-to-r from-blue-500 to-slate-600 rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${(progress.current / progress.total) * 100}%` }}
+                transition={{ duration: 0.3 }}
+              />
+            </div>
+            
+            {/* Current product */}
+            <p className="text-xs font-medium text-slate-600 dark:text-slate-400 truncate">
+              📦 {progress.productName}
+            </p>
+          </motion.div>
+        )}
+        
+        {priceChanges.length === 0 && !scraping ? (
           <div className="text-center py-8 text-muted-foreground">
             <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-30" />
             <p className="text-sm font-semibold">Bekleyen değişiklik yok</p>
             <p className="text-xs mt-1">Fiyat taraması yapın</p>
           </div>
-        ) : (
+        ) : priceChanges.length > 0 ? (
           <div className="space-y-3">
             {priceChanges.map((change, index) => (
               <motion.div
@@ -231,15 +327,43 @@ const PriceChanges: React.FC = () => {
               </motion.div>
             ))}
             
-            {stats.PENDING > 5 && (
-              <div className="text-center pt-2">
-                <p className="text-xs text-muted-foreground font-semibold">
-                  +{stats.PENDING - 5} değişiklik daha var
-                </p>
+            {/* ✅ SAYFALAMA BUTONLARI */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between pt-4 border-t border-border mt-4">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="text-xs"
+                >
+                  ← Önceki
+                </Button>
+                
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-muted-foreground">
+                    Sayfa {currentPage} / {totalPages}
+                  </span>
+                  {stats.PENDING && (
+                    <span className="text-xs text-blue-600 dark:text-blue-400 font-bold">
+                      (Toplam: {stats.PENDING} değişiklik)
+                    </span>
+                  )}
+                </div>
+                
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="text-xs"
+                >
+                  Sonraki →
+                </Button>
               </div>
             )}
           </div>
-        )}
+        ) : null}
       </CardContent>
     </Card>
   );

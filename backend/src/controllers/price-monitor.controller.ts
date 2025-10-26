@@ -170,13 +170,15 @@ export const runManualScraping = async (req: Request, res: Response) => {
     // Run scraping in background
     benimPOSScraperService.runScraping().then((result) => {
       if (result.success) {
-        console.log(`✅ Scraping tamamlandı: ${result.changes.length} değişiklik`);
+        console.log(`✅ Scraping tamamlandı: ${result.priceChanges.length} fiyat değişikliği, ${result.newProducts.length} yeni ürün`);
         
         // Send WebSocket notification
         io.emit('scraping-completed', {
           success: true,
-          changesCount: result.changes.length,
-          changes: result.changes,
+          priceChangesCount: result.priceChanges.length,
+          newProductsCount: result.newProducts.length,
+          priceChanges: result.priceChanges,
+          newProducts: result.newProducts,
           timestamp: new Date(),
         });
       } else {

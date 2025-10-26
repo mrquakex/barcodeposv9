@@ -24,6 +24,7 @@ import {
   Brain,
   Bot,
   Zap,
+  Scan,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { cn } from '../../lib/utils';
@@ -49,6 +50,7 @@ const Sidebar: React.FC = () => {
     { icon: Gift, label: 'Kampanyalar', path: '/campaigns', roles: ['ADMIN', 'MANAGER'] },
     { icon: Ticket, label: 'Kuponlar', path: '/coupons', roles: ['ADMIN', 'MANAGER'] },
     { icon: BarChart3, label: 'Raporlar', path: '/reports', roles: ['ADMIN', 'MANAGER'] },
+    { icon: Scan, label: 'Fiyat İzleme', path: '/price-monitor', roles: ['ADMIN', 'MANAGER'] },
     { icon: Brain, label: 'AI İçgörüleri', path: '/ai-insights', roles: ['ADMIN', 'MANAGER'] },
     { icon: Bot, label: 'AI Asistan', path: '/ai-chat', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
     { icon: Building, label: 'Şubeler', path: '/branches', roles: ['ADMIN'] },

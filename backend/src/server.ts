@@ -192,30 +192,77 @@ async function initializeScraperCron() {
     }
 
     if (config && config.isActive) {
-      // Schedule cron job
-      cron.schedule(config.cronSchedule, async () => {
-        console.log('⏰ Scheduled scraping started...');
+      // ✅ CRON JOB 1: Sabah 09:00
+      cron.schedule('0 9 * * *', async () => {
+        console.log('🌅 ⏰ SABAH TARAMASI (09:00) - Otomatik başlatıldı...');
         const result = await benimPOSScraperService.runScraping();
         
         if (result.success) {
-          console.log(`✅ Scheduled scraping completed: ${result.changes.length} changes`);
+          console.log(`✅ Sabah taraması tamamlandı: ${result.priceChanges.length} fiyat değişikliği, ${result.newProducts.length} yeni ürün`);
+          
           io.emit('scraping-completed', {
             success: true,
-            changesCount: result.changes.length,
-            changes: result.changes,
+            priceChangesCount: result.priceChanges.length,
+            newProductsCount: result.newProducts.length,
+            priceChanges: result.priceChanges,
+            newProducts: result.newProducts,
+            timestamp: new Date(),
+            type: 'MORNING_SCAN',
+          });
+
+          io.emit('notification', {
+            title: '🌅 Sabah Fiyat Taraması Tamamlandı!',
+            message: `${result.priceChanges.length} fiyat değişikliği ve ${result.newProducts.length} yeni ürün tespit edildi.`,
+            type: 'success',
             timestamp: new Date(),
           });
         } else {
-          console.error('❌ Scheduled scraping failed:', result.error);
-          io.emit('scraping-completed', {
-            success: false,
-            error: result.error,
+          console.error('❌ Sabah taraması başarısız:', result.error);
+          io.emit('notification', {
+            title: '❌ Sabah Taraması Başarısız',
+            message: result.error,
+            type: 'error',
             timestamp: new Date(),
           });
         }
       });
+      console.log('⏰ Sabah taraması cron job aktif: 09:00');
 
-      console.log(`⏰ Scraper cron job scheduled: ${config.cronSchedule}`);
+      // ✅ CRON JOB 2: Gece 23:59
+      cron.schedule('59 23 * * *', async () => {
+        console.log('🌙 ⏰ GECE TARAMASI (23:59) - Otomatik başlatıldı...');
+        const result = await benimPOSScraperService.runScraping();
+        
+        if (result.success) {
+          console.log(`✅ Gece taraması tamamlandı: ${result.priceChanges.length} fiyat değişikliği, ${result.newProducts.length} yeni ürün`);
+          
+          io.emit('scraping-completed', {
+            success: true,
+            priceChangesCount: result.priceChanges.length,
+            newProductsCount: result.newProducts.length,
+            priceChanges: result.priceChanges,
+            newProducts: result.newProducts,
+            timestamp: new Date(),
+            type: 'NIGHT_SCAN',
+          });
+
+          io.emit('notification', {
+            title: '🌙 Gece Fiyat Taraması Tamamlandı!',
+            message: `${result.priceChanges.length} fiyat değişikliği ve ${result.newProducts.length} yeni ürün tespit edildi.`,
+            type: 'success',
+            timestamp: new Date(),
+          });
+        } else {
+          console.error('❌ Gece taraması başarısız:', result.error);
+          io.emit('notification', {
+            title: '❌ Gece Taraması Başarısız',
+            message: result.error,
+            type: 'error',
+            timestamp: new Date(),
+          });
+        }
+      });
+      console.log('⏰ Gece taraması cron job aktif: 23:59');
     } else {
       console.log('⏸️  Scraper is disabled');
     }

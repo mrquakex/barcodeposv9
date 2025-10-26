@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card'
 import StatCard from '../components/ui/StatCard';
 import QuickActions from '../components/Dashboard/QuickActions';
 import RecentActivity from '../components/Dashboard/RecentActivity';
-import PriceChanges from '../components/Dashboard/PriceChanges';
 import { DashboardStats } from '../types';
 import api from '../lib/api';
 import { formatCurrency } from '../lib/utils';
@@ -287,7 +286,6 @@ const Dashboard: React.FC = () => {
         </div>
         <div className="space-y-6">
           <QuickActions />
-          <PriceChanges />
           <RecentActivity />
         </div>
       </div>

@@ -32,8 +32,8 @@ router.post('/changes/:id/ignore', checkPermission(['ADMIN', 'MANAGER']), ignore
 // 🔄 Toplu fiyat değişikliği uygula
 router.post('/changes/apply-multiple', checkPermission(['ADMIN', 'MANAGER']), applyMultiplePriceChanges);
 
-// 🕷️ Manuel scraping başlat
-router.post('/scrape', checkPermission(['ADMIN']), runManualScraping);
+// 🕷️ Manuel scraping başlat (ADMIN ve MANAGER)
+router.post('/scrape', checkPermission(['ADMIN', 'MANAGER']), runManualScraping);
 
 // ⚙️ Scraper ayarlarını getir
 router.get('/config', checkPermission(['ADMIN']), getScraperConfig);

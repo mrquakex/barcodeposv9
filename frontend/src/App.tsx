@@ -28,6 +28,7 @@ import UserManagement from './pages/UserManagement';
 import AIInsights from './pages/AIInsights';
 import AIChat from './pages/AIChat';
 import ExpressPOS from './pages/ExpressPOS';
+import PriceMonitor from './pages/PriceMonitor';
 
 const App: React.FC = () => {
   return (
@@ -64,6 +65,7 @@ const App: React.FC = () => {
             <Route path="activity-logs" element={<ActivityLogs />} />
             <Route path="ai-insights" element={<AIInsights />} />
             <Route path="ai-chat" element={<AIChat />} />
+            <Route path="price-monitor" element={<PriceMonitor />} />
             <Route path="settings" element={<Settings />} />
             <Route path="profile" element={<Profile />} />
           </Route>
