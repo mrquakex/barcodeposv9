@@ -110,7 +110,7 @@ const FluentSidebar: React.FC = () => {
           'transition-all duration-300 ease-out',
           'flex flex-col',
           'md:relative md:z-0',
-          isExpanded ? 'w-64' : 'w-0 md:w-16'
+          isExpanded ? 'w-64' : 'w-16'
         )}
         onMouseEnter={() => setIsExpanded(true)}
         onMouseLeave={() => setIsExpanded(false)}
