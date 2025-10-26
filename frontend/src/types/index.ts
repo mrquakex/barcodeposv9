@@ -29,6 +29,7 @@ export interface Product {
   categoryId?: string;
   category?: Category;
   isActive: boolean;
+  isFavorite: boolean;
   createdAt: string;
   updatedAt: string;
 }
