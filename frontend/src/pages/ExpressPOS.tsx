@@ -593,14 +593,6 @@ const ExpressPOS: React.FC = () => {
           });
           scannerRef.current = scanner;
 
-          // ⚡ ULTRA FAST & SHARP config (profesyonel optimize)
-          const config = {
-            fps: 30, // 🚀 MAXIMUM SPEED! 30 FPS = instant scan
-            qrbox: { width: 250, height: 150 }, // 🎯 Optimal focus area
-            aspectRatio: 1.777778,
-            disableFlip: false,
-          };
-
           // ARKA KAMERA ID'sini bul - HIZLI AMA GÜVENLE!
           let cameraId = 'environment'; // Default
           try {
@@ -629,12 +621,11 @@ const ExpressPOS: React.FC = () => {
             setCameraInfo(prev => ({ ...prev, deviceName: 'Arka Kamera' }));
           }
 
-          // 🎯 FULL HD VIDEO CONSTRAINTS (videoConstraints içinde olmalı!)
+          // 🎯 FULL HD VIDEO CONSTRAINTS - HER YÖNDEN OKUSUN!
           const fullHDConfig = {
             fps: 30,
-            qrbox: { width: 250, height: 150 },
-            aspectRatio: 1.777778,
-            disableFlip: false,
+            qrbox: 300, // 🔄 Kare alan = her yönden okur (yatay, dikey, çapraz)
+            disableFlip: false, // ✅ Flip'e izin ver (her açı)
             videoConstraints: {
               facingMode: { exact: 'environment' },
               width: { ideal: 1920, min: 1280 },   // Full HD width
@@ -642,7 +633,7 @@ const ExpressPOS: React.FC = () => {
             }
           };
 
-          console.log('🎥 Full HD başlatılıyor: 1920x1080 @ 30fps');
+          console.log('🎥 Full HD başlatılıyor: 1920x1080 @ 30fps - HER YÖNDEN OKUR! 🔄');
           
           // ✅ Scanner başlatılıyor - loading birazdan kapanacak
           await scanner.start(
@@ -1977,9 +1968,9 @@ const ExpressPOS: React.FC = () => {
                 </motion.div>
               </div>
               
-              {/* KIRMIZI LAZER TARAMA ÇİZGİSİ - Animasyonlu */}
+              {/* KIRMIZI LAZER TARAMA ÇİZGİSİ - Animasyonlu (HER YÖNDEN!) */}
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                <div className="relative w-full max-w-md h-64">
+                <div className="relative w-full max-w-sm h-80">
                   {/* Kırmızı tarama çizgisi */}
                   <motion.div
                     className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent shadow-[0_0_20px_rgba(239,68,68,0.8)]"
@@ -2212,7 +2203,10 @@ const ExpressPOS: React.FC = () => {
                   🎯 KIRMIZI LAZER İÇİNE GETİRİN
                 </p>
                 <p className="text-xs md:text-sm text-blue-100 text-center font-bold hidden md:block">
-                  ⚡ 30 FPS Ultra Hız • Full HD 1920x1080 • 9 Format
+                  🔄 HER YÖNDEN OKUR • ⚡ 30 FPS • Full HD 1920x1080
+                </p>
+                <p className="text-xs text-green-300 text-center font-bold md:hidden">
+                  🔄 Yatay • Dikey • Çapraz - Her Yön!
                 </p>
               </div>
               
