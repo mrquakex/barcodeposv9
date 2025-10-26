@@ -195,22 +195,20 @@ class BenimPOSScraperService {
               throw new Error('"Görüntüle" butonu bulunamadı!');
             }
             
-            // ✅ SMART WAIT: Wait for first product to CHANGE (proof that page loaded)
-            let pageChanged = false;
-            for (let i = 0; i < 10; i++) { // 10 attempts = 5 seconds
-              await new Promise(resolve => setTimeout(resolve, 500));
-              
-              const newFirstProductName = await page.evaluate(() => {
-                const firstRow = document.querySelector('#myReportTable tbody tr:first-child td:nth-child(5) a');
-                return firstRow ? firstRow.textContent?.trim() : '';
-              });
-              
-              if (newFirstProductName && newFirstProductName !== oldFirstProductName) {
-                pageChanged = true;
-                console.log(`✅ Sayfa ${currentPage} yüklendi! Yeni ilk ürün: "${newFirstProductName}"`);
-                break;
-              }
-            }
+            // ✅ LONGER WAIT for page to load (BenimPOS might be slow)
+            console.log(`⏳ Sayfa yüklenmesi bekleniyor (10 saniye)...`);
+            await new Promise(resolve => setTimeout(resolve, 10000)); // 10 seconds!
+            
+            // Wait for table to be visible
+            await page.waitForSelector('#myReportTable tbody tr', { timeout: 10000 });
+            
+            // ✅ NOW check if first product changed
+            const newFirstProductName = await page.evaluate(() => {
+              const firstRow = document.querySelector('#myReportTable tbody tr:first-child td:nth-child(5) a');
+              return firstRow ? firstRow.textContent?.trim() : '';
+            });
+            
+            const pageChanged = newFirstProductName && newFirstProductName !== oldFirstProductName;
             
             if (!pageChanged) {
               console.warn(`⚠️  UYARI: Sayfa ${currentPage} yüklendi ama ilk ürün değişmedi! (Hala: "${oldFirstProductName}")`);
@@ -452,25 +450,10 @@ class BenimPOSScraperService {
             source: 'BENIMPOS',
           });
 
-          // Save as "new product suggestion" (using priceChange table with special flag)
-          await prisma.priceChange.create({
-            data: {
-              productId: 'NEW_PRODUCT', // Dummy ID for new products
-              source: 'BENIMPOS',
-              oldPrice: 0,
-              newPrice: scraped.price,
-              difference: scraped.price,
-              percentage: 100,
-              status: 'PENDING',
-              scrapedData: { 
-                isNewProduct: true, 
-                name: scraped.name,
-                barcode: scraped.barcode,
-                price: scraped.price,
-                ...scraped.additionalData 
-              },
-            },
-          });
+          // Note: We don't save new products to price_changes table anymore
+          // because it causes foreign key constraint errors.
+          // New products are tracked in the newProducts array and shown in UI.
+          console.log(`🆕 YENİ ÜRÜN: ${scraped.name} (${scraped.barcode}) - ${scraped.price} TL`);
         }
 
         // Small delay to avoid overload
