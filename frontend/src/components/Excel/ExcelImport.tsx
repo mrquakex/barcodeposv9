@@ -153,96 +153,88 @@ const ExcelImport: React.FC<ExcelImportProps> = ({ onImportComplete }) => {
       console.log(`🚀 ${allProducts.length} ürün içe aktarılıyor...`);
       setProgressText('İçe aktarma başlıyor...');
       
-      // Her ürünü API'ye gönder
-      for (let i = 0; i < allProducts.length; i++) {
-        const item = allProducts[i];
+      // Önce tüm kategorileri oluştur
+      const productDataList = [];
+      for (const item of allProducts) {
+        let categoryId = null;
+        if (item.category) {
+          const categoryKey = item.category.toLowerCase();
+          
+          if (categoryMap.has(categoryKey)) {
+            categoryId = categoryMap.get(categoryKey);
+          } else {
+            let category = categories.find((cat: any) => 
+              cat.name.toLowerCase() === categoryKey
+            );
+
+            if (!category) {
+              try {
+                const newCategoryResponse = await api.post('/categories', {
+                  name: item.category,
+                  description: item.parentCategory || '',
+                });
+                category = newCategoryResponse.data.category;
+                categories.push(category);
+              } catch (catError) {
+                console.error('Category creation error:', catError);
+              }
+            }
+
+            if (category) {
+              categoryId = category.id;
+              categoryMap.set(categoryKey, categoryId);
+            }
+          }
+        }
+
+        productDataList.push({
+          barcode: item.barcode || undefined,
+          name: item.name,
+          price: cleanNumeric(item.price),
+          cost: cleanNumeric(item.cost),
+          stock: Math.floor(cleanNumeric(item.stock)),
+          unit: item.unit || 'ADET',
+          taxRate: cleanNumeric(item.taxRate) || 18,
+          minStock: Math.floor(cleanNumeric(item.minStock)) || 5,
+          description: item.description || item.stockCode || '',
+          categoryId,
+        });
+      }
+
+      // BATCH İMPORT - 150'şer ürün gönder (MAKSİMUM HIZ!)
+      const BATCH_SIZE = 150;
+      const totalBatches = Math.ceil(productDataList.length / BATCH_SIZE);
+      
+      console.log(`📦 ${totalBatches} batch halinde gönderilecek (${BATCH_SIZE}'şer ürün)`);
+      
+      for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
+        const start = batchIndex * BATCH_SIZE;
+        const end = Math.min(start + BATCH_SIZE, productDataList.length);
+        const batch = productDataList.slice(start, end);
         
         // İlerleme durumunu güncelle
-        const currentProgress = Math.round(((i + 1) / allProducts.length) * 100);
+        const currentProgress = Math.round(((end) / productDataList.length) * 100);
         setProgress(currentProgress);
-        setProgressText(`${i + 1} / ${allProducts.length} ürün işleniyor... (${addedCount} eklendi, ${updatedCount} güncellendi)`);
+        setProgressText(
+          `Batch ${batchIndex + 1}/${totalBatches} işleniyor... (${end}/${productDataList.length} ürün) | ` +
+          `✅ ${addedCount} eklendi, 🔄 ${updatedCount} güncellendi`
+        );
         
-        // Her 50 üründe bir ilerleme göster
-        if (i % 50 === 0) {
-          console.log(`İlerleme: ${i}/${allProducts.length} ürün işlendi`);
-        }
+        console.log(`📤 Batch ${batchIndex + 1}/${totalBatches}: ${batch.length} ürün gönderiliyor...`);
         
         try {
-          // Kategori ID'sini bul veya oluştur (eğer kategori adı varsa)
-          let categoryId = null;
-          if (item.category) {
-            const categoryKey = item.category.toLowerCase();
-            
-            // Cache'te var mı kontrol et
-            if (categoryMap.has(categoryKey)) {
-              categoryId = categoryMap.get(categoryKey);
-            } else {
-              // Cache'te yok, kategorilerde ara
-              let category = categories.find((cat: any) => 
-                cat.name.toLowerCase() === categoryKey
-              );
-
-              if (!category) {
-                // Kategori yoksa oluştur
-                try {
-                  const newCategoryResponse = await api.post('/categories', {
-                    name: item.category,
-                    description: item.parentCategory || '',
-                  });
-                  category = newCategoryResponse.data.category;
-                  categories.push(category); // Listeye ekle
-                } catch (catError) {
-                  console.error('Category creation error:', catError);
-                }
-              }
-
-              if (category) {
-                categoryId = category.id;
-                categoryMap.set(categoryKey, categoryId); // Cache'e ekle
-              }
-            }
-          }
-
-          const productData = {
-            barcode: item.barcode || undefined,
-            name: item.name,
-            price: cleanNumeric(item.price),
-            cost: cleanNumeric(item.cost),
-            stock: Math.floor(cleanNumeric(item.stock)),
-            unit: item.unit || 'ADET',
-            taxRate: cleanNumeric(item.taxRate) || 18,
-            minStock: Math.floor(cleanNumeric(item.minStock)) || 5,
-            description: item.description || item.stockCode || '',
-            categoryId,
-          };
-
-          // Barkoda göre ürün var mı cache'ten kontrol et (UPSERT)
-          const existingProduct = item.barcode ? productMap.get(item.barcode) : null;
-
-          if (existingProduct) {
-            // Ürün varsa GÜNCELLE
-            await api.put(`/products/${existingProduct.id}`, productData);
-            // Cache'i güncelle
-            productMap.set(item.barcode, { ...existingProduct, ...productData });
-            updatedCount++;
-          } else {
-            // Ürün yoksa YENİ EKLE
-            const response = await api.post('/products', productData);
-            // Yeni ürünü cache'e ekle
-            if (item.barcode && response.data.product) {
-              productMap.set(item.barcode, response.data.product);
-            }
-            addedCount++;
-          }
-          successCount++;
-        } catch (itemError: any) {
-          console.error(`Error importing ${item.name}:`, itemError);
-          errorCount++;
-        }
-        
-        // Rate limiting için her 10 üründen sonra kısa bir bekleme
-        if ((i + 1) % 10 === 0) {
-          await delay(100); // 100ms bekleme
+          const response = await api.post('/products/bulk-upsert', {
+            products: batch,
+          });
+          
+          addedCount += response.data.added || 0;
+          updatedCount += response.data.updated || 0;
+          successCount += batch.length;
+          
+          console.log(`✅ Batch ${batchIndex + 1} tamamlandı: ${response.data.added} eklendi, ${response.data.updated} güncellendi (Toplam: ✅${addedCount} 🔄${updatedCount})`);
+        } catch (batchError: any) {
+          console.error(`❌ Batch ${batchIndex + 1} hatası:`, batchError);
+          errorCount += batch.length;
         }
       }
       

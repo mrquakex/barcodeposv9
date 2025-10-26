@@ -229,4 +229,95 @@ export const getLowStockProducts = async (req: Request, res: Response) => {
   }
 };
 
+// Bulk Import/Upsert - Toplu ürün ekleme/güncelleme (HIZLI!)
+export const bulkUpsertProducts = async (req: Request, res: Response) => {
+  try {
+    const { products } = req.body;
+
+    if (!products || !Array.isArray(products) || products.length === 0) {
+      return res.status(400).json({ error: 'Ürün listesi gerekli' });
+    }
+
+    let addedCount = 0;
+    let updatedCount = 0;
+    const errors: any[] = [];
+
+    // Transaction OLMADAN (daha hızlı ve timeout yok!)
+    // Her ürünü paralel olarak işle (Promise.all ile)
+    const batchPromises = products.map(async (productData) => {
+      try {
+        // Barkoda göre ürün ara
+        const existingProduct = productData.barcode
+          ? await prisma.product.findFirst({
+              where: { barcode: productData.barcode },
+            })
+          : null;
+
+        if (existingProduct) {
+          // GÜNCELLE
+          await prisma.product.update({
+            where: { id: existingProduct.id },
+            data: {
+              name: productData.name,
+              price: productData.price,
+              cost: productData.cost,
+              stock: productData.stock,
+              unit: productData.unit || 'ADET',
+              taxRate: productData.taxRate || 18,
+              minStock: productData.minStock || 5,
+              description: productData.description,
+              ...(productData.categoryId && { categoryId: productData.categoryId }),
+            },
+          });
+          return { type: 'updated' };
+        } else {
+          // YENİ EKLE
+          await prisma.product.create({
+            data: {
+              barcode: productData.barcode || generateEAN13(),
+              name: productData.name,
+              price: productData.price,
+              cost: productData.cost || 0,
+              stock: productData.stock || 0,
+              unit: productData.unit || 'ADET',
+              taxRate: productData.taxRate || 18,
+              minStock: productData.minStock || 5,
+              description: productData.description || '',
+              isActive: true,
+              ...(productData.categoryId && { categoryId: productData.categoryId }),
+            },
+          });
+          return { type: 'added' };
+        }
+      } catch (itemError: any) {
+        errors.push({
+          product: productData.name,
+          error: itemError.message,
+        });
+        return { type: 'error' };
+      }
+    });
+
+    // Tüm işlemleri paralel çalıştır
+    const results = await Promise.all(batchPromises);
+    
+    // Sonuçları say
+    results.forEach(result => {
+      if (result.type === 'added') addedCount++;
+      if (result.type === 'updated') updatedCount++;
+    });
+
+    res.json({
+      success: true,
+      message: `${addedCount} ürün eklendi, ${updatedCount} ürün güncellendi`,
+      added: addedCount,
+      updated: updatedCount,
+      errors: errors.length > 0 ? errors : undefined,
+    });
+  } catch (error: any) {
+    console.error('Bulk upsert products error:', error);
+    res.status(500).json({ error: 'Toplu ürün işlemi başarısız: ' + error.message });
+  }
+};
+
 

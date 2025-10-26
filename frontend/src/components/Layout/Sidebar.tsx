@@ -22,6 +22,7 @@ import {
   UserCog,
   Receipt,
   Brain,
+  Bot,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { cn } from '../../lib/utils';
@@ -46,6 +47,7 @@ const Sidebar: React.FC = () => {
     { icon: Ticket, label: 'Kuponlar', path: '/coupons', roles: ['ADMIN', 'MANAGER'] },
     { icon: BarChart3, label: 'Raporlar', path: '/reports', roles: ['ADMIN', 'MANAGER'] },
     { icon: Brain, label: 'AI İçgörüleri', path: '/ai-insights', roles: ['ADMIN', 'MANAGER'] },
+    { icon: Bot, label: 'AI Asistan', path: '/ai-chat', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
     { icon: Building, label: 'Şubeler', path: '/branches', roles: ['ADMIN'] },
     { icon: UserCog, label: 'Kullanıcılar', path: '/user-management', roles: ['ADMIN'] },
     { icon: Shield, label: 'Aktivite Logları', path: '/activity-logs', roles: ['ADMIN'] },
@@ -67,23 +69,8 @@ const Sidebar: React.FC = () => {
         <p className="text-xs text-blue-100 mt-1 font-semibold">Market Yönetim Sistemi v9</p>
       </div>
 
-      {/* User Info */}
-      <div className="p-4 border-b-2 border-slate-200 dark:border-slate-800">
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-br from-blue-50 to-slate-50 dark:from-blue-950/30 dark:to-slate-950/30 border-2 border-blue-200 dark:border-blue-900 shadow-md">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-md">
-            <span className="text-white font-black text-lg">
-              {user?.name.charAt(0).toUpperCase()}
-            </span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-black truncate text-slate-900 dark:text-white">{user?.name}</p>
-            <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">{user?.role}</p>
-          </div>
-        </div>
-      </div>
-
       {/* Menu */}
-      <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+      <nav className="flex-1 p-3 space-y-1 overflow-y-auto mt-3">
         {filteredMenu.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;

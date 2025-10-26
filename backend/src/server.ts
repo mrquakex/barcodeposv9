@@ -22,6 +22,7 @@ import campaignRoutes from './routes/campaign.routes';
 import branchRoutes from './routes/branch.routes';
 import activityRoutes from './routes/activity.routes';
 import aiRoutes from './routes/ai.routes';
+import geminiRoutes from './routes/gemini.routes';
 import prisma from './lib/prisma';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -46,30 +47,40 @@ const PORT = process.env.PORT || 5000;
 // Trust proxy for Render.com
 app.set('trust proxy', 1);
 
-// Security & Performance Middleware
-app.use(helmet({
-  contentSecurityPolicy: false, // Disable for development
-}));
-app.use(compression());
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 dakika
-  max: 1000, // Her IP için max 1000 istek
-  message: 'Too many requests from this IP, please try again later.',
-});
-app.use('/api/', limiter);
-
-// CORS & Body Parser - Basitleştirilmiş ve güvenli
+// CORS - ÖNCELİKLE CORS AYARLARINI YAP!
 app.use(cors({
   origin: true, // Tüm originlere izin ver
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+  exposedHeaders: ['Set-Cookie'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
+
+// Explicit OPTIONS handler for all routes
+app.options('*', cors());
+
+// Security & Performance Middleware (Helmet disabled for development)
+// app.use(helmet({
+//   contentSecurityPolicy: false,
+// }));
+app.use(compression());
+
+// Body Parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Rate limiting - CORS'tan SONRA
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 dakika
+  max: 1000, // Her IP için max 1000 istek
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use('/api/', limiter);
 
 // Initialize WebSocket (temporarily disabled)
 // websocketService.initialize(httpServer);
@@ -94,6 +105,7 @@ app.use('/api/campaigns', campaignRoutes);
 app.use('/api/branches', branchRoutes);
 app.use('/api/activity-logs', activityRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/gemini', geminiRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

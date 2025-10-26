@@ -7,6 +7,7 @@ import {
   updateProduct,
   deleteProduct,
   bulkDeleteProducts,
+  bulkUpsertProducts,
   getLowStockProducts,
 } from '../controllers/product.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
@@ -21,6 +22,7 @@ router.get('/:id', getProductById);
 router.get('/barcode/:barcode', getProductByBarcode);
 router.post('/', authorize('ADMIN', 'MANAGER'), createProduct);
 router.post('/bulk-delete', authorize('ADMIN', 'MANAGER'), bulkDeleteProducts);
+router.post('/bulk-upsert', authorize('ADMIN', 'MANAGER'), bulkUpsertProducts);
 router.put('/:id', authorize('ADMIN', 'MANAGER'), updateProduct);
 router.delete('/:id', authorize('ADMIN', 'MANAGER'), deleteProduct);
 

@@ -26,6 +26,7 @@ import Branches from './pages/Branches';
 import ActivityLogs from './pages/ActivityLogs';
 import UserManagement from './pages/UserManagement';
 import AIInsights from './pages/AIInsights';
+import AIChat from './pages/AIChat';
 
 const App: React.FC = () => {
   return (
@@ -60,6 +61,7 @@ const App: React.FC = () => {
             <Route path="user-management" element={<UserManagement />} />
             <Route path="activity-logs" element={<ActivityLogs />} />
             <Route path="ai-insights" element={<AIInsights />} />
+            <Route path="ai-chat" element={<AIChat />} />
             <Route path="settings" element={<Settings />} />
             <Route path="profile" element={<Profile />} />
           </Route>

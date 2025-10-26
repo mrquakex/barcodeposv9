@@ -70,30 +70,48 @@ const AIInsights: React.FC = () => {
       // Satış tahminleri
       const predictionsRes = await api.get('/ai/predictions/sales?days=7');
       if (predictionsRes.data.success) {
-        setPredictions(predictionsRes.data.data.predictions);
-        setTrend(predictionsRes.data.data.trend);
-        setConfidence(predictionsRes.data.data.confidence);
+        setPredictions(predictionsRes.data.data?.predictions || predictionsRes.data.data || []);
+        setTrend(predictionsRes.data.data?.trend || 'stable');
+        setConfidence(predictionsRes.data.data?.confidence || 0);
+        
+        // Eğer mesaj varsa göster
+        if (predictionsRes.data.message) {
+          toast(predictionsRes.data.message, { icon: 'ℹ️', duration: 5000 });
+        }
       }
 
       // Anomali tespiti
       const anomaliesRes = await api.get('/ai/anomalies');
       if (anomaliesRes.data.success) {
-        setSalesAnomalies(anomaliesRes.data.data.salesAnomalies);
-        setStockAnomalies(anomaliesRes.data.data.stockAnomalies);
+        setSalesAnomalies(anomaliesRes.data.data?.salesAnomalies || []);
+        setStockAnomalies(anomaliesRes.data.data?.stockAnomalies || []);
+        
+        if (anomaliesRes.data.message) {
+          toast(anomaliesRes.data.message, { icon: 'ℹ️', duration: 5000 });
+        }
       }
 
       // Stok önerileri
       const stockRes = await api.get('/ai/recommendations/stock');
       if (stockRes.data.success) {
-        setStockRecommendations(stockRes.data.data);
+        setStockRecommendations(stockRes.data.data || []);
+        
+        if (stockRes.data.message) {
+          toast(stockRes.data.message, { icon: 'ℹ️', duration: 5000 });
+        }
       }
 
       // Ürün önerileri
       const productsRes = await api.get('/ai/recommendations/products');
       if (productsRes.data.success) {
-        setProductRecommendations(productsRes.data.data);
+        setProductRecommendations(productsRes.data.data || []);
+        
+        if (productsRes.data.message) {
+          toast(productsRes.data.message, { icon: 'ℹ️', duration: 5000 });
+        }
       }
     } catch (error: any) {
+      console.error('AI data fetch error:', error);
       toast.error(error.response?.data?.error || 'AI verileri yüklenemedi');
     } finally {
       setLoading(false);

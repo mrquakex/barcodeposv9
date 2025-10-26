@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Moon, Sun, Sparkles, Calendar, Clock } from 'lucide-react';
+import { Moon, Sun, Sparkles, Calendar, Clock, LogOut, ChevronDown } from 'lucide-react';
 import { useThemeStore } from '../../store/themeStore';
+import { useAuthStore } from '../../store/authStore';
 import Button from '../ui/Button';
 
 const Header: React.FC = () => {
   const { theme, toggleTheme } = useThemeStore();
+  const { user, logout } = useAuthStore();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -57,6 +60,41 @@ const Header: React.FC = () => {
         <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/30 dark:to-slate-950/30 border-2 border-blue-200 dark:border-blue-900 rounded-xl shadow-md">
           <Sparkles className="w-5 h-5 text-blue-600" />
           <span className="text-sm font-black bg-gradient-to-r from-blue-600 to-slate-700 bg-clip-text text-transparent">Advanced System</span>
+        </div>
+
+        {/* User Info - Sağ Üst Köşe */}
+        <div className="relative">
+          <button
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            className="flex items-center gap-3 px-4 py-2 rounded-xl bg-gradient-to-br from-blue-50 to-slate-50 dark:from-blue-950/30 dark:to-slate-950/30 border-2 border-blue-200 dark:border-blue-900 shadow-md hover:shadow-lg transition-all hover:scale-[1.02]"
+          >
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-md">
+              <span className="text-white font-black text-base">
+                {user?.name.charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <div className="flex flex-col items-start">
+              <p className="text-sm font-black text-slate-900 dark:text-white">{user?.name}</p>
+              <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold">{user?.role}</p>
+            </div>
+            <ChevronDown className={`w-4 h-4 text-slate-600 dark:text-slate-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
+          </button>
+
+          {/* Dropdown Menu */}
+          {showUserMenu && (
+            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl z-50">
+              <button
+                onClick={() => {
+                  logout();
+                  setShowUserMenu(false);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-left text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl font-semibold transition-colors"
+              >
+                <LogOut className="w-5 h-5" />
+                Çıkış Yap
+              </button>
+            </div>
+          )}
         </div>
         
         {/* Theme Toggle */}

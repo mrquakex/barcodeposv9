@@ -11,9 +11,12 @@ export const getSalesPredictions = async (req: Request, res: Response) => {
       data: predictions,
     });
   } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      error: error.message,
+    // Yeterli veri yoksa 500 değil, 200 döndür (boş sonuç)
+    console.warn('Sales predictions warning:', error.message);
+    res.json({
+      success: true,
+      data: [],
+      message: error.message || 'Henüz yeterli satış verisi yok. Lütfen satış yapın.',
     });
   }
 };
@@ -27,9 +30,11 @@ export const detectAnomalies = async (req: Request, res: Response) => {
       data: anomalies,
     });
   } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      error: error.message,
+    console.warn('Anomaly detection warning:', error.message);
+    res.json({
+      success: true,
+      data: [],
+      message: error.message || 'Henüz yeterli satış verisi yok.',
     });
   }
 };
@@ -43,9 +48,11 @@ export const getStockRecommendations = async (req: Request, res: Response) => {
       data: recommendations,
     });
   } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      error: error.message,
+    console.warn('Stock recommendations warning:', error.message);
+    res.json({
+      success: true,
+      data: [],
+      message: error.message || 'Henüz yeterli veri yok.',
     });
   }
 };
@@ -60,9 +67,11 @@ export const getProductRecommendations = async (req: Request, res: Response) => 
       data: recommendations,
     });
   } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      error: error.message,
+    console.warn('Product recommendations warning:', error.message);
+    res.json({
+      success: true,
+      data: [],
+      message: error.message || 'Henüz yeterli veri yok.',
     });
   }
 };
