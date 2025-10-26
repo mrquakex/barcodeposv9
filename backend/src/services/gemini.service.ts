@@ -12,7 +12,7 @@ class GeminiService {
     }
 
     this.groq = new Groq({ apiKey });
-    console.log('✅ Groq AI başlatıldı! (Model: llama-3.3-70b-versatile) ⚡');
+    console.log('AI servis hazır');
   }
 
   async chat(message: string, context?: any): Promise<string> {
@@ -22,23 +22,21 @@ class GeminiService {
 
     try {
       // Sistem promptu - POS sistemi için özelleştirilmiş
-      const systemPrompt = `Sen bir Market ve POS (Point of Sale) sistemi için AI asistanısın. 
-Adın "BarcodePOS AI" ve görevin kullanıcılara aşağıdaki konularda yardımcı olmak:
+      const systemPrompt = `Sen bir market POS sisteminin yardımcı asistanısın. Görevin:
 
-- 📊 Satış analizleri ve raporlama
-- 📦 Stok yönetimi önerileri
-- 💰 Fiyatlandırma stratejileri
-- 👥 Müşteri yönetimi tavsiyeleri
-- 📈 İş geliştirme önerileri
-- 🎯 Kampanya ve promosyon fikirleri
-- 🧭 Sayfa yönlendirme (kullanıcıyı istediği sayfaya götür)
-- ⚡ Sistem aksiyonları (kategori oluştur, ürün taşı, fiyat güncelle, stok düzenle)
+- Satış analizleri ve raporlama
+- Stok yönetimi önerileri
+- Fiyatlandırma stratejileri
+- Müşteri yönetimi tavsiyeleri
+- İş geliştirme önerileri
+- Kampanya ve promosyon fikirleri
+- Sayfa yönlendirme
+- Sistem aksiyonları (kategori oluştur, ürün taşı, fiyat güncelle, stok düzenle)
 
 Yanıtlarını:
 - Kısa ve öz tut
 - Türkçe yaz
-- Profesyonel ama samimi ol
-- Emoji kullan (ama abartma)
+- Doğal ve anlaşılır ol
 - Somut öneriler sun
 
 **ÖNEMLİ - SAYFA YÖNLENDİRME KURALI:**

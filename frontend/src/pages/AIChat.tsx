@@ -34,7 +34,7 @@ const AIChat: React.FC = () => {
     {
       id: '1',
       role: 'assistant',
-      content: `Merhaba ${user?.name}, ben BarcodePOS AI Asistanınızım.\n\nSistem verilerinize tam erişimim var ve gerçek zamanlı analizler yapabiliyorum.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nUZMANLIK ALANLARIM:\n\n• Satış Analizi ve Trend Raporları\n  Son 30 günün detaylı performans verileri\n\n• Ürün ve Stok Yönetimi\n  En çok satanlar, kritik stok seviyeleri, sipariş önerileri\n\n• Finansal Analiz\n  Ciro, kar marjı, nakit akışı ve gelir projeksiyonları\n\n• Stratejik İş Geliştirme\n  Büyüme fırsatları, müşteri segmentasyonu, pazarlama önerileri\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nSize nasıl yardımcı olabilirim?`,
+      content: `Merhaba ${user?.name}, size nasıl yardımcı olabilirim?\n\nYapabileceklerim:\n\n• Satış ve stok analizi\n• Müşteri bilgileri\n• Ürün yönetimi\n• Finansal raporlar\n• Kategori düzenleme\n\nSorunuzu yazabilirsiniz.`,
       timestamp: new Date(),
     },
   ]);
@@ -362,28 +362,21 @@ const AIChat: React.FC = () => {
               
               <div>
                 <h1 className="text-2xl md:text-3xl font-black bg-gradient-to-r from-blue-600 to-slate-700 bg-clip-text text-transparent">
-                  AI Asistan
+                  Asistan
                 </h1>
                 <div className="flex items-center gap-2 mt-1">
-                  <Zap className="w-3 h-3 text-blue-600" />
                   <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                    Powered by Groq AI • Llama 3.3 70B
+                    Akıllı Yardımcı
                   </p>
                 </div>
               </div>
             </div>
             
-            {/* Status Badges - Corporate */}
+            {/* Status Badges */}
             <div className="flex gap-2 md:gap-3 flex-wrap justify-center">
               <div className="flex items-center gap-2 px-3 md:px-4 py-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/50 dark:to-emerald-950/50 border-2 border-green-300 dark:border-green-700 rounded-xl shadow-lg">
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <Activity className="w-3 h-3 md:w-4 md:h-4 text-green-600 dark:text-green-400" />
-                <span className="text-xs font-bold text-green-700 dark:text-green-400">Sistem Entegre</span>
-              </div>
-              
-              <div className="flex items-center gap-2 px-3 md:px-4 py-2 bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/50 dark:to-slate-950/50 border-2 border-blue-300 dark:border-blue-700 rounded-xl shadow-lg">
-                <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-blue-600 dark:text-blue-400" />
-                <span className="text-xs font-bold text-blue-700 dark:text-blue-400">AI Online</span>
+                <span className="text-xs font-bold text-green-700 dark:text-green-400">Aktif</span>
               </div>
             </div>
           </div>
@@ -461,7 +454,7 @@ const AIChat: React.FC = () => {
               <div className="bg-white dark:bg-slate-800 p-3 md:p-4 rounded-2xl shadow-lg border-2 border-blue-200 dark:border-slate-700">
                 <div className="flex items-center gap-2">
                   <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">AI yanıt hazırlıyor</span>
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Yanıt hazırlanıyor</span>
                   <div className="flex gap-1">
                     {[1, 2, 3].map((i) => (
                       <div key={i} className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-pulse" style={{ animationDelay: `${i * 200}ms` }} />
@@ -539,7 +532,7 @@ const AIChat: React.FC = () => {
           
           {/* Tips */}
           <p className="text-xs text-center mt-2 text-slate-400 dark:text-slate-500 font-medium">
-            Tüm sistem verilerinizi anlayabiliyorum • Enter ile gönder
+            Enter ile gönder
           </p>
         </div>
       </div>

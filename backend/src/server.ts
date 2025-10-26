@@ -194,20 +194,20 @@ async function initializeDatabase() {
     const userCount = await prisma.user.count();
     
     if (userCount === 0) {
-      console.log('📦 Database is empty. Running seed...');
+      console.log('Veritabanı başlatılıyor...');
       await execAsync('npx tsx prisma/seed.ts');
-      console.log('✅ Database seeded successfully!');
+      console.log('Veritabanı hazır');
     } else {
-      console.log(`✅ Database already initialized (${userCount} users found)`);
+      console.log(`Veritabanı hazır (${userCount} kullanıcı)`);
     }
   } catch (error) {
-    console.error('❌ Database initialization error:', error);
+    console.error('Veritabanı hatası:', error);
   }
 }
 
-// Initialize Scraper Cron Job (TEMPORARILY DISABLED - TypeScript build issues)
+// Initialize Scraper Cron Job
 async function initializeScraperCron() {
-  console.log('⏸️  Price scraper temporarily disabled (will be re-enabled later)');
+  // Fiyat tarayıcı devre dışı
 }
 
 // Start server
@@ -216,9 +216,8 @@ async function startServer() {
   await initializeScraperCron();
   
   httpServer.listen(PORT, () => {
-    console.log(`🚀 Server is running on http://localhost:${PORT}`);
-    console.log(`✅ Basic POS system ready!`);
-    console.log(`🕷️  Price monitoring system initialized!`);
+    console.log(`Server çalışıyor: http://localhost:${PORT}`);
+    console.log(`Sistem hazır`);
   });
 }
 
