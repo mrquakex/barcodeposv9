@@ -27,7 +27,6 @@ import aiRoutes from './routes/ai.routes';
 import geminiRoutes from './routes/gemini.routes';
 import priceMonitorRoutes from './routes/price-monitor.routes';
 import prisma from './lib/prisma';
-import benimPOSScraperService from './services/benimpos-scraper.service';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 
@@ -170,105 +169,9 @@ async function initializeDatabase() {
   }
 }
 
-// Initialize Scraper Cron Job
+// Initialize Scraper Cron Job (TEMPORARILY DISABLED - TypeScript build issues)
 async function initializeScraperCron() {
-  try {
-    const config = await prisma.scraperConfig.findUnique({
-      where: { source: 'BENIMPOS' }
-    });
-
-    if (!config) {
-      // Create default config
-      await prisma.scraperConfig.create({
-        data: {
-          source: 'BENIMPOS',
-          email: process.env.BENIMPOS_EMAIL || 'mrquakex0@gmail.com',
-          password: process.env.BENIMPOS_PASSWORD || 'elwerci12',
-          isActive: false, // Start disabled by default
-          cronSchedule: '0 9 * * *', // Every day at 09:00
-        }
-      });
-      console.log('📝 Scraper config created (disabled by default)');
-    }
-
-    if (config && config.isActive) {
-      // ✅ CRON JOB 1: Sabah 09:00
-      cron.schedule('0 9 * * *', async () => {
-        console.log('🌅 ⏰ SABAH TARAMASI (09:00) - Otomatik başlatıldı...');
-        const result = await benimPOSScraperService.runScraping();
-        
-        if (result.success) {
-          console.log(`✅ Sabah taraması tamamlandı: ${result.priceChanges.length} ürün güncellenmeli, ${result.newProducts.length} ürün eklenmeli`);
-          
-          io.emit('scraping-completed', {
-            success: true,
-            priceChangesCount: result.priceChanges.length,
-            newProductsCount: result.newProducts.length,
-            priceChanges: result.priceChanges,
-            newProducts: result.newProducts,
-            timestamp: new Date(),
-            type: 'MORNING_SCAN',
-          });
-
-          io.emit('notification', {
-            title: '🌅 Sabah Fiyat Taraması Tamamlandı!',
-            message: `${result.priceChanges.length} ürün güncellenmeli, ${result.newProducts.length} ürün eklenmeli.`,
-            type: 'success',
-            timestamp: new Date(),
-          });
-        } else {
-          console.error('❌ Sabah taraması başarısız:', result.error);
-          io.emit('notification', {
-            title: '❌ Sabah Taraması Başarısız',
-            message: result.error,
-            type: 'error',
-            timestamp: new Date(),
-          });
-        }
-      });
-      console.log('⏰ Sabah taraması cron job aktif: 09:00');
-
-      // ✅ CRON JOB 2: Gece 23:59
-      cron.schedule('59 23 * * *', async () => {
-        console.log('🌙 ⏰ GECE TARAMASI (23:59) - Otomatik başlatıldı...');
-        const result = await benimPOSScraperService.runScraping();
-        
-        if (result.success) {
-          console.log(`✅ Gece taraması tamamlandı: ${result.priceChanges.length} ürün güncellenmeli, ${result.newProducts.length} ürün eklenmeli`);
-          
-          io.emit('scraping-completed', {
-            success: true,
-            priceChangesCount: result.priceChanges.length,
-            newProductsCount: result.newProducts.length,
-            priceChanges: result.priceChanges,
-            newProducts: result.newProducts,
-            timestamp: new Date(),
-            type: 'NIGHT_SCAN',
-          });
-
-          io.emit('notification', {
-            title: '🌙 Gece Fiyat Taraması Tamamlandı!',
-            message: `${result.priceChanges.length} ürün güncellenmeli, ${result.newProducts.length} ürün eklenmeli.`,
-            type: 'success',
-            timestamp: new Date(),
-          });
-        } else {
-          console.error('❌ Gece taraması başarısız:', result.error);
-          io.emit('notification', {
-            title: '❌ Gece Taraması Başarısız',
-            message: result.error,
-            type: 'error',
-            timestamp: new Date(),
-          });
-        }
-      });
-      console.log('⏰ Gece taraması cron job aktif: 23:59');
-    } else {
-      console.log('⏸️  Scraper is disabled');
-    }
-  } catch (error) {
-    console.error('❌ Scraper cron initialization error:', error);
-  }
+  console.log('⏸️  Price scraper temporarily disabled (will be re-enabled later)');
 }
 
 // Start server

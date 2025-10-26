@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
-import benimPOSScraperService from '../services/benimpos-scraper.service';
+// import benimPOSScraperService from '../services/benimpos-scraper.service'; // TEMPORARILY DISABLED
 import { io } from '../server';
 
 // 🔄 FAVORİ FIYAT DEĞİŞİKLİKLERİNİ GETİR
@@ -162,54 +162,14 @@ export const applyMultiplePriceChanges = async (req: Request, res: Response) => 
   }
 };
 
-// 🕷️ MANUEL SCRAPING BAŞLAT
+// 🕷️ MANUEL SCRAPING BAŞLAT (TEMPORARILY DISABLED)
 export const runManualScraping = async (req: Request, res: Response) => {
   try {
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('🚀 MANUEL SCRAPING BAŞLATILDI!');
-    console.log('👤 User:', (req as any).user?.username);
-    console.log('🕒 Time:', new Date().toLocaleString('tr-TR'));
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
-    // Send immediate response
-    res.json({ 
-      success: true, 
-      message: 'Tarama başlatıldı - Sonuçlar WebSocket ile gelecek' 
+    res.status(503).json({ 
+      success: false, 
+      error: 'Fiyat tarama özelliği geçici olarak devre dışı (TypeScript build sorunları nedeniyle)',
+      message: 'Bu özellik yakında tekrar aktif edilecek'
     });
-
-    // Run scraping in background
-    benimPOSScraperService.runScraping().then((result) => {
-      if (result.success) {
-        console.log(`✅ Scraping tamamlandı: ${result.priceChanges.length} fiyat değişikliği, ${result.newProducts.length} yeni ürün`);
-        
-        // Send WebSocket notification
-        io.emit('scraping-completed', {
-          success: true,
-          priceChangesCount: result.priceChanges.length,
-          newProductsCount: result.newProducts.length,
-          priceChanges: result.priceChanges,
-          newProducts: result.newProducts,
-          timestamp: new Date(),
-        });
-      } else {
-        console.error('❌ Scraping başarısız:', result.error);
-        
-        io.emit('scraping-completed', {
-          success: false,
-          error: result.error,
-          timestamp: new Date(),
-        });
-      }
-    }).catch((error) => {
-      console.error('❌ SCRAPING PROMISE ERROR:', error);
-      io.emit('scraping-completed', {
-        success: false,
-        error: error.message,
-        timestamp: new Date(),
-      });
-    });
-    
-    // Response already sent above (line 175-178)
   } catch (error: any) {
     console.error('❌ MANUAL SCRAPING ERROR:', error);
     res.status(500).json({ error: 'Scraping başlatılamadı: ' + error.message });
