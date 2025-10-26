@@ -114,8 +114,6 @@ const POS: React.FC = () => {
               Html5QrcodeSupportedFormats.CODE_93,
               Html5QrcodeSupportedFormats.ITF,
               Html5QrcodeSupportedFormats.QR_CODE,
-              Html5QrcodeSupportedFormats.CODE_11,
-              Html5QrcodeSupportedFormats.CODABAR,
             ],
           });
           scannerRef.current = scanner;
@@ -126,17 +124,6 @@ const POS: React.FC = () => {
             qrbox: { width: 250, height: 150 }, // 🎯 Optimal focus area
             aspectRatio: 1.777778,
             disableFlip: false,
-            // 🔥 ADVANCED CAMERA SETTINGS
-            videoConstraints: {
-              facingMode: 'environment',
-              focusMode: 'continuous', // ✨ Sürekli otomatik odaklanma
-              advanced: [
-                { zoom: 2.0 }, // 🔍 2x zoom = daha net
-                { focusDistance: 0.1 }, // 📏 Yakın mesafe odaklama
-                { exposureMode: 'continuous' }, // 💡 Otomatik ışık ayarı
-                { whiteBalanceMode: 'continuous' }, // 🌈 Otomatik beyaz dengesi
-              ]
-            }
           };
 
           // ARKA KAMERA ID'sini bul (yüksek çözünürlüklü olanı seç)
