@@ -169,6 +169,13 @@ class BenimPOSScraperService {
           console.log(`🖱️  Dropdown'dan Sayfa ${currentPage} seçiliyor...`);
           
           try {
+            // Get first product name BEFORE page change (for verification)
+            const oldFirstProductName = await page.evaluate(() => {
+              const firstRow = document.querySelector('#myReportTable tbody tr:first-child td:nth-child(5) a');
+              return firstRow ? firstRow.textContent?.trim() : '';
+            });
+            console.log(`📌 Şu anki ilk ürün: "${oldFirstProductName}"`);
+            
             // ✅ CORRECT SELECTOR: select[name="page"]
             await page.waitForSelector('select[name="page"]', { timeout: 5000 });
             
@@ -188,12 +195,32 @@ class BenimPOSScraperService {
               throw new Error('"Görüntüle" butonu bulunamadı!');
             }
             
-            // Wait for page to load (form submit)
-            await new Promise(resolve => setTimeout(resolve, 3000));
+            // ✅ SMART WAIT: Wait for first product to CHANGE (proof that page loaded)
+            let pageChanged = false;
+            for (let i = 0; i < 10; i++) { // 10 attempts = 5 seconds
+              await new Promise(resolve => setTimeout(resolve, 500));
+              
+              const newFirstProductName = await page.evaluate(() => {
+                const firstRow = document.querySelector('#myReportTable tbody tr:first-child td:nth-child(5) a');
+                return firstRow ? firstRow.textContent?.trim() : '';
+              });
+              
+              if (newFirstProductName && newFirstProductName !== oldFirstProductName) {
+                pageChanged = true;
+                console.log(`✅ Sayfa ${currentPage} yüklendi! Yeni ilk ürün: "${newFirstProductName}"`);
+                break;
+              }
+            }
             
-            // Wait for table to update
+            if (!pageChanged) {
+              console.warn(`⚠️  UYARI: Sayfa ${currentPage} yüklendi ama ilk ürün değişmedi! (Hala: "${oldFirstProductName}")`);
+              console.warn(`⚠️  Bu sayfa muhtemelen öncekiyle aynı - son sayfaya ulaşılmış olabilir!`);
+              hasMorePages = false;
+              break;
+            }
+            
+            // Wait for table to fully update
             await page.waitForSelector('#myReportTable tbody tr', { timeout: 5000 });
-            console.log(`✅ Sayfa ${currentPage} yüklendi`);
             
           } catch (error: any) {
             console.error(`❌ Sayfa geçiş hatası: ${error.message}`);
