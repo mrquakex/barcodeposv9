@@ -705,7 +705,7 @@ const ExpressPOS: React.FC = () => {
                   duration: 2000,
                   icon: '🛒' 
                 });
-                playSound('success');
+                playSound('scan'); // 🔊 BARKOD OKUMA SESİ!
                 
                 // ✅ BAŞARILI FEEDBACK
                 setScanStatus('success');
@@ -879,15 +879,65 @@ const ExpressPOS: React.FC = () => {
     }
   };
 
-  // Ses çal
-  const playSound = (type: 'success' | 'error' | 'beep') => {
+  // 🔊 SES ÇALMA SİSTEMİ - Profesyonel Sesler
+  const playSound = (type: 'success' | 'error' | 'beep' | 'sale' | 'scan') => {
     if (!soundEnabled) return;
     
-    const audio = new Audio();
-    if (type === 'beep') {
-      audio.src = 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTgIFWi78OibUBELUKXh8LZkHQU5k9nyy3ksBS2Ay/HajDgJFmm98OqcUBELT6Ph8LRkHgU6lNvy0H0tBSx+zPDcjzkJFWm98OmcUhILTqPg8LNlHwU7ltvyzn0tBSt9y/DajzsKFWi88OidUxMLTaLf8LJmHwU8l9vyz38uBCp7yvDZkD4LFGe78OidVBQLTKDe8LFnIAU9mNzyz4EvBCl6yO/YkT8MFGa68OieVRUKS5/d8LBoIQU+md3yzoExBCh5xu/XkUEOE2S58OmeVhYKSpzd8K9pIgU+mt7yzYMyBCh4xO/WkUIRE2O48OqfVxYJSJrb8K5qIwQ/nN7yy4UzBSd2w+7VkUMUEmG38OqgWBcJRpjZ8K1rJAQ/nt/yyoU1BSZ0we3UkUUXEmC18OqhWRkIRZbY8Ktsk';
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    if (type === 'scan' || type === 'beep') {
+      // 🔍 BARKOD TARAMA SESİ - Profesyonel "beep"
+      oscillator.frequency.value = 1200; // Yüksek frekan s (net beep)
+      oscillator.type = 'sine';
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.1);
+    } else if (type === 'sale') {
+      // 💰 SATIŞ TAMAMLANDI SESİ - "Ka-ching!" kasa sesi
+      // İlk nota (yüksek)
+      oscillator.frequency.value = 800;
+      oscillator.type = 'triangle';
+      gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.15);
+      
+      // İkinci nota (daha yüksek) - paralel çal
+      setTimeout(() => {
+        const osc2 = audioContext.createOscillator();
+        const gain2 = audioContext.createGain();
+        osc2.connect(gain2);
+        gain2.connect(audioContext.destination);
+        osc2.frequency.value = 1200;
+        osc2.type = 'triangle';
+        gain2.gain.setValueAtTime(0.4, audioContext.currentTime);
+        gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+        osc2.start(audioContext.currentTime);
+        osc2.stop(audioContext.currentTime + 0.2);
+      }, 100);
+    } else if (type === 'success') {
+      // ✅ BAŞARILI - Pozitif ses
+      oscillator.frequency.value = 1000;
+      oscillator.type = 'sine';
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.2);
+    } else if (type === 'error') {
+      // ❌ HATA - Düşük frekans
+      oscillator.frequency.value = 300;
+      oscillator.type = 'sawtooth';
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.3);
     }
-    audio.play().catch(() => {});
   };
 
   // Barkod ile ürün ekle
@@ -908,7 +958,7 @@ const ExpressPOS: React.FC = () => {
 
       addToCart(product);
       setBarcode('');
-      playSound('beep');
+      playSound('scan'); // 🔊 BARKOD OKUMA SESİ!
       toast.success(`✅ ${product.name} sepete eklendi!`);
     } catch (error: any) {
       toast.error('❌ Ürün bulunamadı!');
@@ -1088,7 +1138,7 @@ const ExpressPOS: React.FC = () => {
 
       const response = await api.post('/sales', saleData);
       
-      playSound('success');
+      playSound('sale'); // 💰 SATIŞ TAMAMLANDI SESİ! (Ka-ching!)
       toast.success(`🎉 ${activeChannel.name} - Satış tamamlandı!`);
       
       // Fiş yazdırma modal göster
