@@ -66,15 +66,41 @@ const PriceChanges: React.FC = () => {
 
     // Socket.IO connection (WITHOUT /api prefix!)
     const socketURL = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api').replace('/api', '');
-    const socket = io(socketURL);
+    console.log('🔌 Connecting to Socket.IO:', socketURL);
+    
+    const socket = io(socketURL, {
+      transports: ['websocket', 'polling'], // Try websocket first
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5,
+    });
+
+    // Connection events
+    socket.on('connect', () => {
+      console.log('✅ Socket.IO connected:', socket.id);
+    });
+
+    socket.on('disconnect', () => {
+      console.log('❌ Socket.IO disconnected');
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('❌ Socket.IO connection error:', error);
+    });
 
     // 📡 Real-time progress
     socket.on('scraping-progress', (data) => {
+      console.log('📡 PROGRESS RECEIVED:', data); // ✅ DEBUG
       setProgress({
         current: data.current,
         total: data.total,
         productName: data.productName,
       });
+      
+      // Auto-enable scraping state if progress is received
+      if (!scraping) {
+        setScraping(true);
+      }
     });
 
     socket.on('scraping-completed', (data) => {
@@ -223,36 +249,75 @@ const PriceChanges: React.FC = () => {
       </CardHeader>
       
       <CardContent className="relative z-10">
-        {/* 🆕 Real-time Progress Bar */}
-        {scraping && progress && (
+        {/* 🆕 Real-time Progress Bar - BÜYÜK VE BELİRGİN */}
+        {(scraping || progress) && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-4 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-900/20 dark:to-slate-900/20 border-2 border-blue-300 dark:border-blue-700"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-6 p-6 rounded-2xl bg-gradient-to-br from-blue-500/10 via-slate-500/5 to-blue-500/10 dark:from-blue-500/20 dark:via-slate-500/10 dark:to-blue-500/20 border-3 border-blue-500 dark:border-blue-400 shadow-2xl"
           >
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-bold text-blue-700 dark:text-blue-300">
-                Taranıyor... {progress.current}/{progress.total}
-              </p>
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                %{Math.round((progress.current / progress.total) * 100)}
-              </p>
-            </div>
-            
-            {/* Progress bar */}
-            <div className="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden mb-2">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <motion.div
+                  className="w-3 h-3 rounded-full bg-blue-500"
+                  animate={{
+                    scale: [1, 1.3, 1],
+                    opacity: [1, 0.7, 1],
+                  }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                />
+                <p className="text-lg font-extrabold text-blue-700 dark:text-blue-300">
+                  📡 TARAMA DEVAM EDİYOR
+                </p>
+              </div>
               <motion.div
-                className="h-full bg-gradient-to-r from-blue-500 to-slate-600 rounded-full"
-                initial={{ width: 0 }}
-                animate={{ width: `${(progress.current / progress.total) * 100}%` }}
-                transition={{ duration: 0.3 }}
-              />
+                className="text-2xl font-black text-blue-600 dark:text-blue-400"
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ repeat: Infinity, duration: 2 }}
+              >
+                {progress ? `%${Math.round((progress.current / progress.total) * 100)}` : '%0'}
+              </motion.div>
             </div>
             
-            {/* Current product */}
-            <p className="text-xs font-medium text-slate-600 dark:text-slate-400 truncate">
-              📦 {progress.productName}
-            </p>
+            {/* Progress Count */}
+            {progress && (
+              <p className="text-base font-bold text-slate-700 dark:text-slate-300 mb-3">
+                📊 Taranan: <span className="text-blue-600 dark:text-blue-400">{progress.current}</span> / {progress.total} ürün
+              </p>
+            )}
+            
+            {/* Progress bar - BÜYÜK! */}
+            <div className="h-6 bg-slate-300/50 dark:bg-slate-700/50 rounded-full overflow-hidden mb-4 shadow-inner">
+              <motion.div
+                className="h-full bg-gradient-to-r from-blue-600 via-blue-500 to-slate-600 rounded-full flex items-center justify-end px-3"
+                initial={{ width: 0 }}
+                animate={{ 
+                  width: progress ? `${Math.max(5, (progress.current / progress.total) * 100)}%` : '5%',
+                }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+              >
+                <motion.div
+                  className="w-2 h-2 rounded-full bg-white shadow-lg"
+                  animate={{
+                    scale: [1, 1.5, 1],
+                  }}
+                  transition={{ repeat: Infinity, duration: 1 }}
+                />
+              </motion.div>
+            </div>
+            
+            {/* Current product - BÜYÜK! */}
+            {progress && progress.productName && (
+              <div className="bg-white/50 dark:bg-slate-800/50 p-3 rounded-xl border border-blue-300 dark:border-blue-700">
+                <p className="text-sm font-bold text-slate-600 dark:text-slate-400 mb-1">
+                  Şu anda:
+                </p>
+                <p className="text-base font-extrabold text-slate-900 dark:text-white truncate">
+                  📦 {progress.productName}
+                </p>
+              </div>
+            )}
           </motion.div>
         )}
         

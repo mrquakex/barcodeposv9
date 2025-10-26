@@ -135,6 +135,7 @@ class BenimPOSScraperService {
   /**
    * Scrape products from BenimPOS
    * 🆕 Now with PAGINATION support - scrapes ALL products!
+   * 📡 Real-time progress via Socket.IO
    */
   async scrapeProducts(page: Page): Promise<ScrapedProduct[]> {
     console.log('🕷️  Ürünler sayfası scraping başlatılıyor...');
@@ -143,9 +144,18 @@ class BenimPOSScraperService {
       const allProducts: ScrapedProduct[] = [];
       let currentPage = 1;
       let hasMorePages = true;
+      const estimatedTotal = 3000; // Tahmini toplam ürün sayısı (güncellenecek)
 
       while (hasMorePages) {
         console.log(`\n📄 Sayfa ${currentPage} taranıyor...`);
+
+        // 📡 EMIT SCRAPING PROGRESS (Sayfa taraması başlıyor)
+        io.emit('scraping-progress', {
+          current: allProducts.length,
+          total: estimatedTotal,
+          productName: `Sayfa ${currentPage} yükleniyor...`,
+          status: 'loading_page'
+        });
 
         // Only navigate on first page
         if (currentPage === 1) {
@@ -232,11 +242,32 @@ class BenimPOSScraperService {
                   barcode,
                   price,
                 });
+                
+                // 📡 EMIT PROGRESS (Her ürün parse edildiğinde)
+                if ((i + 1) % 10 === 0 || i === rows.length - 1) {
+                  // Her 10 üründe bir emit et (performans için)
+                  io.emit('scraping-progress', {
+                    current: allProducts.length,
+                    total: estimatedTotal,
+                    productName: name,
+                    status: 'scraping',
+                    page: currentPage
+                  });
+                }
               }
             }
           });
 
           console.log(`✅ ${allProducts.length} toplam ürün (şu ana kadar)`);
+          
+          // 📡 EMIT PROGRESS (Sayfa tamamlandı)
+          io.emit('scraping-progress', {
+            current: allProducts.length,
+            total: estimatedTotal,
+            productName: `Sayfa ${currentPage} tamamlandı! (${rows.length} ürün)`,
+            status: 'page_completed',
+            page: currentPage
+          });
 
           // Check if there's a next page
           // BenimPOS pagination: 32 pages total, 50 products per page
