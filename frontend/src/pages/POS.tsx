@@ -335,7 +335,8 @@ const POS: React.FC = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await api.get('/products', { params: { isActive: true } });
+      // 🌟 Sadece favori ürünleri getir (performans optimizasyonu)
+      const response = await api.get('/products/favorites');
       setProducts(response.data.products);
     } catch (error) {
       console.error('Products fetch error:', error);

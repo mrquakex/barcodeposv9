@@ -854,7 +854,8 @@ const ExpressPOS: React.FC = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await api.get('/products?limit=1000');
+      // 🌟 Sadece favori ürünleri getir (performans optimizasyonu - gecikme sorunu çözüldü)
+      const response = await api.get('/products/favorites');
       setProducts(response.data.products || []);
     } catch (error) {
       console.error('Products fetch error:', error);
