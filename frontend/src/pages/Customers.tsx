@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Customer } from '../types';
 import api from '../lib/api';
 import { formatCurrency, formatDate } from '../lib/utils';
-import { Plus, Search, Edit, Trash2, Users, X, Eye, TrendingUp, ShoppingCart, DollarSign, CreditCard, Calendar, Phone, Mail, MapPin, FileText, Receipt, CheckCircle2 } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Users, X, Eye, TrendingUp, ShoppingCart, DollarSign, CreditCard, Calendar, Phone, Mail, MapPin, FileText, Receipt, CheckCircle2, Package } from 'lucide-react';
 import toast from 'react-hot-toast';
 import StatCard from '../components/ui/StatCard';
 
@@ -464,30 +464,30 @@ const Customers: React.FC = () => {
                   <StatCard
                     title="Toplam Satış"
                     value={selectedCustomer.totalSales || 0}
+                    description="İşlem sayısı"
                     icon={ShoppingCart}
-                    trend={0}
-                    gradient="from-blue-600 to-blue-700"
+                    color="from-blue-600 to-blue-700"
                   />
                   <StatCard
                     title="Toplam Harcama"
                     value={formatCurrency(selectedCustomer.totalSpent || 0)}
+                    description="Toplam tutar"
                     icon={DollarSign}
-                    trend={0}
-                    gradient="from-slate-600 to-slate-700"
+                    color="from-slate-600 to-slate-700"
                   />
                   <StatCard
                     title="Borç"
                     value={formatCurrency(selectedCustomer.debt)}
+                    description="Bakiye durumu"
                     icon={TrendingUp}
-                    trend={0}
-                    gradient={selectedCustomer.debt > 0 ? "from-red-600 to-red-700" : "from-green-600 to-green-700"}
+                    color={selectedCustomer.debt > 0 ? "from-red-600 to-red-700" : "from-green-600 to-green-700"}
                   />
                   <StatCard
                     title="Alacak"
                     value={formatCurrency(selectedCustomer.credit)}
+                    description="Hesapta kalan"
                     icon={CreditCard}
-                    trend={0}
-                    gradient="from-blue-500 to-slate-600"
+                    color="from-blue-500 to-slate-600"
                   />
                 </div>
 

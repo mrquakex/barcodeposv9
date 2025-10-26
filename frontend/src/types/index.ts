@@ -39,9 +39,11 @@ export interface Customer {
   email?: string;
   phone?: string;
   address?: string;
+  taxNumber?: string;
   debt: number;
   credit: number;
   isActive: boolean;
+  notes?: string;
   createdAt: string;
   updatedAt: string;
 }
