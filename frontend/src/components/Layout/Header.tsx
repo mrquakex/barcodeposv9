@@ -18,12 +18,12 @@ const Header: React.FC = () => {
   }, []);
 
   return (
-    <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-950 dark:to-blue-950/30 px-3 md:px-6 flex items-center justify-between shadow-sm">
+    <header className="h-16 border-b border-border bg-background px-3 md:px-6 flex items-center justify-between">
       <div className="flex items-center gap-3 md:gap-6">
         <div>
-          {/* Desktop: Full welcome message */}
+          {/* Desktop: Full welcome message (Apple style) */}
           <div className="hidden md:flex items-center gap-2 mb-1">
-            <h2 className="text-xl font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+            <h2 className="text-[20px] font-semibold text-foreground tracking-tight">
               Hoş Geldiniz
             </h2>
           </div>
@@ -39,10 +39,10 @@ const Header: React.FC = () => {
             </span>
           </div>
           
-          {/* Desktop: Date & Time */}
-          <div className="hidden md:flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-1.5 text-muted-foreground font-semibold">
-              <Calendar className="w-4 h-4 text-blue-600" />
+          {/* Desktop: Date & Time (Apple style) */}
+          <div className="hidden md:flex items-center gap-4 text-[13px]">
+            <div className="flex items-center gap-1.5 text-muted-foreground font-medium">
+              <Calendar className="w-4 h-4 text-primary" />
               <span>
                 {currentTime.toLocaleDateString('tr-TR', { 
                   weekday: 'long', 
