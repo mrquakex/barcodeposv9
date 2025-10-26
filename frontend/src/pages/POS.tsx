@@ -151,23 +151,24 @@ const POS: React.FC = () => {
             console.warn('⚠️ Kamera listesi alınamadı, default kullanılıyor:', e);
           }
 
-          // 🎯 FULL HD VIDEO CONSTRAINTS (1920x1080)
-          const cameraConstraints = {
-            deviceId: cameraId !== 'environment' ? { exact: cameraId } : undefined,
-            facingMode: cameraId === 'environment' ? 'environment' : undefined,
-            width: { ideal: 1920, min: 1280 },  // Full HD ideal, minimum HD
-            height: { ideal: 1080, min: 720 },  // Full HD ideal, minimum 720p
-            frameRate: { ideal: 30, min: 20 },  // 30 FPS ideal
-            focusMode: 'continuous',             // Sürekli otomatik odaklanma
-            exposureMode: 'continuous',          // Otomatik ışık ayarı
-            whiteBalanceMode: 'continuous',      // Otomatik beyaz dengesi
+          // 🎯 FULL HD VIDEO CONSTRAINTS (videoConstraints içinde olmalı!)
+          const fullHDConfig = {
+            fps: 30,
+            qrbox: { width: 250, height: 150 },
+            aspectRatio: 1.777778,
+            disableFlip: false,
+            videoConstraints: {
+              facingMode: { exact: 'environment' },
+              width: { ideal: 1920, min: 1280 },   // Full HD width
+              height: { ideal: 1080, min: 720 },   // Full HD height
+            }
           };
 
           console.log('🎥 Full HD başlatılıyor: 1920x1080 @ 30fps');
 
           await scanner.start(
-            cameraConstraints,
-            config,
+            cameraId, // String olarak camera ID
+            fullHDConfig, // Config with videoConstraints
             async (decodedText) => {
               if (isProcessing) return;
               isProcessing = true;
