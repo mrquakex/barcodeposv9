@@ -170,7 +170,7 @@ class BenimPOSScraperService {
           
           try {
             // Get first product name BEFORE page change (for verification)
-            // @ts-expect-error - page.evaluate runs in browser context, document is available there
+            // @ts-ignore - page.evaluate runs in browser context, document is available there
             const oldFirstProductName = await page.evaluate(() => {
               const firstRow = document.querySelector('#myReportTable tbody tr:first-child td:nth-child(5) a');
               return firstRow ? firstRow.textContent?.trim() : '';
@@ -194,7 +194,7 @@ class BenimPOSScraperService {
             await page.waitForSelector('#myReportTable tbody tr', { timeout: 10000 });
             
             // ✅ NOW check if first product changed
-            // @ts-expect-error - page.evaluate runs in browser context, document is available there
+            // @ts-ignore - page.evaluate runs in browser context, document is available there
             const newFirstProductName = await page.evaluate(() => {
               const firstRow = document.querySelector('#myReportTable tbody tr:first-child td:nth-child(5) a');
               return firstRow ? firstRow.textContent?.trim() : '';
