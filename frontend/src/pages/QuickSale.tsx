@@ -5,7 +5,7 @@ import {
   ShoppingCart, 
   CreditCard, 
   Banknote, 
-  HandCoins,
+  Wallet,
   Trash2,
   Plus,
   Minus,
@@ -371,7 +371,7 @@ const QuickSale: React.FC = () => {
                       : 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white border-slate-200 dark:border-slate-600'
                   }`}
                 >
-                  <HandCoins className="w-6 h-6 mx-auto mb-2" />
+                  <Wallet className="w-6 h-6 mx-auto mb-2" />
                   VERESİYE
                 </button>
               </div>
