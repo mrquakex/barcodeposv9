@@ -4,12 +4,12 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Veritabanı seed başlıyor...');
+  console.log('🌱 Starting seed...');
 
-  // Admin kullanıcı oluştur
+  // 1. Create Admin User
   const hashedPassword = await bcrypt.hash('admin123', 10);
   
-  const admin = await prisma.user.upsert({
+  const adminUser = await prisma.user.upsert({
     where: { email: 'admin@barcodepos.com' },
     update: {},
     create: {
@@ -17,145 +17,127 @@ async function main() {
       password: hashedPassword,
       name: 'Admin User',
       role: 'ADMIN',
+      isActive: true,
     },
   });
 
-  console.log('✅ Admin kullanıcı oluşturuldu:', admin.email);
+  console.log('✅ Admin user created:', adminUser.email);
 
-  // Kasiyer oluştur
-  const cashier = await prisma.user.upsert({
-    where: { email: 'kasiyer@barcodepos.com' },
+  // 2. Create Categories
+  const categories = [
+    { name: 'Beverages' },
+    { name: 'Snacks' },
+    { name: 'Electronics' },
+    { name: 'Clothing' },
+    { name: 'Home & Kitchen' },
+  ];
+
+  const createdCategories = await Promise.all(
+    categories.map((cat) =>
+      prisma.category.upsert({
+        where: { name: cat.name },
+        update: {},
+        create: cat,
+      })
+    )
+  );
+
+  console.log(`✅ ${createdCategories.length} categories created`);
+
+  // 3. Create Sample Products
+  const products = [
+    {
+      barcode: '1234567890123',
+      name: 'Coca Cola 330ml',
+      sellPrice: 15.0,
+      buyPrice: 10.0,
+      stock: 100,
+      minStock: 10,
+      unit: 'Adet',
+      taxRate: 18,
+      categoryId: createdCategories[0].id,
+    },
+    {
+      barcode: '1234567890124',
+      name: 'Lays Chips 150g',
+      sellPrice: 25.0,
+      buyPrice: 18.0,
+      stock: 50,
+      minStock: 10,
+      unit: 'Adet',
+      taxRate: 18,
+      categoryId: createdCategories[1].id,
+    },
+    {
+      barcode: '1234567890125',
+      name: 'Samsung USB Cable',
+      sellPrice: 45.0,
+      buyPrice: 30.0,
+      stock: 30,
+      minStock: 5,
+      unit: 'Adet',
+      taxRate: 18,
+      categoryId: createdCategories[2].id,
+    },
+  ];
+
+  const createdProducts = await Promise.all(
+    products.map((product) =>
+      prisma.product.upsert({
+        where: { barcode: product.barcode },
+        update: {},
+        create: product,
+      })
+    )
+  );
+
+  console.log(`✅ ${createdProducts.length} products created`);
+
+  // 4. Create Sample Customer
+  const customer = await prisma.customer.upsert({
+    where: { email: 'john@example.com' },
     update: {},
     create: {
-      email: 'kasiyer@barcodepos.com',
-      password: await bcrypt.hash('kasiyer123', 10),
-      name: 'Kasiyer User',
-      role: 'CASHIER',
+      name: 'John Doe',
+      email: 'john@example.com',
+      phone: '+90 555 123 4567',
+      address: 'Istanbul, Turkey',
+      debt: 0,
+      loyaltyPoints: 0,
+      totalSpent: 0,
     },
   });
 
-  console.log('✅ Kasiyer kullanıcı oluşturuldu:', cashier.email);
+  console.log('✅ Sample customer created:', customer.name);
 
-  // Kategoriler oluştur
-  const categories = await Promise.all([
-    prisma.category.upsert({
-      where: { id: '1' },
-      update: {},
-      create: { id: '1', name: 'Gıda' },
-    }),
-    prisma.category.upsert({
-      where: { id: '2' },
-      update: {},
-      create: { id: '2', name: 'İçecek' },
-    }),
-    prisma.category.upsert({
-      where: { id: '3' },
-      update: {},
-      create: { id: '3', name: 'Temizlik' },
-    }),
-    prisma.category.upsert({
-      where: { id: '4' },
-      update: {},
-      create: { id: '4', name: 'Kişisel Bakım' },
-    }),
-  ]);
-
-  console.log('✅ Kategoriler oluşturuldu:', categories.length);
-
-  // Örnek ürünler oluştur
-  const products = await Promise.all([
-    prisma.product.upsert({
-      where: { barcode: '8690504001234' },
-      update: {},
-      create: {
-        barcode: '8690504001234',
-        name: 'Ekmek',
-        price: 5.50,
-        cost: 3.00,
-        stock: 100,
-        unit: 'Adet',
-        taxRate: 8,
-        minStock: 20,
-        categoryId: '1',
-      },
-    }),
-    prisma.product.upsert({
-      where: { barcode: '8690504002234' },
-      update: {},
-      create: {
-        barcode: '8690504002234',
-        name: 'Süt 1L',
-        price: 25.00,
-        cost: 18.00,
-        stock: 50,
-        unit: 'Adet',
-        taxRate: 8,
-        minStock: 10,
-        categoryId: '1',
-      },
-    }),
-    prisma.product.upsert({
-      where: { barcode: '8690504003234' },
-      update: {},
-      create: {
-        barcode: '8690504003234',
-        name: 'Kola 330ml',
-        price: 15.00,
-        cost: 10.00,
-        stock: 200,
-        unit: 'Adet',
-        taxRate: 18,
-        minStock: 30,
-        categoryId: '2',
-      },
-    }),
-    prisma.product.upsert({
-      where: { barcode: '8690504004234' },
-      update: {},
-      create: {
-        barcode: '8690504004234',
-        name: 'Deterjan 3kg',
-        price: 120.00,
-        cost: 85.00,
-        stock: 30,
-        unit: 'Adet',
-        taxRate: 18,
-        minStock: 5,
-        categoryId: '3',
-      },
-    }),
-  ]);
-
-  console.log('✅ Ürünler oluşturuldu:', products.length);
-
-  // Market ayarları
+  // 5. Create Settings
   const settings = await prisma.settings.upsert({
-    where: { id: 'default' },
+    where: { id: '1' },
     update: {},
     create: {
-      id: 'default',
-      storeName: 'Benim Marketim',
-      storeAddress: 'İstanbul, Türkiye',
-      storePhone: '+90 555 123 4567',
-      storeEmail: 'info@benimmarketim.com',
-      currency: 'TL',
+      id: '1',
+      storeName: 'BarcodePOS Store',
+      storeAddress: 'Istanbul, Turkey',
+      storePhone: '+90 555 000 0000',
+      storeEmail: 'info@barcodepos.com',
+      currency: 'TRY',
+      locale: 'tr-TR',
+      timezone: 'Europe/Istanbul',
       theme: 'light',
-      receiptFooter: 'Alışverişiniz için teşekkür ederiz!',
+      receiptFooter: 'Thank you for your purchase!',
     },
   });
 
-  console.log('✅ Market ayarları oluşturuldu');
+  console.log('✅ Settings created');
 
-  console.log('🎉 Seed tamamlandı!');
+  console.log('🎉 Seed completed successfully!');
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Seed hatası:', e);
+    console.error('❌ Seed error:', e);
     process.exit(1);
   })
   .finally(async () => {
     await prisma.$disconnect();
   });
-
-
