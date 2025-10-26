@@ -28,7 +28,7 @@ interface PriceChange {
 }
 
 const PriceChanges: React.FC = () => {
-  const [priceChanges, setPrice Changes] = useState<PriceChange[]>([]);
+  const [priceChanges, setPriceChanges] = useState<PriceChange[]>([]);
   const [loading, setLoading] = useState(true);
   const [scraping, setScraping] = useState(false);
   const [stats, setStats] = useState<any>({});
