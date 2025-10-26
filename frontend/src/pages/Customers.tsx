@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader } from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
@@ -34,6 +35,7 @@ interface CustomerDetail extends Customer {
 }
 
 const Customers: React.FC = () => {
+  const navigate = useNavigate();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -415,7 +417,7 @@ const Customers: React.FC = () => {
                   <TableRow key={customer.id} className="hover:bg-blue-50 dark:hover:bg-blue-950/10 transition-colors">
                     <TableCell 
                       className="font-bold text-slate-900 dark:text-white cursor-pointer hover:text-blue-600 transition-colors"
-                      onClick={() => viewCustomerDetail(customer.id)}
+                      onClick={() => navigate(`/customers/${customer.id}`)}
                     >
                       <div className="flex items-center gap-2">
                         <Eye className="w-4 h-4 text-blue-600" />
