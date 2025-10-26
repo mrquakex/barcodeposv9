@@ -170,9 +170,6 @@ const Login: React.FC = () => {
                 <div className="space-y-1 md:space-y-2">
                   <div className="flex flex-col md:flex-row items-center justify-center gap-2">
                     <h2 className="text-2xl md:text-3xl font-black text-white">Hoş Geldiniz</h2>
-                    <span className="px-2 md:px-3 py-0.5 md:py-1 rounded-full bg-gradient-to-r from-blue-600 to-slate-700 text-white text-xs font-black shadow-lg">
-                      ENTERPRISE
-                    </span>
                   </div>
                   <p className="text-sm md:text-base text-gray-300 font-semibold">Devam etmek için giriş yapın</p>
                 </div>

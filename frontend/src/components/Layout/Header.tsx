@@ -26,9 +26,6 @@ const Header: React.FC = () => {
             <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 to-slate-700 bg-clip-text text-transparent flex items-center gap-2">
               Hoş Geldiniz
             </h2>
-            <span className="px-3 py-1 text-xs font-black text-white bg-gradient-to-r from-blue-600 to-slate-700 rounded-full shadow-lg">
-              ENTERPRISE
-            </span>
           </div>
           
           {/* Mobile: Only clock (compact) */}
@@ -73,7 +70,6 @@ const Header: React.FC = () => {
         {/* AI Status Badge */}
         <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-slate-50 dark:from-blue-950/30 dark:to-slate-950/30 border-2 border-blue-200 dark:border-blue-900 rounded-xl shadow-md">
           <Sparkles className="w-5 h-5 text-blue-600" />
-          <span className="text-sm font-black bg-gradient-to-r from-blue-600 to-slate-700 bg-clip-text text-transparent">Advanced System</span>
         </div>
 
         {/* User Info - Sağ Üst Köşe */}
