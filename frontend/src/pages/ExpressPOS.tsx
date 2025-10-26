@@ -31,6 +31,7 @@ import {
   Users,
   Package,
   Zap,
+  ShoppingCart,
 } from 'lucide-react';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import api from '../lib/api';
@@ -1747,30 +1748,49 @@ const ExpressPOS: React.FC = () => {
             <div className="bg-gradient-to-r from-blue-600 to-slate-700 p-4 flex items-center justify-between">
               <h3 className="text-xl font-black text-white flex items-center gap-2">
                 <Camera className="w-6 h-6" />
-                BARKOD OKUYUCU
+                <span className="hidden sm:inline">BARKOD OKUYUCU</span>
+                <span className="sm:hidden">OKUYUCU</span>
               </h3>
-              <button
-                onClick={() => {
-                  setShowCamera(false);
-                  setScanStatus('idle');
-                  setFlashEffect('none');
-                  setCameraInfo(prev => ({ ...prev, scanCount: 0 }));
-                  setTorchEnabled(false);
-                  setZoomLevel(1.0);
-                  setLastScanTime(0);
-                  setScanQuality('good');
-                  setBrightnessLevel(-1);
-                  setContrastLevel(1);
-                  resetAutoRetry(); // Reset auto-retry state
-                  if (videoStreamRef.current) {
-                    videoStreamRef.current.getTracks().forEach(track => track.stop());
-                    videoStreamRef.current = null;
-                  }
-                }}
-                className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
-              >
-                <X className="w-6 h-6 text-white" />
-              </button>
+              
+              {/* 📦 MOBİL SEPET ÖZETİ - Sadece mobilde görünür */}
+              <div className="flex items-center gap-2">
+                {cart.length > 0 && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="md:hidden bg-green-500 rounded-lg px-3 py-2 flex items-center gap-2 shadow-lg"
+                  >
+                    <ShoppingCart className="w-5 h-5 text-white" />
+                    <div className="text-white font-black">
+                      <div className="text-xs leading-none">{cart.length} Ürün</div>
+                      <div className="text-sm leading-none">{totalAmount.toFixed(0)} ₺</div>
+                    </div>
+                  </motion.div>
+                )}
+                
+                <button
+                  onClick={() => {
+                    setShowCamera(false);
+                    setScanStatus('idle');
+                    setFlashEffect('none');
+                    setCameraInfo(prev => ({ ...prev, scanCount: 0 }));
+                    setTorchEnabled(false);
+                    setZoomLevel(1.0);
+                    setLastScanTime(0);
+                    setScanQuality('good');
+                    setBrightnessLevel(-1);
+                    setContrastLevel(1);
+                    resetAutoRetry(); // Reset auto-retry state
+                    if (videoStreamRef.current) {
+                      videoStreamRef.current.getTracks().forEach(track => track.stop());
+                      videoStreamRef.current = null;
+                    }
+                  }}
+                  className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors"
+                >
+                  <X className="w-6 h-6 text-white" />
+                </button>
+              </div>
             </div>
 
             {/* Scanner Container - FULL SCREEN */}
@@ -2196,6 +2216,35 @@ const ExpressPOS: React.FC = () => {
                   </div>
                 </div>
               </div>
+              
+              {/* 🛒 SEPETİ GÖR BUTONU - Sadece mobilde, sepet doluysa */}
+              {cart.length > 0 && (
+                <motion.button
+                  onClick={() => {
+                    setShowCamera(false);
+                    setScanStatus('idle');
+                    setFlashEffect('none');
+                    setCameraInfo(prev => ({ ...prev, scanCount: 0 }));
+                    setTorchEnabled(false);
+                    setZoomLevel(1.0);
+                    setLastScanTime(0);
+                    setScanQuality('good');
+                    setBrightnessLevel(-1);
+                    setContrastLevel(1);
+                    resetAutoRetry();
+                    if (videoStreamRef.current) {
+                      videoStreamRef.current.getTracks().forEach(track => track.stop());
+                      videoStreamRef.current = null;
+                    }
+                    toast.success('📦 Sepet görüntüleniyor', { duration: 1000 });
+                  }}
+                  whileTap={{ scale: 0.95 }}
+                  className="md:hidden w-full bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 text-white font-black py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all"
+                >
+                  <ShoppingCart className="w-6 h-6" />
+                  SEPETİ GÖR ({cart.length} Ürün - {totalAmount.toFixed(0)} ₺)
+                </motion.button>
+              )}
             </div>
           </motion.div>
         )}
