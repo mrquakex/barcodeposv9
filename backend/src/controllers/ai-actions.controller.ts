@@ -215,3 +215,59 @@ export const deleteInactiveProducts = async (req: Request, res: Response) => {
   }
 };
 
+// 📊 AI ACTION: Generate chart data
+export const generateChartData = async (req: Request, res: Response) => {
+  try {
+    const { chartType, dataType, period } = req.body;
+
+    let chartData: any = {};
+
+    if (dataType === 'sales' && period) {
+      // Son X günün satışları
+      const days = parseInt(period.replace('days', ''));
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - days);
+
+      const sales = await prisma.sale.findMany({
+        where: {
+          createdAt: { gte: startDate },
+        },
+        orderBy: { createdAt: 'asc' },
+        select: {
+          totalAmount: true,
+          createdAt: true,
+        },
+      });
+
+      // Group by date
+      const salesByDate: any = {};
+      sales.forEach(sale => {
+        const date = sale.createdAt.toISOString().split('T')[0];
+        if (!salesByDate[date]) {
+          salesByDate[date] = 0;
+        }
+        salesByDate[date] += sale.totalAmount;
+      });
+
+      chartData = {
+        type: chartType || 'line',
+        labels: Object.keys(salesByDate),
+        datasets: [{
+          label: 'Satış (TL)',
+          data: Object.values(salesByDate),
+          borderColor: 'rgb(59, 130, 246)',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        }],
+      };
+    }
+
+    res.json({
+      success: true,
+      chartData,
+    });
+  } catch (error: any) {
+    console.error('❌ Generate chart data error:', error);
+    res.status(500).json({ error: 'Grafik oluşturulamadı: ' + error.message });
+  }
+};
+
