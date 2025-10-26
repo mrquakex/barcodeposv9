@@ -352,18 +352,19 @@ const ExpressPOS: React.FC = () => {
           });
           scannerRef.current = scanner;
 
-          // MOBİL için optimize config
+          // HD KALITE MOBİL + DESKTOP için optimize config
           const config = {
-            fps: 10, // Mobilde 10 FPS yeterli (30 çok ağır)
-            qrbox: { width: 250, height: 150 }, // Sabit boyut (daha stabil)
+            fps: 15, // 15 FPS optimal (10→15)
+            qrbox: { width: 300, height: 180 }, // Daha büyük tarama alanı (250x150 → 300x180)
             aspectRatio: 1.777778,
             disableFlip: false,
           };
 
-          // MOBİL için basit constraints
+          // HD VIDEO CONSTRAINTS - Mobil + Desktop optimize
           const videoConstraints = {
             facingMode: 'environment',
-            // Mobilde çok yüksek çözünürlük sorun yaratır
+            width: { ideal: 1920, min: 1280 }, // HD çözünürlük
+            height: { ideal: 1080, min: 720 }, // HD çözünürlük
           };
 
           await scanner.start(
@@ -376,13 +377,26 @@ const ExpressPOS: React.FC = () => {
               }
 
               isProcessing = true;
-              console.log('✅ BARKOD:', decodedText);
+              
+              // BARKOD TEMİZLE (boşluk, özel karakter, normalize)
+              const cleanBarcode = decodedText.trim().replace(/\s+/g, '').toUpperCase();
+              console.log('✅ BARKOD (RAW):', decodedText);
+              console.log('✅ BARKOD (CLEAN):', cleanBarcode);
               playSound('beep');
               
               // Ürünü bul ve sepete ekle
               try {
                 toast.loading('🔍 Aranıyor...');
-                const response = await api.get(`/products/barcode/${decodedText}`);
+                
+                // Hem temiz hem RAW barkod ile dene
+                let response;
+                try {
+                  response = await api.get(`/products/barcode/${encodeURIComponent(cleanBarcode)}`);
+                } catch {
+                  // Temiz barkod bulamazsa RAW dene
+                  response = await api.get(`/products/barcode/${encodeURIComponent(decodedText)}`);
+                }
+                
                 const product = response.data.product;
 
                 toast.dismiss();
@@ -407,8 +421,9 @@ const ExpressPOS: React.FC = () => {
                 }, 800);
               } catch (error: any) {
                 toast.dismiss();
-                console.error('❌ Ürün yok:', decodedText);
-                toast.error(`❌ Ürün bulunamadı: ${decodedText}`, { duration: 4000 });
+                console.error('❌ Ürün yok (Clean):', cleanBarcode);
+                console.error('❌ Ürün yok (RAW):', decodedText);
+                toast.error(`❌ Ürün bulunamadı: ${cleanBarcode}`, { duration: 5000 });
                 playSound('error');
                 isProcessing = false;
               }
@@ -1376,16 +1391,57 @@ const ExpressPOS: React.FC = () => {
                 id="barcode-scanner" 
                 className="w-full h-full"
               />
+              
+              {/* KIRMIZI LAZER TARAMA ÇİZGİSİ - Animasyonlu */}
+              <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                <div className="relative w-full max-w-md h-64">
+                  {/* Kırmızı tarama çizgisi */}
+                  <motion.div
+                    className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-red-500 to-transparent shadow-[0_0_20px_rgba(239,68,68,0.8)]"
+                    style={{
+                      boxShadow: '0 0 20px rgba(239, 68, 68, 0.8), 0 0 40px rgba(239, 68, 68, 0.6), 0 0 60px rgba(239, 68, 68, 0.4)'
+                    }}
+                    animate={{
+                      top: ['0%', '100%', '0%'],
+                    }}
+                    transition={{
+                      duration: 2.5,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                    }}
+                  />
+                  
+                  {/* Çerçeve köşeleri */}
+                  <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-red-500" />
+                  <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-red-500" />
+                  <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-red-500" />
+                  <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-red-500" />
+                  
+                  {/* Pulse efekt */}
+                  <motion.div
+                    className="absolute inset-0 border-2 border-red-500/30 rounded-lg"
+                    animate={{
+                      opacity: [0.3, 0.6, 0.3],
+                      scale: [0.98, 1, 0.98],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                    }}
+                  />
+                </div>
+              </div>
             </div>
             
             {/* Footer - Talimatlar */}
             <div className="bg-gradient-to-r from-blue-600 to-slate-700 p-5 space-y-3">
               <div className="bg-white/10 rounded-lg p-3 space-y-2">
                 <p className="text-base text-white text-center font-black">
-                  📸 KIRMIZI ÇERÇEVE İÇİNE GETİRİN
+                  📸 KIRMIZI LAZER İÇİNE GETİRİN
                 </p>
                 <p className="text-sm text-blue-100 text-center font-bold">
-                  ⚡ Mobil Optimize • 9 Format • Otomatik Odak
+                  📡 HD Kamera • 15 FPS • 9 Format • Otomatik Odak
                 </p>
               </div>
               
