@@ -21,6 +21,7 @@ import PurchaseOrders from './pages/PurchaseOrders';
 import Sales from './pages/Sales';
 import Invoices from './pages/Invoices';
 import InvoiceCreate from './pages/InvoiceCreate';
+import CashRegister from './pages/CashRegister';
 import SalesReport from './pages/Reports/SalesReport';
 import ProductReport from './pages/Reports/ProductReport';
 import Campaigns from './pages/Campaigns';
@@ -54,6 +55,7 @@ const App: React.FC = () => {
             <Route path="purchase-orders" element={<PurchaseOrders />} />
             <Route path="invoices" element={<Invoices />} />
             <Route path="invoices/create" element={<InvoiceCreate />} />
+            <Route path="cash-register" element={<CashRegister />} />
             <Route path="reports" element={<Reports />} />
             <Route path="reports/sales" element={<SalesReport />} />
             <Route path="reports/products" element={<ProductReport />} />
