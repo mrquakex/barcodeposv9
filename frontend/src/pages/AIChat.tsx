@@ -18,6 +18,7 @@ import {
 import api from '../lib/api';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
+import VoiceButton from '../components/VoiceCommand/VoiceButton';
 
 interface Message {
   id: string;
@@ -93,6 +94,55 @@ const AIChat: React.FC = () => {
         case 'DELETE_INACTIVE':
           endpoint = '/ai-actions/delete-inactive';
           payload = {};
+          break;
+
+        case 'SHOW_CHART':
+          endpoint = '/ai-actions/generate-chart';
+          payload = {
+            chartType: actionData?.chartType,
+            dataType: actionData?.dataType,
+            period: actionData?.period,
+          };
+          break;
+
+        case 'SHOW_PREDICTIONS':
+          endpoint = '/ai-advanced/predictions';
+          payload = {};
+          break;
+
+        case 'NATURAL_QUERY':
+          endpoint = '/ai-advanced/query';
+          payload = {
+            query: actionData?.query,
+          };
+          break;
+
+        case 'CREATE_SCHEDULE':
+          endpoint = '/ai-advanced/schedule';
+          payload = {
+            name: actionData?.name,
+            actionType: actionData?.actionType,
+            schedule: actionData?.schedule,
+            actionData: {},
+          };
+          break;
+
+        case 'EXPORT_REPORT':
+          endpoint = '/ai-advanced/export';
+          payload = {
+            reportType: actionData?.reportType,
+            format: actionData?.format,
+            period: actionData?.period,
+          };
+          break;
+
+        case 'SEND_MESSAGE':
+          endpoint = '/ai-advanced/send-message';
+          payload = {
+            channel: actionData?.channel,
+            recipients: actionData?.recipients,
+            message: actionData?.message,
+          };
           break;
 
         default:
@@ -224,6 +274,16 @@ const AIChat: React.FC = () => {
       e.preventDefault();
       handleSend();
     }
+  };
+
+  const handleVoiceInput = (text: string) => {
+    setInput(text);
+    // Auto-send after voice input (optional)
+    setTimeout(() => {
+      if (text.trim()) {
+        handleSend();
+      }
+    }, 500);
   };
 
   const quickActions = [
@@ -451,6 +511,12 @@ const AIChat: React.FC = () => {
               placeholder="Sorunuzu yazın..."
               className="flex-1 px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-blue-200 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-600 focus:outline-none resize-none font-medium text-sm text-slate-900 dark:text-white placeholder-slate-400 shadow-lg focus:shadow-xl transition-all"
               rows={2}
+              disabled={loading}
+            />
+            
+            {/* Voice Button */}
+            <VoiceButton 
+              onVoiceInput={handleVoiceInput}
               disabled={loading}
             />
             

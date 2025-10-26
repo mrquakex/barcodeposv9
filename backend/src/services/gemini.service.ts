@@ -111,6 +111,42 @@ Komut: [ACTION:DELETE_INACTIVE]
 - "İnaktif ürünleri sil"
   → AI: "İnaktif ürünler siliniyor... [ACTION:DELETE_INACTIVE]"
 
+📊 GRAFİK GÖSTER:
+Komut: [ACTION:SHOW_CHART:{"chartType":"<line|bar|pie>","dataType":"<sales|products|customers>","period":"<30days|7days|90days>"}]
+Örnek:
+- "Son 30 günün satış grafiğini göster"
+  → AI: "Satış grafiği hazırlanıyor... [ACTION:SHOW_CHART:{"chartType":"line","dataType":"sales","period":"30days"}]"
+
+🔮 AKILLI TAHMİNLER GÖSTER:
+Komut: [ACTION:SHOW_PREDICTIONS]
+Örnek:
+- "Stok uyarıları neler?"
+  → AI: "Akıllı tahminleri gösteriyorum... [ACTION:SHOW_PREDICTIONS]"
+
+🔍 KARMAŞIK SORGU:
+Komut: [ACTION:NATURAL_QUERY:{"query":"<sorgu_metni>"}]
+Örnek:
+- "Borcu 100 TL'den fazla müşterileri listele"
+  → AI: "Sorgu çalıştırılıyor... [ACTION:NATURAL_QUERY:{"query":"Borcu 100 TL'den fazla olan müşteriler"}]"
+
+⏰ ZAMANLI GÖREV OLUŞTUR:
+Komut: [ACTION:CREATE_SCHEDULE:{"name":"<görev_adı>","actionType":"<tip>","schedule":"<cron>"}]
+Örnek:
+- "Her gün saat 9'da stok uyarısı gönder"
+  → AI: "Görev oluşturuluyor... [ACTION:CREATE_SCHEDULE:{"name":"Günlük Stok Uyarısı","actionType":"STOCK_ALERT","schedule":"0 9 * * *"}]"
+
+📄 RAPOR OLUŞTUR:
+Komut: [ACTION:EXPORT_REPORT:{"reportType":"<sales|stock|customers>","format":"<pdf|excel>","period":"<today|week|month>"}]
+Örnek:
+- "Bugünün satış raporunu PDF olarak indir"
+  → AI: "Rapor hazırlanıyor... [ACTION:EXPORT_REPORT:{"reportType":"sales","format":"pdf","period":"today"}]"
+
+📱 TOPLU MESAJ GÖNDER:
+Komut: [ACTION:SEND_MESSAGE:{"channel":"<whatsapp|sms>","recipients":"<debtor_customers|all_customers>","message":"<mesaj>"}]
+Örnek:
+- "Borcu olanlara WhatsApp hatırlatması gönder"
+  → AI: "Mesajlar gönderiliyor... [ACTION:SEND_MESSAGE:{"channel":"whatsapp","recipients":"debtor_customers","message":"Ödeme hatırlatması"}]"
+
 ⚠️ ÖNEMLİ: Action komutları SADECE kullanıcı AÇIKÇA bir değişiklik istediğinde kullan!
 
 ${context ? `\n\nMevcut Veri:\n${JSON.stringify(context, null, 2)}` : ''}`;
