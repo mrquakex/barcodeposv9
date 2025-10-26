@@ -264,7 +264,12 @@ class BenimPOSScraperService {
         }
       }
 
-      console.log(`\n🎉 TOPLAM ${allProducts.length} ÜRÜN TARANACAK!`);
+      // 📊 Final summary
+      console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+      console.log(`📊 BenimPOS'ta Toplam Ürün: ${allProducts.length} ürün`);
+      console.log(`📊 Taranan Ürün: ${allProducts.length} / ${allProducts.length} ✅`);
+      console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
+      
       return allProducts;
 
     } catch (error: any) {
@@ -402,30 +407,31 @@ class BenimPOSScraperService {
       }
     }
 
-      console.log(`\n📊 ===== TARAMA SONUÇLARI =====`);
-    console.log(`✅ ${priceChanges.length} fiyat değişikliği tespit edildi`);
-    console.log(`🆕 ${newProducts.length} yeni ürün bulundu`);
+      console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+    console.log(`📊 ===== TARAMA SONUÇLARI =====`);
+    console.log(`💰 Güncellenmesi Gereken: ${priceChanges.length} ürün`);
+    console.log(`🆕 Eklenmesi Gereken: ${newProducts.length} ürün`);
     
-    // Detaylı log - Fiyat değişiklikleri
+    // Detaylı log - Güncellenmesi gerekenler
     if (priceChanges.length > 0) {
-      console.log(`\n💰 FİYAT DEĞİŞİKLİKLERİ:`);
+      console.log(`\n💰 GÜNCELLENMESI GEREKEN ÜRÜNLER:`);
       priceChanges.forEach((change, i) => {
         const direction = change.difference > 0 ? '⬆️ ARTIŞ' : '⬇️ DÜŞÜŞ';
         console.log(`  ${i + 1}. ${change.productName} (${change.barcode})`);
-        console.log(`     ${change.oldPrice} TL → ${change.newPrice} TL (${direction}: ${change.percentage.toFixed(2)}%)`);
+        console.log(`     Bizim: ${change.oldPrice} TL → BenimPOS: ${change.newPrice} TL (${direction}: ${change.percentage.toFixed(2)}%)`);
       });
     }
     
-    // Detaylı log - Yeni ürünler
+    // Detaylı log - Eklenmesi gerekenler
     if (newProducts.length > 0) {
-      console.log(`\n🆕 YENİ ÜRÜNLER:`);
+      console.log(`\n🆕 EKLENMESİ GEREKEN YENİ ÜRÜNLER:`);
       newProducts.forEach((product, i) => {
         console.log(`  ${i + 1}. ${product.name} (${product.barcode || 'Barkod yok'})`);
-        console.log(`     Fiyat: ${product.price} TL`);
+        console.log(`     BenimPOS Fiyatı: ${product.price} TL`);
       });
     }
     
-    console.log(`\n==============================\n`);
+    console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
     
     return { priceChanges, newProducts };
   }
@@ -539,13 +545,14 @@ class BenimPOSScraperService {
       const duration = ((Date.now() - startTime) / 1000).toFixed(2);
       
       // ✅ DETAYLI ÖZET
-      console.log(`\n🎉 ===== SCRAPING TAMAMLANDI! =====`);
-      console.log(`⏱️  Süre: ${duration}s`);
-      console.log(`📊 Taranan Ürün: ${scrapedProducts.length}`);
-      console.log(`✅ Geçerli Ürün: ${scrapedProducts.length}`);
-      console.log(`💰 Fiyat Değişikliği: ${priceChanges.length}`);
-      console.log(`🆕 Yeni Ürün: ${newProducts.length}`);
-      console.log(`===================================\n`);
+      console.log(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+      console.log(`🎉 ===== TARAMA TAMAMLANDI! =====`);
+      console.log(`⏱️  Toplam Süre: ${duration} saniye`);
+      console.log(`\n📊 BenimPOS'ta Toplam Ürün: ${scrapedProducts.length} ürün`);
+      console.log(`📊 Taranan Ürün: ${scrapedProducts.length} / ${scrapedProducts.length} ✅`);
+      console.log(`\n💰 Güncellenmesi Gereken: ${priceChanges.length} ürün`);
+      console.log(`🆕 Eklenmesi Gereken: ${newProducts.length} ürün`);
+      console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`);
 
       // Update scraper config - success
       await prisma.scraperConfig.updateMany({

@@ -198,7 +198,7 @@ async function initializeScraperCron() {
         const result = await benimPOSScraperService.runScraping();
         
         if (result.success) {
-          console.log(`✅ Sabah taraması tamamlandı: ${result.priceChanges.length} fiyat değişikliği, ${result.newProducts.length} yeni ürün`);
+          console.log(`✅ Sabah taraması tamamlandı: ${result.priceChanges.length} ürün güncellenmeli, ${result.newProducts.length} ürün eklenmeli`);
           
           io.emit('scraping-completed', {
             success: true,
@@ -212,7 +212,7 @@ async function initializeScraperCron() {
 
           io.emit('notification', {
             title: '🌅 Sabah Fiyat Taraması Tamamlandı!',
-            message: `${result.priceChanges.length} fiyat değişikliği ve ${result.newProducts.length} yeni ürün tespit edildi.`,
+            message: `${result.priceChanges.length} ürün güncellenmeli, ${result.newProducts.length} ürün eklenmeli.`,
             type: 'success',
             timestamp: new Date(),
           });
@@ -234,7 +234,7 @@ async function initializeScraperCron() {
         const result = await benimPOSScraperService.runScraping();
         
         if (result.success) {
-          console.log(`✅ Gece taraması tamamlandı: ${result.priceChanges.length} fiyat değişikliği, ${result.newProducts.length} yeni ürün`);
+          console.log(`✅ Gece taraması tamamlandı: ${result.priceChanges.length} ürün güncellenmeli, ${result.newProducts.length} ürün eklenmeli`);
           
           io.emit('scraping-completed', {
             success: true,
@@ -248,7 +248,7 @@ async function initializeScraperCron() {
 
           io.emit('notification', {
             title: '🌙 Gece Fiyat Taraması Tamamlandı!',
-            message: `${result.priceChanges.length} fiyat değişikliği ve ${result.newProducts.length} yeni ürün tespit edildi.`,
+            message: `${result.priceChanges.length} ürün güncellenmeli, ${result.newProducts.length} ürün eklenmeli.`,
             type: 'success',
             timestamp: new Date(),
           });
