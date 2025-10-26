@@ -306,6 +306,13 @@ class BenimPOSScraperService {
             page: currentPage
           });
 
+          // ✅ DEBUG: Pagination kontrolü
+          console.log(`\n🔍 DEBUG PAGINATION CONTROL:`);
+          console.log(`   rows.length = ${rows.length}`);
+          console.log(`   rows.length >= 50 ? ${rows.length >= 50}`);
+          console.log(`   currentPage = ${currentPage}`);
+          console.log(`   hasMorePages = ${hasMorePages}`);
+
           // Check if there's a next page
           // BenimPOS pagination: 32 pages total, 50 products per page
           if (rows.length >= 50) {
