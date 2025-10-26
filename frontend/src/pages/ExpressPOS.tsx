@@ -643,7 +643,8 @@ const ExpressPOS: React.FC = () => {
           };
 
           console.log('🎥 Full HD başlatılıyor: 1920x1080 @ 30fps');
-
+          
+          // ✅ Scanner başlatılıyor - loading birazdan kapanacak
           await scanner.start(
             cameraId, // String olarak camera ID
             fullHDConfig, // Config with videoConstraints
@@ -777,8 +778,13 @@ const ExpressPOS: React.FC = () => {
               // Scanning - log basma
             }
           );
+          
+          // 🚀 Scanner başladı - LOADING'İ HEMEN KAPAT!
+          setCameraLoading(false);
+          toast.success('📸 Hazır!', { duration: 1000 });
+          console.log('✅ Scanner başlatıldı');
 
-          // Video elementinden stream'i al (torch ve zoom için) - ULTRA FAST!
+          // Video elementinden stream'i al (torch ve zoom için) - ARKA PLANDA!
           setTimeout(async () => {
             const videoElement = document.querySelector('#barcode-scanner video') as HTMLVideoElement;
             if (videoElement && videoElement.srcObject) {
@@ -795,14 +801,8 @@ const ExpressPOS: React.FC = () => {
                 console.log('🔍 Auto-Zoom 1.5x applied');
                 toast.success('🤖 AI Ayarlar Aktif', { duration: 1500 });
               });
-              
-              // ✅ Loading tamamlandı - kamera hazır!
-              setCameraLoading(false);
             }
-          }, 100); // 🚀 1500ms → 100ms (15x daha hızlı!)
-          
-          toast.success('📸 Hazır!', { duration: 1000 });
-          console.log('✅ Scanner başlatıldı');
+          }, 50); // 🚀 Arka planda hızlıca uygula
         } catch (error: any) {
           console.error('❌ Kamera hatası:', error);
           
