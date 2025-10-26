@@ -27,6 +27,7 @@ import ActivityLogs from './pages/ActivityLogs';
 import UserManagement from './pages/UserManagement';
 import AIInsights from './pages/AIInsights';
 import AIChat from './pages/AIChat';
+import ExpressPOS from './pages/ExpressPOS';
 
 const App: React.FC = () => {
   return (
@@ -39,6 +40,7 @@ const App: React.FC = () => {
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="pos" element={<POS />} />
+            <Route path="express-pos" element={<ExpressPOS />} />
             <Route path="products" element={<ProductsNew />} />
             <Route path="categories" element={<Categories />} />
             <Route path="sales" element={<Sales />} />

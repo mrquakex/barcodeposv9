@@ -23,6 +23,7 @@ import {
   Receipt,
   Brain,
   Bot,
+  Zap,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { cn } from '../../lib/utils';
@@ -35,6 +36,7 @@ const Sidebar: React.FC = () => {
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
     { icon: ShoppingCart, label: 'Satış (POS)', path: '/pos', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
+    { icon: Zap, label: 'Express POS', path: '/express-pos', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
     { icon: Receipt, label: 'Satışlar', path: '/sales', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
     { icon: Package, label: 'Ürünler', path: '/products', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
     { icon: FolderOpen, label: 'Kategoriler', path: '/categories', roles: ['ADMIN', 'MANAGER'] },
