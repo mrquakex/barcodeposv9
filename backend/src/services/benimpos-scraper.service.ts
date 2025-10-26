@@ -157,16 +157,16 @@ class BenimPOSScraperService {
           status: 'loading_page'
         });
 
-        // Only navigate on first page
-        if (currentPage === 1) {
-          await page.goto('https://www.benimpos.com/products', {
-            waitUntil: 'networkidle2',
-            timeout: 30000,
-          });
-          await new Promise(resolve => setTimeout(resolve, 2000));
-        } else {
-          // BenimPOS uses DROPDOWN for pagination!
-          console.log(`🖱️  Dropdown'dan Sayfa ${currentPage} seçiliyor...`);
+          // Only navigate on first page
+          if (currentPage === 1) {
+            await page.goto('https://www.benimpos.com/products?page=1&type=0&list=barcodeASC&ssid=&fid=', {
+              waitUntil: 'networkidle2',
+              timeout: 30000,
+            });
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          } else {
+          // ✅ DIRECT URL NAVIGATION (most reliable!)
+          console.log(`🌐 URL ile doğrudan Sayfa ${currentPage}'e gidiliyor...`);
           
           try {
             // Get first product name BEFORE page change (for verification)
@@ -176,28 +176,18 @@ class BenimPOSScraperService {
             });
             console.log(`📌 Şu anki ilk ürün: "${oldFirstProductName}"`);
             
-            // ✅ CORRECT SELECTOR: select[name="page"]
-            await page.waitForSelector('select[name="page"]', { timeout: 5000 });
+            // ✅ GO DIRECTLY TO PAGE URL with ALL parameters (no form submit!)
+            const targetUrl = `https://www.benimpos.com/products?page=${currentPage}&type=0&list=barcodeASC&ssid=&fid=`;
+            console.log(`🚀 Hedef URL: ${targetUrl}`);
             
-            // Select the page number from dropdown
-            await page.select('select[name="page"]', currentPage.toString());
-            console.log(`✅ Dropdown'dan sayfa ${currentPage} seçildi`);
+            await page.goto(targetUrl, {
+              waitUntil: 'networkidle2',
+              timeout: 30000,
+            });
+            console.log(`✅ URL ile Sayfa ${currentPage} yüklendi`);
             
-            // Wait a bit for dropdown to update
-            await new Promise(resolve => setTimeout(resolve, 500));
-            
-            // ✅ CORRECT BUTTON: button[type="submit"].btn.btn-primary
-            const submitButton = await page.$('button[type="submit"].btn.btn-primary');
-            if (submitButton) {
-              await submitButton.click();
-              console.log(`✅ "Görüntüle" butonuna tıklandı`);
-            } else {
-              throw new Error('"Görüntüle" butonu bulunamadı!');
-            }
-            
-            // ✅ LONGER WAIT for page to load (BenimPOS might be slow)
-            console.log(`⏳ Sayfa yüklenmesi bekleniyor (10 saniye)...`);
-            await new Promise(resolve => setTimeout(resolve, 10000)); // 10 seconds!
+            // Wait a bit for page to fully render
+            await new Promise(resolve => setTimeout(resolve, 3000));
             
             // Wait for table to be visible
             await page.waitForSelector('#myReportTable tbody tr', { timeout: 10000 });
@@ -215,10 +205,9 @@ class BenimPOSScraperService {
               console.warn(`⚠️  Bu sayfa muhtemelen öncekiyle aynı - son sayfaya ulaşılmış olabilir!`);
               hasMorePages = false;
               break;
+            } else {
+              console.log(`✅ Sayfa değişti! Yeni ilk ürün: "${newFirstProductName}"`);
             }
-            
-            // Wait for table to fully update
-            await page.waitForSelector('#myReportTable tbody tr', { timeout: 5000 });
             
           } catch (error: any) {
             console.error(`❌ Sayfa geçiş hatası: ${error.message}`);
