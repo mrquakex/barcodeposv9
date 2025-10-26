@@ -27,6 +27,7 @@ import aiRoutes from './routes/ai.routes';
 import geminiRoutes from './routes/gemini.routes';
 import priceMonitorRoutes from './routes/price-monitor.routes';
 import aiActionsRoutes from './routes/ai-actions.routes';
+import aiAdvancedRoutes from './routes/ai-advanced.routes';
 import prisma from './lib/prisma';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -162,6 +163,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/gemini', geminiRoutes);
 app.use('/api/price-monitor', priceMonitorRoutes);
 app.use('/api/ai-actions', aiActionsRoutes);
+app.use('/api/ai-advanced', aiAdvancedRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
