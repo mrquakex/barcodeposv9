@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '../components/ui/Card';
 import { 
   Send, 
@@ -27,6 +28,7 @@ interface Message {
 
 const AIChat: React.FC = () => {
   const { user } = useAuthStore();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -63,15 +65,40 @@ const AIChat: React.FC = () => {
 
     try {
       const response = await api.post('/gemini/chat', { message: input });
+      let aiContent = response.data.message;
 
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: response.data.message,
-        timestamp: new Date(),
-      };
+      // 🧭 Sayfa yönlendirme komutunu kontrol et
+      const navigateMatch = aiContent.match(/\[NAVIGATE:(\/[a-z\-]+)\]/);
+      
+      if (navigateMatch) {
+        const route = navigateMatch[1];
+        // Komutu mesajdan çıkar
+        aiContent = aiContent.replace(/\[NAVIGATE:\/[a-z\-]+\]/, '').trim();
+        
+        // AI mesajını göster
+        const aiMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: aiContent,
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, aiMessage]);
 
-      setMessages(prev => [...prev, aiMessage]);
+        // 1 saniye bekle, ardından yönlendir
+        toast.success(`🧭 Sayfa yükleniyor...`);
+        setTimeout(() => {
+          navigate(route);
+        }, 1000);
+      } else {
+        // Normal mesaj (yönlendirme yok)
+        const aiMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: aiContent,
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, aiMessage]);
+      }
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'AI ile iletişim kurulamadı');
       
