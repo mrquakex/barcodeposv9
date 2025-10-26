@@ -74,3 +74,4 @@ export const FluentCardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttri
 
 FluentCardFooter.displayName = 'FluentCardFooter';
 
+export default FluentCard;
