@@ -49,6 +49,88 @@ const AIChat: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
+  // ⚡ AI Action executor
+  const executeAction = async (actionType: string, actionDataStr?: string) => {
+    try {
+      let actionData = null;
+      if (actionDataStr) {
+        try {
+          actionData = JSON.parse(actionDataStr);
+        } catch (e) {
+          console.error('Action data parse error:', e);
+        }
+      }
+
+      let endpoint = '';
+      let payload: any = {};
+
+      switch (actionType) {
+        case 'CATEGORY_MOVE':
+          endpoint = '/ai-actions/category-and-move';
+          payload = {
+            categoryName: actionData?.categoryName,
+            productKeyword: actionData?.productKeyword,
+          };
+          break;
+
+        case 'UPDATE_PRICES':
+          endpoint = '/ai-actions/bulk-update-prices';
+          payload = {
+            filter: actionData?.filter || {},
+            operation: actionData?.operation,
+            value: actionData?.value,
+          };
+          break;
+
+        case 'UPDATE_STOCKS':
+          endpoint = '/ai-actions/bulk-update-stocks';
+          payload = {
+            filter: actionData?.filter || {},
+            newStock: actionData?.newStock,
+          };
+          break;
+
+        case 'DELETE_INACTIVE':
+          endpoint = '/ai-actions/delete-inactive';
+          payload = {};
+          break;
+
+        default:
+          toast.error('Bilinmeyen action türü: ' + actionType);
+          return;
+      }
+
+      // API call
+      const response = await api.post(endpoint, payload);
+
+      if (response.data.success) {
+        toast.success(response.data.message || '✅ İşlem başarılı!');
+        
+        // Sonuç mesajını chat'e ekle
+        const resultMessage: Message = {
+          id: (Date.now() + 2).toString(),
+          role: 'assistant',
+          content: `✅ İşlem tamamlandı!\n\n${response.data.message}`,
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, resultMessage]);
+      } else {
+        toast.error(response.data.error || '❌ İşlem başarısız');
+      }
+    } catch (error: any) {
+      console.error('Action execution error:', error);
+      toast.error(error.response?.data?.error || '❌ İşlem yapılamadı');
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        role: 'assistant',
+        content: '❌ Üzgünüm, işlem sırasında bir hata oluştu.',
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    }
+  };
+
   const handleSend = async () => {
     if (!input.trim() || loading) return;
 
@@ -70,6 +152,9 @@ const AIChat: React.FC = () => {
       // 🧭 Sayfa yönlendirme komutunu kontrol et
       const navigateMatch = aiContent.match(/\[NAVIGATE:(\/[a-z\-]+)\]/);
       
+      // ⚡ Action komutlarını kontrol et
+      const actionMatch = aiContent.match(/\[ACTION:([A-Z_]+)(?::(.+?))?\]/);
+      
       if (navigateMatch) {
         const route = navigateMatch[1];
         // Komutu mesajdan çıkar
@@ -89,6 +174,25 @@ const AIChat: React.FC = () => {
         setTimeout(() => {
           navigate(route);
         }, 1000);
+      } else if (actionMatch) {
+        const actionType = actionMatch[1];
+        const actionDataStr = actionMatch[2];
+        
+        // Komutu mesajdan çıkar
+        aiContent = aiContent.replace(/\[ACTION:[A-Z_]+(?::.*?)?\]/, '').trim();
+        
+        // AI mesajını göster
+        const aiMessage: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: aiContent,
+          timestamp: new Date(),
+        };
+        setMessages(prev => [...prev, aiMessage]);
+
+        // Action'ı çalıştır
+        toast.loading('⚡ İşlem yapılıyor...');
+        executeAction(actionType, actionDataStr);
       } else {
         // Normal mesaj (yönlendirme yok)
         const aiMessage: Message = {
