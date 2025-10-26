@@ -590,20 +590,33 @@ const POS: React.FC = () => {
             </div>
           </CardHeader>
             <CardContent className="flex-1 overflow-y-auto min-h-0">
-              {viewMode === 'grid' ? (
+              {filteredProducts.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center py-12">
+                  <Package className="w-20 h-20 text-muted-foreground opacity-30 mb-4" />
+                  <p className="text-xl font-bold text-muted-foreground mb-2">Favori Ürün Yok</p>
+                  <p className="text-sm text-muted-foreground max-w-md mb-4">
+                    Ürünler sayfasından ❤️ kalp butonuna basarak favori ürünler ekleyin.
+                  </p>
+                  <p className="text-xs text-muted-foreground bg-blue-50 dark:bg-blue-900/20 px-4 py-2 rounded-lg">
+                    💡 İpucu: Sadece favori ürünler burada görünür (performans için)
+                  </p>
+                </div>
+              ) : viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                   {filteredProducts.map((product) => (
                     <motion.button
                       key={product.id}
+                      type="button"
                       whileHover={{ scale: 1.03, y: -4 }}
                       whileTap={{ scale: 0.97 }}
                       onClick={() => handleProductClick(product)}
-                      className={`p-4 md:p-5 rounded-xl border-2 transition-all text-left shadow-md ${
+                      className={`p-4 md:p-5 rounded-xl border-2 transition-all text-left shadow-md cursor-pointer relative z-10 ${
                         product.stock === 0 
                           ? 'opacity-50 cursor-not-allowed bg-gray-100 dark:bg-gray-800 border-gray-300' 
-                          : 'hover:border-blue-600 hover:shadow-xl bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700'
+                          : 'hover:border-blue-600 hover:shadow-xl bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 active:bg-blue-50 dark:active:bg-blue-900/20'
                       }`}
                       disabled={product.stock === 0}
+                      style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="w-14 h-14 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-md">
@@ -635,10 +648,13 @@ const POS: React.FC = () => {
               {filteredProducts.map((product) => (
                     <motion.button
                   key={product.id}
+                      type="button"
                       whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                   onClick={() => handleProductClick(product)}
-                      className="w-full p-4 rounded-lg border hover:border-blue-500 hover:shadow-md transition-all text-left flex items-center gap-4"
+                      className="w-full p-4 rounded-lg border hover:border-blue-500 hover:shadow-md transition-all text-left flex items-center gap-4 cursor-pointer relative z-10 active:bg-blue-50 dark:active:bg-blue-900/20"
                   disabled={product.stock === 0}
+                      style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
                 >
                       <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center">
                         <Package className="w-6 h-6 text-white" />

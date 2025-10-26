@@ -1458,7 +1458,16 @@ const ExpressPOS: React.FC = () => {
             FAVORİLER
           </h3>
           <div className="flex-1 overflow-y-auto space-y-2">
-            {favoriteProducts.map(product => (
+            {favoriteProducts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-center py-8">
+                <Package className="w-16 h-16 text-muted-foreground opacity-30 mb-3" />
+                <p className="text-sm font-bold text-muted-foreground mb-1">Favori Yok</p>
+                <p className="text-xs text-muted-foreground px-3">
+                  Ürünler sayfasından ❤️ ekleyin
+                </p>
+              </div>
+            ) : (
+              favoriteProducts.map(product => (
               <motion.button
                 key={product.id}
                 whileHover={{ scale: 1.05 }}
@@ -1480,7 +1489,8 @@ const ExpressPOS: React.FC = () => {
                   </span>
                 </div>
               </motion.button>
-            ))}
+              ))
+            )}
           </div>
         </motion.div>
 
