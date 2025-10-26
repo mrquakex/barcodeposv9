@@ -12,7 +12,7 @@ class GeminiService {
     }
 
     this.groq = new Groq({ apiKey });
-    console.log('✅ Groq AI başlatıldı! (Model: llama-3.1-70b-versatile) ⚡');
+    console.log('✅ Groq AI başlatıldı! (Model: llama-3.3-70b-versatile) ⚡');
   }
 
   async chat(message: string, context?: any): Promise<string> {
@@ -46,7 +46,7 @@ ${context ? `\n\nMevcut Veri:\n${JSON.stringify(context, null, 2)}` : ''}`;
           { role: 'system', content: systemPrompt },
           { role: 'user', content: message }
         ],
-        model: 'llama-3.1-70b-versatile', // En güçlü ve hızlı model
+        model: 'llama-3.3-70b-versatile', // EN YENİ VE EN GÜÇLÜ MODEL (2024)
         temperature: 0.7,
         max_tokens: 1024,
       });
@@ -90,7 +90,7 @@ Yanıtını başlıklar halinde, maddeler şeklinde ve Türkçe yaz.
           { role: 'system', content: 'Sen bir iş analisti AI asistanısın. POS sistemleri ve perakende işletmelerinde uzmansın.' },
           { role: 'user', content: prompt }
         ],
-        model: 'llama-3.1-70b-versatile',
+        model: 'llama-3.3-70b-versatile',
         temperature: 0.7,
         max_tokens: 1500,
       });
@@ -127,7 +127,7 @@ Yanıtını kısa ve öz tut. Max 5 öneri.
           { role: 'system', content: 'Sen bir ürün önerisi uzmanısın. Müşteri davranışlarını analiz edip en uygun ürünleri önerirsin.' },
           { role: 'user', content: prompt }
         ],
-        model: 'llama-3.1-70b-versatile',
+        model: 'llama-3.3-70b-versatile',
         temperature: 0.8,
         max_tokens: 800,
       });
