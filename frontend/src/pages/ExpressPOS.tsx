@@ -313,25 +313,13 @@ const ExpressPOS: React.FC = () => {
 
   // Kamera ile barkod okuma
   useEffect(() => {
+    let isProcessing = false; // Çift okuma önleme
+
     const startScanner = async () => {
       if (showCamera) {
         try {
-          const scanner = new Html5Qrcode('barcode-scanner');
-          scannerRef.current = scanner;
-
-          // Mobil için optimize edilmiş config
-          const config = {
-            fps: 10,
-            qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
-              // Mobilde tam genişlik, masaüstünde sabit
-              const minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
-              const qrboxSize = Math.floor(minEdgeSize * 0.8); // %80 alan
-              return {
-                width: qrboxSize,
-                height: Math.floor(qrboxSize * 0.6), // Barkod için yatay dikdörtgen
-              };
-            },
-            aspectRatio: 1.777778, // 16:9 mobil kameralar için
+          const scanner = new Html5Qrcode('barcode-scanner', {
+            verbose: true, // Debug için
             formatsToSupport: [
               Html5QrcodeSupportedFormats.EAN_13,
               Html5QrcodeSupportedFormats.EAN_8,
@@ -339,49 +327,100 @@ const ExpressPOS: React.FC = () => {
               Html5QrcodeSupportedFormats.UPC_E,
               Html5QrcodeSupportedFormats.CODE_128,
               Html5QrcodeSupportedFormats.CODE_39,
+              Html5QrcodeSupportedFormats.CODE_93,
+              Html5QrcodeSupportedFormats.ITF,
               Html5QrcodeSupportedFormats.QR_CODE,
             ],
+          });
+          scannerRef.current = scanner;
+
+          // HIGH QUALITY config - Mobil için optimize
+          const config = {
+            fps: 30, // Daha hızlı tarama (10 -> 30)
+            qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+              // Mobilde %90 alan kullan (daha büyük hedef)
+              const minEdgeSize = Math.min(viewfinderWidth, viewfinderHeight);
+              const qrboxSize = Math.floor(minEdgeSize * 0.9);
+              return {
+                width: qrboxSize,
+                height: Math.floor(qrboxSize * 0.5), // Barkod için yatay dikdörtgen
+              };
+            },
+            aspectRatio: 1.777778, // 16:9
+            disableFlip: false, // Çevrilmiş barkodları da oku
+            rememberLastUsedCamera: true,
+          };
+
+          // HD video için constraints
+          const videoConstraints = {
+            facingMode: 'environment',
+            width: { ideal: 1920, min: 1280 }, // HD genişlik
+            height: { ideal: 1080, min: 720 }, // HD yükseklik
+            frameRate: { ideal: 30, min: 15 }, // Yüksek FPS
           };
 
           await scanner.start(
-            { facingMode: 'environment' },
+            videoConstraints,
             config,
-            async (decodedText) => {
-              // Barkod okundu! 🎉
-              console.log('✅ Barkod okundu:', decodedText);
+            async (decodedText, decodedResult) => {
+              // Çift okuma önleme
+              if (isProcessing) {
+                console.log('⏳ Zaten işleniyor, atlanıyor...');
+                return;
+              }
+
+              isProcessing = true;
+              console.log('✅ BARKOD OKUNDU:', decodedText);
+              console.log('📊 Format:', decodedResult.result.format?.formatName);
+              
               playSound('beep');
               
               // Ürünü bul ve sepete ekle
               try {
+                toast.loading('🔍 Ürün aranıyor...');
                 const response = await api.get(`/products/barcode/${decodedText}`);
                 const product = response.data.product;
 
+                toast.dismiss();
+
                 if (product.stock <= 0) {
-                  toast.error('❌ Ürün stokta yok!');
+                  toast.error(`❌ ${product.name} stokta yok!`, { duration: 4000 });
                   playSound('error');
+                  isProcessing = false;
                   return;
                 }
 
                 addToCart(product);
-                toast.success(`✅ ${product.name} sepete eklendi!`);
+                toast.success(`✅ ${product.name} eklendi! (₺${product.price})`, { 
+                  duration: 3000,
+                  icon: '🛒' 
+                });
+                playSound('success');
                 
-                // Kamerayı kapat
-                setShowCamera(false);
+                // 1 saniye bekle, sonra kamerayı kapat
+                setTimeout(() => {
+                  setShowCamera(false);
+                }, 1000);
               } catch (error: any) {
-                toast.error('❌ Ürün bulunamadı!');
+                toast.dismiss();
+                console.error('❌ Ürün bulunamadı:', error);
+                toast.error(`❌ Barkod: ${decodedText} - Ürün bulunamadı!`, { duration: 5000 });
                 playSound('error');
+                isProcessing = false;
               }
             },
             (errorMessage) => {
-              // Okuma hatası (normal, sürekli okuyor)
-              console.log('Scanning...', errorMessage);
+              // Okuma hatası (normal, sürekli tarıyor)
+              // Çok fazla log basmasın diye yorum satırı
+              // console.log('Scanning...', errorMessage);
             }
           );
 
-          toast.success('📸 Kamera açıldı! Barkodu kameranın ortasına getirin.');
-        } catch (error) {
-          console.error('Scanner error:', error);
-          toast.error('❌ Kamera açılamadı! İzin verdiğinizden emin olun.');
+          toast.success('📸 Kamera AÇILDI! HD kalitede taranıyor...', { duration: 3000 });
+          console.log('✅ Scanner başlatıldı - HD kalite, 30 FPS');
+        } catch (error: any) {
+          console.error('❌ Scanner error:', error);
+          toast.error(`❌ Kamera açılamadı! Hata: ${error.message}`, { duration: 5000 });
           setShowCamera(false);
         }
       }
@@ -391,11 +430,13 @@ const ExpressPOS: React.FC = () => {
       if (scannerRef.current && scannerRef.current.isScanning) {
         try {
           await scannerRef.current.stop();
-          scannerRef.current.clear();
+          await scannerRef.current.clear();
+          console.log('✅ Scanner durduruldu');
         } catch (error) {
-          console.error('Stop scanner error:', error);
+          console.error('❌ Stop scanner error:', error);
         }
       }
+      isProcessing = false;
     };
 
     if (showCamera) {
@@ -1314,19 +1355,32 @@ const ExpressPOS: React.FC = () => {
             </div>
             
             {/* Footer - Talimatlar */}
-            <div className="bg-gradient-to-r from-blue-600 to-slate-700 p-4 space-y-2">
-              <p className="text-sm text-white text-center font-bold">
-                📸 Barkodu KIRMIZI ÇERÇEVE içine getirin
-              </p>
-              <div className="flex flex-wrap justify-center gap-2 text-xs text-blue-100 font-semibold">
-                <span>✓ EAN-13</span>
-                <span>✓ UPC-A</span>
-                <span>✓ Code-128</span>
-                <span>✓ QR Code</span>
+            <div className="bg-gradient-to-r from-blue-600 to-slate-700 p-5 space-y-3">
+              <div className="bg-white/10 rounded-lg p-3 space-y-2">
+                <p className="text-base text-white text-center font-black">
+                  📸 KIRMIZI ÇERÇEVE İÇİNE GETİRİN
+                </p>
+                <p className="text-sm text-blue-100 text-center font-bold">
+                  ⚡ HD Kalite • 30 FPS • Sürekli Odaklanma
+                </p>
               </div>
-              <p className="text-xs text-blue-200 text-center font-semibold">
-                Işık iyi olmalı • Yaklaşık 15-20 cm mesafe • Hareketsiz tutun
-              </p>
+              
+              <div className="flex flex-wrap justify-center gap-2 text-xs text-white font-bold">
+                <span className="bg-white/20 px-2 py-1 rounded">✓ EAN-13</span>
+                <span className="bg-white/20 px-2 py-1 rounded">✓ EAN-8</span>
+                <span className="bg-white/20 px-2 py-1 rounded">✓ UPC-A</span>
+                <span className="bg-white/20 px-2 py-1 rounded">✓ Code-128</span>
+                <span className="bg-white/20 px-2 py-1 rounded">✓ QR Code</span>
+              </div>
+              
+              <div className="space-y-1">
+                <p className="text-xs text-blue-100 text-center font-bold">
+                  💡 İYİ IŞIK • 📏 15-20 CM MESAFE • 🤚 HAREKETSİZ TUT
+                </p>
+                <p className="text-xs text-blue-200 text-center font-semibold">
+                  Barkod otomatik okunacak ve sepete eklenecek!
+                </p>
+              </div>
             </div>
           </motion.div>
         )}
