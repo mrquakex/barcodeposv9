@@ -50,7 +50,14 @@ const PORT = process.env.PORT || 5000;
 // Initialize Socket.IO
 export const io = new Server(httpServer, {
   cors: {
-    origin: true,
+    origin: [
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'http://localhost:3000',
+      'https://www.barcodepos.trade',
+      'https://barcodepos.trade',
+      'https://barcodepos-frontend.onrender.com',
+    ],
     credentials: true,
     methods: ['GET', 'POST'],
   },
@@ -69,8 +76,33 @@ io.on('connection', (socket) => {
 app.set('trust proxy', 1);
 
 // CORS - ÖNCELİKLE CORS AYARLARINI YAP!
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:3000',
+  'https://www.barcodepos.trade',
+  'https://barcodepos.trade',
+  'https://barcodepos-frontend.onrender.com',
+];
+
 app.use(cors({
-  origin: true, // Tüm originlere izin ver
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, Postman, curl)
+    if (!origin) return callback(null, true);
+    
+    // Allow all origins in development
+    if (process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
+      return callback(null, true);
+    }
+    
+    // Default: allow (fallback for backward compatibility)
+    return callback(null, true);
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
