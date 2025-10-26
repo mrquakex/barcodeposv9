@@ -43,24 +43,39 @@ const BottomNav: React.FC = () => {
     { icon: Menu, label: 'Menü', path: '#', roles: ['ADMIN', 'MANAGER', 'CASHIER'], onClick: () => setShowMoreMenu(!showMoreMenu) },
   ];
 
-  // 📱 MODAL MENÜ (Diğer sayfalar)
+  // 📱 MODAL MENÜ (Kategorili - Tüm sayfalar)
   const moreMenuItems = [
-    { icon: Receipt, label: 'Satış Geçmişi', path: '/sales', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
-    { icon: FolderOpen, label: 'Kategoriler', path: '/categories', roles: ['ADMIN', 'MANAGER'] },
-    { icon: Building2, label: 'Tedarikçiler', path: '/suppliers', roles: ['ADMIN', 'MANAGER'] },
-    { icon: ShoppingBag, label: 'Satın Alma', path: '/purchase-orders', roles: ['ADMIN', 'MANAGER'] },
-    { icon: TrendingUp, label: 'Stok Hareketleri', path: '/stock-movements', roles: ['ADMIN', 'MANAGER'] },
-    { icon: PiggyBank, label: 'Finans', path: '/finance', roles: ['ADMIN', 'MANAGER'] },
-    { icon: DollarSign, label: 'Giderler', path: '/expenses', roles: ['ADMIN', 'MANAGER'] },
-    { icon: Gift, label: 'Kampanyalar', path: '/campaigns', roles: ['ADMIN', 'MANAGER'] },
-    { icon: Ticket, label: 'Kuponlar', path: '/coupons', roles: ['ADMIN', 'MANAGER'] },
-    { icon: BarChart3, label: 'Raporlar', path: '/reports', roles: ['ADMIN', 'MANAGER'] },
-    { icon: Bot, label: 'AI Asistan', path: '/ai-chat', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
-    { icon: Building2, label: 'Şubeler', path: '/branches', roles: ['ADMIN'] },
-    { icon: UserCog, label: 'Kullanıcılar', path: '/user-management', roles: ['ADMIN'] },
-    { icon: Shield, label: 'Aktivite Logları', path: '/activity-logs', roles: ['ADMIN'] },
-    { icon: UserCircle, label: 'Profil', path: '/profile', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
-    { icon: Settings, label: 'Ayarlar', path: '/settings', roles: ['ADMIN', 'MANAGER'] },
+    // Satış
+    { icon: Receipt, label: 'Satış Geçmişi', path: '/sales', roles: ['ADMIN', 'MANAGER', 'CASHIER'], category: 'Satış' },
+    
+    // Ürünler
+    { icon: FolderOpen, label: 'Kategoriler', path: '/categories', roles: ['ADMIN', 'MANAGER'], category: 'Ürünler' },
+    { icon: Building2, label: 'Tedarikçiler', path: '/suppliers', roles: ['ADMIN', 'MANAGER'], category: 'Ürünler' },
+    { icon: ShoppingBag, label: 'Satın Alma', path: '/purchase-orders', roles: ['ADMIN', 'MANAGER'], category: 'Ürünler' },
+    { icon: TrendingUp, label: 'Stok Hareketleri', path: '/stock-movements', roles: ['ADMIN', 'MANAGER'], category: 'Ürünler' },
+    
+    // Finans
+    { icon: PiggyBank, label: 'Finans', path: '/finance', roles: ['ADMIN', 'MANAGER'], category: 'Finans' },
+    { icon: DollarSign, label: 'Giderler', path: '/expenses', roles: ['ADMIN', 'MANAGER'], category: 'Finans' },
+    
+    // Pazarlama
+    { icon: Gift, label: 'Kampanyalar', path: '/campaigns', roles: ['ADMIN', 'MANAGER'], category: 'Pazarlama' },
+    { icon: Ticket, label: 'Kuponlar', path: '/coupons', roles: ['ADMIN', 'MANAGER'], category: 'Pazarlama' },
+    
+    // Raporlar
+    { icon: BarChart3, label: 'Raporlar', path: '/reports', roles: ['ADMIN', 'MANAGER'], category: 'Raporlar' },
+    
+    // AI
+    { icon: Bot, label: 'AI Asistan', path: '/ai-chat', roles: ['ADMIN', 'MANAGER', 'CASHIER'], category: 'AI' },
+    
+    // Yönetim
+    { icon: Building2, label: 'Şubeler', path: '/branches', roles: ['ADMIN'], category: 'Yönetim' },
+    { icon: UserCog, label: 'Kullanıcılar', path: '/user-management', roles: ['ADMIN'], category: 'Yönetim' },
+    { icon: Shield, label: 'Aktivite Logları', path: '/activity-logs', roles: ['ADMIN'], category: 'Yönetim' },
+    
+    // Diğer
+    { icon: UserCircle, label: 'Profil', path: '/profile', roles: ['ADMIN', 'MANAGER', 'CASHIER'], category: 'Diğer' },
+    { icon: Settings, label: 'Ayarlar', path: '/settings', roles: ['ADMIN', 'MANAGER'], category: 'Diğer' },
   ];
 
   const filteredMainNav = mainNavItems.filter((item) => item.roles.includes(user?.role || ''));
