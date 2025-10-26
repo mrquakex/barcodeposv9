@@ -583,8 +583,14 @@ const ProductsNew: React.FC = () => {
       </AnimatePresence>
 
       {/* Search and Filters */}
-      <Card>
-        <CardHeader>
+      <Card className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white via-blue-50/20 to-slate-50 dark:from-slate-900 dark:via-blue-950/20 dark:to-slate-800 group">
+        {/* Top Accent Line */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-slate-600 to-blue-600" />
+        
+        {/* Glassmorphism overlay on hover */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        
+        <CardHeader className="relative">
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
               <div className="flex-1 relative">

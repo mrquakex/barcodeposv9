@@ -491,8 +491,14 @@ const POS: React.FC = () => {
       {/* Left: Products */}
         <div className="flex-1 flex flex-col gap-4 min-h-0 order-2 md:order-1">
           {/* Barcode Scanner */}
-          <Card className="border-2 border-blue-400 dark:border-blue-900 shadow-lg">
-            <CardContent className="pt-6">
+          <Card className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white via-blue-50/30 to-slate-50 dark:from-slate-900 dark:via-blue-950/20 dark:to-slate-800 group">
+            {/* Top Accent Line */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-blue-600 to-slate-600" />
+            
+            {/* Glassmorphism overlay on hover */}
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            
+            <CardContent className="pt-6 relative">
               <form onSubmit={handleBarcodeSubmit} className="flex flex-col gap-3">
                 {/* SADECE MOBİL: Kamera butonu (büyük, öncelikli) */}
                 <button
@@ -530,8 +536,14 @@ const POS: React.FC = () => {
         </Card>
 
           {/* Products Grid */}
-          <Card className="flex-1 overflow-hidden flex flex-col min-h-0">
-          <CardHeader>
+          <Card className="relative flex-1 overflow-hidden flex flex-col min-h-0 border-0 shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white via-slate-50/30 to-blue-50 dark:from-slate-900 dark:via-slate-900/20 dark:to-blue-950/20 group">
+            {/* Top Accent Line */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-slate-500 via-blue-600 to-slate-600" />
+            
+            {/* Glassmorphism overlay on hover */}
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            
+          <CardHeader className="relative">
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 {/* Search */}
                 <div className="flex-1 relative">
@@ -650,8 +662,14 @@ const POS: React.FC = () => {
         {/* Right: Cart & Payment */}
         <div className="w-full md:w-[420px] flex flex-col gap-4 min-h-0 order-1 md:order-2">
           {/* Cart */}
-          <Card className="flex-1 overflow-hidden flex flex-col min-h-0 border-2 border-slate-300 dark:border-slate-700 shadow-xl">
-            <CardHeader className="border-b-2 bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950/30">
+          <Card className="relative flex-1 overflow-hidden flex flex-col min-h-0 border-0 shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white via-slate-50/20 to-blue-50/30 dark:from-slate-900 dark:via-slate-800/50 dark:to-blue-950/20 group">
+            {/* Top Accent Line - Green for cart */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-green-500 via-blue-600 to-slate-600" />
+            
+            {/* Glassmorphism overlay on hover */}
+            <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            
+            <CardHeader className="border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50/50 to-blue-50/50 dark:from-slate-900/30 dark:to-blue-950/30 backdrop-blur-sm relative">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-600 to-slate-700 flex items-center justify-center shadow-md">
@@ -740,8 +758,14 @@ const POS: React.FC = () => {
         </Card>
 
           {/* Totals & Actions */}
-        <Card>
-            <CardContent className="pt-6 space-y-4">
+        <Card className="relative overflow-hidden border-0 shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white via-blue-50/20 to-slate-50/20 dark:from-slate-900 dark:via-blue-950/10 dark:to-slate-800/50 group">
+            {/* Top Accent Line - Purple for payment */}
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 via-blue-600 to-green-600" />
+            
+            {/* Glassmorphism overlay on hover */}
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            
+            <CardContent className="pt-6 space-y-4 relative">
               {/* Customer */}
               <div className="p-3 border-2 border-dashed rounded-lg">
                 {selectedCustomer ? (
