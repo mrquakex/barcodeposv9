@@ -74,7 +74,6 @@ const POS: React.FC = () => {
   
   // 💠 ENTERPRISE: Simple Calculator States
   const [calculatorPaid, setCalculatorPaid] = useState<string>('');
-  const [calculatorTotal, setCalculatorTotal] = useState<string>('');
   const [calculatorChange, setCalculatorChange] = useState<number>(0);
   
   // 💠 ENTERPRISE: Payment States
@@ -336,11 +335,10 @@ const POS: React.FC = () => {
     toast.success(`Müşteri: ${customer.name}`);
   };
 
-  // 💠 ENTERPRISE: Calculator
-  const updateCalculator = (paid: string, total: string) => {
+  // 💠 ENTERPRISE: Calculator - Auto sync with cart total
+  const updateCalculator = (paid: string, cartTotal: number) => {
     const paidAmount = parseFloat(paid) || 0;
-    const totalAmount = parseFloat(total) || 0;
-    const change = paidAmount - totalAmount;
+    const change = paidAmount - cartTotal;
     setCalculatorChange(change);
   };
 
@@ -539,7 +537,7 @@ const POS: React.FC = () => {
                   // Allow only numbers and decimal point
                   if (value === '' || /^\d*\.?\d*$/.test(value)) {
                     setCalculatorPaid(value);
-                    updateCalculator(value, calculatorTotal);
+                    updateCalculator(value, total);
                   }
                 }}
                 className="w-24 px-3 py-2 bg-background border border-border rounded fluent-body-small text-foreground text-center focus:border-primary focus:outline-none"
@@ -548,21 +546,9 @@ const POS: React.FC = () => {
             </div>
             <div className="flex flex-col items-center">
               <span className="fluent-body-small text-foreground-secondary mb-1">Tutar</span>
-              <input
-                type="text"
-                inputMode="decimal"
-                value={calculatorTotal}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  // Allow only numbers and decimal point
-                  if (value === '' || /^\d*\.?\d*$/.test(value)) {
-                    setCalculatorTotal(value);
-                    updateCalculator(calculatorPaid, value);
-                  }
-                }}
-                className="w-24 px-3 py-2 bg-background border border-border rounded fluent-body-small text-foreground text-center focus:border-primary focus:outline-none"
-                placeholder="0.00"
-              />
+              <div className="w-24 px-3 py-2 bg-background-alt border border-border rounded fluent-body-small text-foreground font-semibold text-center">
+                {total.toFixed(2)}
+              </div>
             </div>
             <div className="flex flex-col items-center">
               <span className="fluent-body-small text-foreground-secondary mb-1">Para Üstü</span>
