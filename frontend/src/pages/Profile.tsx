@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { User, Mail, Lock, Save } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import FluentCard from '../components/fluent/FluentCard';
 import FluentInput from '../components/fluent/FluentInput';
 import FluentButton from '../components/fluent/FluentButton';
@@ -8,6 +9,7 @@ import { api } from '../lib/api';
 import toast from 'react-hot-toast';
 
 const Profile: React.FC = () => {
+  const { t } = useTranslation();
   const user = useAuthStore((state) => state.user);
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -22,9 +24,9 @@ const Profile: React.FC = () => {
     setIsSaving(true);
     try {
       await api.put('/users/profile', { name: formData.name, email: formData.email });
-      toast.success('Profile updated');
+      toast.success(t('profile.profileUpdated'));
     } catch (error) {
-      toast.error('Failed to update profile');
+      toast.error(t('profile.updateError'));
     } finally {
       setIsSaving(false);
     }
@@ -32,7 +34,7 @@ const Profile: React.FC = () => {
 
   const handleChangePassword = async () => {
     if (formData.newPassword !== formData.confirmPassword) {
-      toast.error('Passwords do not match');
+      toast.error(t('profile.passwordMismatch') || 'Şifreler eşleşmiyor');
       return;
     }
     setIsSaving(true);
@@ -41,10 +43,10 @@ const Profile: React.FC = () => {
         currentPassword: formData.currentPassword,
         newPassword: formData.newPassword,
       });
-      toast.success('Password changed');
+      toast.success(t('profile.passwordChanged'));
       setFormData({ ...formData, currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (error) {
-      toast.error('Failed to change password');
+      toast.error(t('profile.passwordChangeError') || 'Şifre değiştirilemedi');
     } finally {
       setIsSaving(false);
     }
@@ -53,21 +55,21 @@ const Profile: React.FC = () => {
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-2xl mx-auto">
       <div>
-        <h1 className="fluent-title text-foreground">Profile</h1>
-        <p className="fluent-body text-foreground-secondary mt-1">Manage your account settings</p>
+        <h1 className="fluent-title text-foreground">{t('profile.title')}</h1>
+        <p className="fluent-body text-foreground-secondary mt-1">{t('profile.manageSettings') || 'Hesap ayarlarınızı yönetin'}</p>
       </div>
 
       <FluentCard depth="depth-4" className="p-6">
-        <h3 className="fluent-heading text-foreground mb-4">Personal Information</h3>
+        <h3 className="fluent-heading text-foreground mb-4">{t('profile.personalInfo')}</h3>
         <div className="space-y-4">
           <FluentInput
-            label="Name"
+            label={t('common.name')}
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             icon={<User className="w-4 h-4" />}
           />
           <FluentInput
-            label="Email"
+            label={t('customers.email')}
             type="email"
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -77,32 +79,32 @@ const Profile: React.FC = () => {
             appearance="primary"
             icon={<Save className="w-4 h-4" />}
             onClick={handleUpdateProfile}
-            isLoading={isSaving}
+            loading={isSaving}
           >
-            Save Changes
+            {t('profile.saveChanges') || 'Değişiklikleri Kaydet'}
           </FluentButton>
         </div>
       </FluentCard>
 
       <FluentCard depth="depth-4" className="p-6">
-        <h3 className="fluent-heading text-foreground mb-4">Change Password</h3>
+        <h3 className="fluent-heading text-foreground mb-4">{t('profile.changePassword')}</h3>
         <div className="space-y-4">
           <FluentInput
-            label="Current Password"
+            label={t('profile.currentPassword')}
             type="password"
             value={formData.currentPassword}
             onChange={(e) => setFormData({ ...formData, currentPassword: e.target.value })}
             icon={<Lock className="w-4 h-4" />}
           />
           <FluentInput
-            label="New Password"
+            label={t('profile.newPassword')}
             type="password"
             value={formData.newPassword}
             onChange={(e) => setFormData({ ...formData, newPassword: e.target.value })}
             icon={<Lock className="w-4 h-4" />}
           />
           <FluentInput
-            label="Confirm Password"
+            label={t('profile.confirmPassword')}
             type="password"
             value={formData.confirmPassword}
             onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
@@ -112,9 +114,9 @@ const Profile: React.FC = () => {
             appearance="primary"
             icon={<Save className="w-4 h-4" />}
             onClick={handleChangePassword}
-            isLoading={isSaving}
+            loading={isSaving}
           >
-            Change Password
+            {t('profile.changePassword')}
           </FluentButton>
         </div>
       </FluentCard>
@@ -123,12 +125,12 @@ const Profile: React.FC = () => {
         <h3 className="fluent-heading text-foreground mb-4">Account Information</h3>
         <div className="space-y-2">
           <div className="flex justify-between">
-            <span className="text-foreground-secondary">Role</span>
+            <span className="text-foreground-secondary">{t('userManagement.role')}</span>
             <span className="text-foreground font-medium">{user?.role}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-foreground-secondary">Account Status</span>
-            <span className="text-success font-medium">Active</span>
+            <span className="text-foreground-secondary">{t('profile.accountStatus') || 'Hesap Durumu'}</span>
+            <span className="text-success font-medium">{t('common.active')}</span>
           </div>
         </div>
       </FluentCard>

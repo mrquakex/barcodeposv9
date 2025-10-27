@@ -1,19 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogIn, Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
+import { useThemeStore } from '../store/themeStore';
 import FluentButton from '../components/fluent/FluentButton';
 import FluentInput from '../components/fluent/FluentInput';
 import FluentCard from '../components/fluent/FluentCard';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 const Login: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
+  const { theme } = useThemeStore();
   const [email, setEmail] = useState('admin@barcodepos.com');
   const [password, setPassword] = useState('admin123');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Tema'yı uygula
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,10 +34,10 @@ const Login: React.FC = () => {
 
     try {
       await login(email, password);
-      toast.success('Welcome back!');
+      toast.success(t('login.welcomeBack') || 'Hoş geldiniz!');
       navigate('/dashboard');
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Login failed');
+      toast.error(error.response?.data?.message || t('login.loginError'));
     } finally {
       setIsLoading(false);
     }
@@ -41,28 +54,28 @@ const Login: React.FC = () => {
             </div>
             <h1 className="fluent-title text-foreground mb-2">BarcodePOS</h1>
             <p className="fluent-body text-foreground-secondary">
-              Sign in to your account
+              {t('login.signInPrompt') || 'Hesabınıza giriş yapın'}
             </p>
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <FluentInput
-              label="Email"
+              label={t('login.email') || 'E-posta'}
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
+              placeholder={t('login.emailPlaceholder') || 'E-posta adresinizi girin'}
               required
             />
 
             <div className="relative">
               <FluentInput
-                label="Password"
+                label={t('login.password') || 'Şifre'}
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
+                placeholder={t('login.passwordPlaceholder') || 'Şifrenizi girin'}
                 required
               />
               <button
@@ -79,9 +92,9 @@ const Login: React.FC = () => {
               appearance="primary"
               size="large"
               className="w-full"
-              isLoading={isLoading}
+              loading={isLoading}
             >
-              Sign In
+              {t('login.signIn') || 'Giriş Yap'}
             </FluentButton>
           </form>
 

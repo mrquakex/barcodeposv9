@@ -6,6 +6,7 @@ import FluentButton from '../components/fluent/FluentButton';
 import FluentBadge from '../components/fluent/FluentBadge';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 interface Invoice {
   id: string;
@@ -20,6 +21,7 @@ interface Invoice {
 }
 
 const Invoices: React.FC = () => {
+  const { t } = useTranslation();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -30,9 +32,9 @@ const Invoices: React.FC = () => {
   const fetchInvoices = async () => {
     try {
       const response = await api.get('/invoices');
-      setInvoices(response.data);
+      setInvoices(response.data.invoices || []);
     } catch (error) {
-      toast.error('Failed to fetch invoices');
+      toast.error(t('invoices.fetchError'));
     } finally {
       setIsLoading(false);
     }
@@ -53,7 +55,7 @@ const Invoices: React.FC = () => {
     <div className="p-4 md:p-6 space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="fluent-title text-foreground">Invoices</h1>
+          <h1 className="fluent-title text-foreground">{t('invoices.title')}</h1>
           <p className="fluent-body text-foreground-secondary mt-1">{invoices.length} invoices</p>
         </div>
         <FluentButton appearance="primary" icon={<Plus className="w-4 h-4" />}>
@@ -62,7 +64,7 @@ const Invoices: React.FC = () => {
       </div>
 
       <FluentCard depth="depth-4" className="p-4">
-        <FluentInput placeholder="Search invoices..." icon={<Search className="w-4 h-4" />} />
+        <FluentInput placeholder={t('invoices.searchPlaceholder') || 'Fatura ara...'} icon={<Search className="w-4 h-4" />} />
       </FluentCard>
 
       <div className="space-y-3">
@@ -102,7 +104,7 @@ const Invoices: React.FC = () => {
                       day: 'numeric',
                     })}
                   </span>
-                  {invoice.sentAt && <span>Sent</span>}
+                  {invoice.sentAt && <span>{t('invoices.sent') || 'Gönderildi'}</span>}
                 </div>
               </div>
               <div className="flex flex-col md:items-end gap-2">

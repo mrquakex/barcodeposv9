@@ -6,6 +6,7 @@ import FluentInput from '../components/fluent/FluentInput';
 import FluentDialog from '../components/fluent/FluentDialog';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 interface Category {
   id: string;
@@ -14,6 +15,7 @@ interface Category {
 }
 
 const Categories: React.FC = () => {
+  const { t } = useTranslation();
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showDialog, setShowDialog] = useState(false);
@@ -28,9 +30,9 @@ const Categories: React.FC = () => {
   const fetchCategories = async () => {
     try {
       const response = await api.get('/categories');
-      setCategories(response.data);
+      setCategories(response.data.categories || []);
     } catch (error) {
-      toast.error('Failed to fetch categories');
+      toast.error(t('categories.fetchError'));
     } finally {
       setIsLoading(false);
     }
@@ -41,26 +43,26 @@ const Categories: React.FC = () => {
     try {
       if (editingCategory) {
         await api.put(`/categories/${editingCategory.id}`, formData);
-        toast.success('Category updated');
+        toast.success(t('categories.categoryUpdated'));
       } else {
         await api.post('/categories', formData);
-        toast.success('Category created');
+        toast.success(t('categories.categoryCreated'));
       }
       fetchCategories();
       handleCloseDialog();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to save category');
+      toast.error(error.response?.data?.message || t('categories.saveError'));
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this category?')) return;
+    if (!confirm(t('categories.confirmDelete') || 'Bu kategoriyi silmek istediğinizden emin misiniz?')) return;
     try {
       await api.delete(`/categories/${id}`);
-      toast.success('Category deleted');
+      toast.success(t('categories.categoryDeleted'));
       fetchCategories();
     } catch (error) {
-      toast.error('Failed to delete category');
+      toast.error(t('categories.saveError'));
     }
   };
 
@@ -85,7 +87,7 @@ const Categories: React.FC = () => {
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="mt-4 text-foreground-secondary">Loading categories...</p>
+          <p className="mt-4 text-foreground-secondary">{t('common.loading') || 'Yükleniyor...'}</p>
         </div>
       </div>
     );
@@ -96,9 +98,9 @@ const Categories: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="fluent-title text-foreground">Categories</h1>
+          <h1 className="fluent-title text-foreground">{t('categories.title')}</h1>
           <p className="fluent-body text-foreground-secondary mt-1">
-            {filteredCategories.length} categories
+            {t('categories.categoriesCount', { count: filteredCategories.length })}
           </p>
         </div>
         <FluentButton
@@ -106,7 +108,7 @@ const Categories: React.FC = () => {
           icon={<Plus className="w-4 h-4" />}
           onClick={() => setShowDialog(true)}
         >
-          Add Category
+          {t('categories.addCategory')}
         </FluentButton>
       </div>
 
@@ -115,7 +117,7 @@ const Categories: React.FC = () => {
         <FluentInput
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search categories..."
+          placeholder={t('categories.searchPlaceholder') || 'Kategori ara...'}
           icon={<Search className="w-4 h-4" />}
         />
       </FluentCard>
@@ -133,7 +135,7 @@ const Categories: React.FC = () => {
                   {category.name}
                 </h4>
                 <p className="fluent-caption text-foreground-secondary">
-                  {category._count?.products || 0} products
+                  {t('categories.productsCount', { count: category._count?.products || 0 })}
                 </p>
               </div>
             </div>
@@ -146,7 +148,7 @@ const Categories: React.FC = () => {
                 icon={<Edit className="w-3 h-3" />}
                 onClick={() => handleEdit(category)}
               >
-                Edit
+                {t('common.edit')}
               </FluentButton>
               <FluentButton
                 appearance="subtle"
@@ -155,7 +157,7 @@ const Categories: React.FC = () => {
                 icon={<Trash2 className="w-3 h-3" />}
                 onClick={() => handleDelete(category.id)}
               >
-                Delete
+                {t('common.delete')}
               </FluentButton>
             </div>
           </FluentCard>
@@ -166,7 +168,7 @@ const Categories: React.FC = () => {
         <div className="text-center py-12">
           <FolderOpen className="w-12 h-12 text-foreground-secondary mx-auto mb-4" />
           <p className="fluent-body text-foreground-secondary">
-            {searchTerm ? 'No categories found' : 'No categories yet'}
+            {searchTerm ? t('categories.noCategoriesFound') : t('categories.noCategoriesYet')}
           </p>
         </div>
       )}
@@ -175,24 +177,24 @@ const Categories: React.FC = () => {
       <FluentDialog
         open={showDialog}
         onClose={handleCloseDialog}
-        title={editingCategory ? 'Edit Category' : 'Add Category'}
+        title={editingCategory ? t('categories.editCategory') : t('categories.addCategory')}
         size="small"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <FluentInput
-            label="Category Name"
+            label={t('categories.categoryName') || 'Kategori Adı'}
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            placeholder="Enter category name..."
+            placeholder={t('categories.categoryNamePlaceholder') || 'Kategori adı girin...'}
             required
           />
 
           <div className="flex gap-2 pt-4">
             <FluentButton appearance="subtle" className="flex-1" onClick={handleCloseDialog}>
-              Cancel
+              {t('common.cancel') || 'İptal'}
             </FluentButton>
             <FluentButton type="submit" appearance="primary" className="flex-1">
-              {editingCategory ? 'Update' : 'Create'}
+              {editingCategory ? t('common.update') || 'Güncelle' : t('common.create') || 'Oluştur'}
             </FluentButton>
           </div>
         </form>

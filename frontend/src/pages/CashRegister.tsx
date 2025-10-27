@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Wallet, Plus, Minus, DollarSign } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import FluentCard from '../components/fluent/FluentCard';
 import FluentButton from '../components/fluent/FluentButton';
 import FluentDialog from '../components/fluent/FluentDialog';
@@ -18,6 +19,7 @@ interface CashTransaction {
 }
 
 const CashRegister: React.FC = () => {
+  const { t } = useTranslation();
   const [balance, setBalance] = useState(0);
   const [transactions, setTransactions] = useState<CashTransaction[]>([]);
   const [showDialog, setShowDialog] = useState(false);
@@ -38,7 +40,7 @@ const CashRegister: React.FC = () => {
       setBalance(balanceRes.data.balance);
       setTransactions(transactionsRes.data);
     } catch (error) {
-      toast.error('Failed to fetch data');
+      toast.error(t('cashRegister.fetchError') || 'Veri yükleme hatası');
     } finally {
       setIsLoading(false);
     }
@@ -48,12 +50,12 @@ const CashRegister: React.FC = () => {
     e.preventDefault();
     try {
       await api.post('/cash-register/transactions', { ...formData, type: dialogType });
-      toast.success('Transaction added');
+      toast.success(t('cashRegister.transactionAdded') || 'İşlem eklendi');
       fetchData();
       setShowDialog(false);
       setFormData({ amount: 0, category: '', note: '' });
     } catch (error) {
-      toast.error('Failed to add transaction');
+      toast.error(t('cashRegister.addTransactionError') || 'İşlem ekleme hatası');
     }
   };
 
@@ -71,8 +73,10 @@ const CashRegister: React.FC = () => {
   return (
     <div className="p-4 md:p-6 space-y-6">
       <div>
-        <h1 className="fluent-title text-foreground">Cash Register</h1>
-        <p className="fluent-body text-foreground-secondary mt-1">Manage cash transactions</p>
+        <h1 className="fluent-title text-foreground">{t('cashRegister.title')}</h1>
+        <p className="fluent-body text-foreground-secondary mt-1">
+          {t('cashRegister.manageTransactions') || 'Nakit işlemlerini yönetin'}
+        </p>
       </div>
 
       <FluentCard depth="depth-8" className="p-6 bg-gradient-to-br from-primary/10 to-primary/5">
@@ -81,7 +85,7 @@ const CashRegister: React.FC = () => {
             <Wallet className="w-8 h-8 text-primary" />
           </div>
           <div>
-            <p className="fluent-body text-foreground-secondary">Current Balance</p>
+            <p className="fluent-body text-foreground-secondary">{t('cashRegister.currentBalance')}</p>
             <p className="text-4xl font-semibold text-primary">₺{balance.toFixed(2)}</p>
           </div>
         </div>
@@ -95,7 +99,7 @@ const CashRegister: React.FC = () => {
               setShowDialog(true);
             }}
           >
-            Cash In
+            {t('cashRegister.cashIn') || 'Giriş'}
           </FluentButton>
           <FluentButton
             appearance="subtle"
@@ -106,13 +110,13 @@ const CashRegister: React.FC = () => {
               setShowDialog(true);
             }}
           >
-            Cash Out
+            {t('cashRegister.cashOut') || 'Çıkış'}
           </FluentButton>
         </div>
       </FluentCard>
 
       <FluentCard depth="depth-4" className="p-6">
-        <h3 className="fluent-heading text-foreground mb-4">Recent Transactions</h3>
+        <h3 className="fluent-heading text-foreground mb-4">{t('cashRegister.transactions')}</h3>
         <div className="space-y-3">
           {transactions.map((transaction) => (
             <div key={transaction.id} className="flex items-center gap-4 p-3 bg-background-alt rounded">
@@ -131,8 +135,8 @@ const CashRegister: React.FC = () => {
                 <p className="fluent-body font-medium text-foreground">{transaction.category}</p>
                 <p className="fluent-caption text-foreground-secondary">{transaction.note}</p>
                 <p className="fluent-caption text-foreground-tertiary">
-                  By {transaction.user.name} •{' '}
-                  {new Date(transaction.createdAt).toLocaleDateString('en-US', {
+                  {transaction.user.name} •{' '}
+                  {new Date(transaction.createdAt).toLocaleDateString('tr-TR', {
                     month: 'short',
                     day: 'numeric',
                     hour: '2-digit',
@@ -155,12 +159,16 @@ const CashRegister: React.FC = () => {
       <FluentDialog
         open={showDialog}
         onClose={() => setShowDialog(false)}
-        title={dialogType === 'IN' ? 'Cash In' : 'Cash Out'}
+        title={
+          dialogType === 'IN'
+            ? t('cashRegister.cashIn') || 'Giriş'
+            : t('cashRegister.cashOut') || 'Çıkış'
+        }
         size="small"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <FluentInput
-            label="Amount"
+            label={t('cashRegister.amount') || 'Tutar'}
             type="number"
             step="0.01"
             value={formData.amount}
@@ -169,14 +177,16 @@ const CashRegister: React.FC = () => {
             required
           />
           <FluentInput
-            label="Category"
+            label={t('cashRegister.category') || 'Kategori'}
             value={formData.category}
             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-            placeholder="e.g., Sales, Expense, Bank Deposit"
+            placeholder={t('cashRegister.categoryPlaceholder') || 'Ör: Satış, Gider, Banka'}
             required
           />
           <div>
-            <label className="fluent-body-small text-foreground-secondary block mb-2">Note</label>
+            <label className="fluent-body-small text-foreground-secondary block mb-2">
+              {t('cashRegister.note') || 'Not'}
+            </label>
             <textarea
               value={formData.note}
               onChange={(e) => setFormData({ ...formData, note: e.target.value })}
@@ -187,10 +197,10 @@ const CashRegister: React.FC = () => {
           </div>
           <div className="flex gap-2 pt-4">
             <FluentButton appearance="subtle" className="flex-1" onClick={() => setShowDialog(false)}>
-              Cancel
+              {t('common.cancel') || 'İptal'}
             </FluentButton>
             <FluentButton type="submit" appearance="primary" className="flex-1">
-              Confirm
+              {t('common.confirm') || 'Onayla'}
             </FluentButton>
           </div>
         </form>

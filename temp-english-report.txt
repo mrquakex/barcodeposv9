@@ -1,0 +1,505 @@
+﻿
+> barcodepos-workspace@1.0.0 find-english
+> node scripts/find-english-text.js
+
+[36m­şöı Tarama ba┼şlat─▒l─▒yor: D:\Siteler\barcodeposv9\frontend\src\pages[0m
+
+
+[32mÔòöÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòù
+Ôòæ  ­şöı ─░NG─░L─░ZCE MET─░N TESP─░T RAPORU                        Ôòæ
+ÔòÜÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòØ[0m
+
+
+[36m­şôä frontend\src\pages\ActivityLogs.tsx[0m
+[33m   (1 ─░ngilizce metin bulundu)[0m
+
+   1. [34m[String Literal][0m
+      Sat─▒r 76: "[31mLog ara...[0m"
+      [34mBa─şlam:[0m <FluentInput placeholder={t('activityLogs.searchPlaceholder') || 'Log ara...'} i...
+
+
+[36m­şôä frontend\src\pages\CashRegister.tsx[0m
+[33m   (4 ─░ngilizce metin bulundu)[0m
+
+   1. [34m[String Literal][0m
+      Sat─▒r 171: "[31mTutar[0m"
+      [34mBa─şlam:[0m label={t('cashRegister.amount') || 'Tutar'}...
+
+   2. [34m[String Literal][0m
+      Sat─▒r 180: "[31mKategori[0m"
+      [34mBa─şlam:[0m label={t('cashRegister.category') || 'Kategori'}...
+
+   3. [34m[String Literal][0m
+      Sat─▒r 188: "[31mNot[0m"
+      [34mBa─şlam:[0m {t('cashRegister.note') || 'Not'}...
+
+   4. [34m[String Literal][0m
+      Sat─▒r 203: "[31mOnayla[0m"
+      [34mBa─şlam:[0m {t('common.confirm') || 'Onayla'}...
+
+
+[36m­şôä frontend\src\pages\Categories.tsx[0m
+[33m   (1 ─░ngilizce metin bulundu)[0m
+
+   1. [34m[String Literal][0m
+      Sat─▒r 120: "[31mKategori ara...[0m"
+      [34mBa─şlam:[0m placeholder={t('categories.searchPlaceholder') || 'Kategori ara...'}...
+
+
+[36m­şôä frontend\src\pages\Customers.tsx[0m
+[33m   (11 ─░ngilizce metin bulundu)[0m
+
+   1. [31m[HTML Content][0m
+      Sat─▒r 120: "[31mCustomers[0m"
+      [34mBa─şlam:[0m <h1 className="fluent-title text-foreground">Customers</h1>...
+
+   2. [31m[HTML Content][0m
+      Sat─▒r 173: "[31mDebt[0m"
+      [34mBa─şlam:[0m <span className="text-sm text-foreground-secondary">Debt</span>...
+
+   3. [31m[HTML Content][0m
+      Sat─▒r 179: "[31mTotal Spent[0m"
+      [34mBa─şlam:[0m <span className="text-sm text-foreground-secondary">Total Spent</span>...
+
+   4. [31m[HTML Content][0m
+      Sat─▒r 185: "[31mPoints[0m"
+      [34mBa─şlam:[0m <span className="text-sm text-foreground-secondary">Points</span>...
+
+   5. [33m[Label Prop][0m
+      Sat─▒r 234: "[31mName[0m"
+      [34mBa─şlam:[0m label="Name"...
+
+   6. [33m[Label Prop][0m
+      Sat─▒r 241: "[31mEmail[0m"
+      [34mBa─şlam:[0m label="Email"...
+
+   7. [33m[Label Prop][0m
+      Sat─▒r 248: "[31mPhone[0m"
+      [34mBa─şlam:[0m label="Phone"...
+
+   8. [34m[String Literal][0m
+      Sat─▒r 234: "[31mName[0m"
+      [34mBa─şlam:[0m label="Name"...
+
+   9. [34m[String Literal][0m
+      Sat─▒r 241: "[31mEmail[0m"
+      [34mBa─şlam:[0m label="Email"...
+
+   10. [34m[String Literal][0m
+      Sat─▒r 248: "[31mPhone[0m"
+      [34mBa─şlam:[0m label="Phone"...
+
+   11. [34m[String Literal][0m
+      Sat─▒r 262: "[31mAdres girin...[0m"
+      [34mBa─şlam:[0m placeholder={t('customers.enterAddress') || 'Adres girin...'}...
+
+
+[36m­şôä frontend\src\pages\Employees.tsx[0m
+[33m   (10 ─░ngilizce metin bulundu)[0m
+
+   1. [31m[HTML Content][0m
+      Sat─▒r 178: "[31mBranch[0m"
+      [34mBa─şlam:[0m <label className="fluent-body-small text-foreground-secondary block mb-2">Branch...
+
+   2. [33m[Label Prop][0m
+      Sat─▒r 146: "[31mName[0m"
+      [34mBa─şlam:[0m label="Name"...
+
+   3. [33m[Label Prop][0m
+      Sat─▒r 152: "[31mEmail[0m"
+      [34mBa─şlam:[0m label="Email"...
+
+   4. [33m[Label Prop][0m
+      Sat─▒r 159: "[31mPassword[0m"
+      [34mBa─şlam:[0m label="Password"...
+
+   5. [35m[Title Prop][0m
+      Sat─▒r 141: "[31mAdd Employee[0m"
+      [34mBa─şlam:[0m title="Add Employee"...
+
+   6. [34m[String Literal][0m
+      Sat─▒r 118: "[31mActive[0m"
+      [34mBa─şlam:[0m {employee.isActive ? 'Active' : 'Inactive'}...
+
+   7. [34m[String Literal][0m
+      Sat─▒r 118: "[31mInactive[0m"
+      [34mBa─şlam:[0m {employee.isActive ? 'Active' : 'Inactive'}...
+
+   8. [34m[String Literal][0m
+      Sat─▒r 146: "[31mName[0m"
+      [34mBa─şlam:[0m label="Name"...
+
+   9. [34m[String Literal][0m
+      Sat─▒r 152: "[31mEmail[0m"
+      [34mBa─şlam:[0m label="Email"...
+
+   10. [34m[String Literal][0m
+      Sat─▒r 159: "[31mPassword[0m"
+      [34mBa─şlam:[0m label="Password"...
+
+
+[36m­şôä frontend\src\pages\Expenses.tsx[0m
+[33m   (6 ─░ngilizce metin bulundu)[0m
+
+   1. [31m[HTML Content][0m
+      Sat─▒r 156: "[31mSelect category[0m"
+      [34mBa─şlam:[0m <option value="">Select category</option>...
+
+   2. [33m[Label Prop][0m
+      Sat─▒r 165: "[31mAmount[0m"
+      [34mBa─şlam:[0m label="Amount"...
+
+   3. [35m[Title Prop][0m
+      Sat─▒r 142: "[31mAdd Expense[0m"
+      [34mBa─şlam:[0m title="Add Expense"...
+
+   4. [34m[String Literal][0m
+      Sat─▒r 68: "[31mFailed to create expense[0m"
+      [34mBa─şlam:[0m toast.error('Failed to create expense');...
+
+   5. [34m[String Literal][0m
+      Sat─▒r 100: "[31mGider ara...[0m"
+      [34mBa─şlam:[0m <FluentInput placeholder={t('expenses.searchPlaceholder') || 'Gider ara...'} ico...
+
+   6. [34m[String Literal][0m
+      Sat─▒r 165: "[31mAmount[0m"
+      [34mBa─şlam:[0m label="Amount"...
+
+
+[36m­şôä frontend\src\pages\Invoices.tsx[0m
+[33m   (2 ─░ngilizce metin bulundu)[0m
+
+   1. [31m[HTML Content][0m
+      Sat─▒r 107: "[31mSent[0m"
+      [34mBa─şlam:[0m {invoice.sentAt && <span>Sent</span>}...
+
+   2. [34m[String Literal][0m
+      Sat─▒r 67: "[31mFatura ara...[0m"
+      [34mBa─şlam:[0m <FluentInput placeholder={t('invoices.searchPlaceholder') || 'Fatura ara...'} ic...
+
+
+[36m­şôä frontend\src\pages\POS.tsx[0m
+[33m   (4 ─░ngilizce metin bulundu)[0m
+
+   1. [34m[String Literal][0m
+      Sat─▒r 216: "[31mEnter[0m"
+      [34mBa─şlam:[0m if (e.key === 'Enter') {...
+
+   2. [34m[String Literal][0m
+      Sat─▒r 229: "[31mDurdur[0m"
+      [34mBa─şlam:[0m {isScanning ? t('pos.stopCamera') || 'Durdur' : t('pos.camera') || 'Kamera'}...
+
+   3. [34m[String Literal][0m
+      Sat─▒r 229: "[31mKamera[0m"
+      [34mBa─şlam:[0m {isScanning ? t('pos.stopCamera') || 'Durdur' : t('pos.camera') || 'Kamera'}...
+
+   4. [34m[String Literal][0m
+      Sat─▒r 444: "[31mOnayla[0m"
+      [34mBa─şlam:[0m {t('common.confirm') || 'Onayla'}...
+
+
+[36m­şôä frontend\src\pages\Products.tsx[0m
+[33m   (10 ─░ngilizce metin bulundu)[0m
+
+   1. [31m[HTML Content][0m
+      Sat─▒r 226: "[31mPrice[0m"
+      [34mBa─şlam:[0m <span className="text-foreground-secondary">Price</span>...
+
+   2. [31m[HTML Content][0m
+      Sat─▒r 232: "[31mStock[0m"
+      [34mBa─şlam:[0m <span className="text-foreground-secondary">Stock</span>...
+
+   3. [31m[HTML Content][0m
+      Sat─▒r 242: "[31mCategory[0m"
+      [34mBa─şlam:[0m <span className="text-foreground-secondary">Category</span>...
+
+   4. [33m[Label Prop][0m
+      Sat─▒r 297: "[31mName[0m"
+      [34mBa─şlam:[0m label="Name"...
+
+   5. [34m[String Literal][0m
+      Sat─▒r 47: "[31mAdet[0m"
+      [34mBa─şlam:[0m unit: 'Adet',...
+
+   6. [34m[String Literal][0m
+      Sat─▒r 108: "[31mRemoved from favorites[0m"
+      [34mBa─şlam:[0m toast.success(product.isFavorite ? 'Removed from favorites' : 'Added to favorite...
+
+   7. [34m[String Literal][0m
+      Sat─▒r 108: "[31mAdded to favorites[0m"
+      [34mBa─şlam:[0m toast.success(product.isFavorite ? 'Removed from favorites' : 'Added to favorite...
+
+   8. [34m[String Literal][0m
+      Sat─▒r 111: "[31mFailed to update favorite[0m"
+      [34mBa─şlam:[0m toast.error('Failed to update favorite');...
+
+   9. [34m[String Literal][0m
+      Sat─▒r 141: "[31mAdet[0m"
+      [34mBa─şlam:[0m unit: 'Adet',...
+
+   10. [34m[String Literal][0m
+      Sat─▒r 297: "[31mName[0m"
+      [34mBa─şlam:[0m label="Name"...
+
+
+[36m­şôä frontend\src\pages\Profile.tsx[0m
+[33m   (8 ─░ngilizce metin bulundu)[0m
+
+   1. [31m[HTML Content][0m
+      Sat─▒r 126: "[31mRole[0m"
+      [34mBa─şlam:[0m <span className="text-foreground-secondary">Role</span>...
+
+   2. [31m[HTML Content][0m
+      Sat─▒r 130: "[31mAccount Status[0m"
+      [34mBa─şlam:[0m <span className="text-foreground-secondary">Account Status</span>...
+
+   3. [31m[HTML Content][0m
+      Sat─▒r 131: "[31mActive[0m"
+      [34mBa─şlam:[0m <span className="text-success font-medium">Active</span>...
+
+   4. [34m[String Literal][0m
+      Sat─▒r 25: "[31mProfile updated[0m"
+      [34mBa─şlam:[0m toast.success('Profile updated');...
+
+   5. [34m[String Literal][0m
+      Sat─▒r 27: "[31mFailed to update profile[0m"
+      [34mBa─şlam:[0m toast.error('Failed to update profile');...
+
+   6. [34m[String Literal][0m
+      Sat─▒r 35: "[31mPasswords do not match[0m"
+      [34mBa─şlam:[0m toast.error('Passwords do not match');...
+
+   7. [34m[String Literal][0m
+      Sat─▒r 44: "[31mPassword changed[0m"
+      [34mBa─şlam:[0m toast.success('Password changed');...
+
+   8. [34m[String Literal][0m
+      Sat─▒r 47: "[31mFailed to change password[0m"
+      [34mBa─şlam:[0m toast.error('Failed to change password');...
+
+
+[36m­şôä frontend\src\pages\ProfitLoss.tsx[0m
+[33m   (3 ─░ngilizce metin bulundu)[0m
+
+   1. [34m[String Literal][0m
+      Sat─▒r 31: "[31mProfit[0m"
+      [34mBa─şlam:[0m label: 'Profit',...
+
+   2. [34m[String Literal][0m
+      Sat─▒r 38: "[31mLoss[0m"
+      [34mBa─şlam:[0m label: 'Loss',...
+
+   3. [34m[String Literal][0m
+      Sat─▒r 47: "[31mFailed to fetch data[0m"
+      [34mBa─şlam:[0m toast.error('Failed to fetch data');...
+
+
+[36m­şôä frontend\src\pages\Reports.tsx[0m
+[33m   (6 ─░ngilizce metin bulundu)[0m
+
+   1. [31m[HTML Content][0m
+      Sat─▒r 56: "[31mReports[0m"
+      [34mBa─şlam:[0m <h1 className="fluent-title text-foreground">Reports</h1>...
+
+   2. [31m[HTML Content][0m
+      Sat─▒r 85: "[31mQuick Stats[0m"
+      [34mBa─şlam:[0m <h3 className="fluent-heading text-foreground mb-4">Quick Stats</h3>...
+
+   3. [31m[HTML Content][0m
+      Sat─▒r 92: "[31mThis Week[0m"
+      [34mBa─şlam:[0m <p className="fluent-caption text-foreground-secondary mb-1">This Week</p>...
+
+   4. [31m[HTML Content][0m
+      Sat─▒r 100: "[31mThis Year[0m"
+      [34mBa─şlam:[0m <p className="fluent-caption text-foreground-secondary mb-1">This Year</p>...
+
+   5. [34m[String Literal][0m
+      Sat─▒r 24: "[31mCustomer behavior and loyalty insights[0m"
+      [34mBa─şlam:[0m description: 'Customer behavior and loyalty insights',...
+
+   6. [34m[String Literal][0m
+      Sat─▒r 38: "[31mStock levels and movements[0m"
+      [34mBa─şlam:[0m description: 'Stock levels and movements',...
+
+
+[36m­şôä frontend\src\pages\Sales.tsx[0m
+[33m   (2 ─░ngilizce metin bulundu)[0m
+
+   1. [31m[HTML Content][0m
+      Sat─▒r 153: "[31mTotal[0m"
+      [34mBa─şlam:[0m <p className="fluent-caption text-foreground-secondary">Total</p>...
+
+   2. [34m[String Literal][0m
+      Sat─▒r 144: "[31mKasiyer[0m"
+      [34mBa─şlam:[0m <span>{t('sales.cashier') || 'Kasiyer'}: {sale.user.name}</span>...
+
+
+[36m­şôä frontend\src\pages\Settings.tsx[0m
+[33m   (3 ─░ngilizce metin bulundu)[0m
+
+   1. [31m[HTML Content][0m
+      Sat─▒r 166: "[31mIstanbul[0m"
+      [34mBa─şlam:[0m <option value="Europe/Istanbul">Istanbul</option>...
+
+   2. [31m[HTML Content][0m
+      Sat─▒r 167: "[31mLondon[0m"
+      [34mBa─şlam:[0m <option value="Europe/London">London</option>...
+
+   3. [31m[HTML Content][0m
+      Sat─▒r 168: "[31mNew York[0m"
+      [34mBa─şlam:[0m <option value="America/New_York">New York</option>...
+
+
+[36m­şôä frontend\src\pages\Shifts.tsx[0m
+[33m   (3 ─░ngilizce metin bulundu)[0m
+
+   1. [31m[HTML Content][0m
+      Sat─▒r 137: "[31mShift History[0m"
+      [34mBa─şlam:[0m <h3 className="fluent-heading text-foreground mb-4">Shift History</h3>...
+
+   2. [33m[Label Prop][0m
+      Sat─▒r 195: "[31mOpening Cash[0m"
+      [34mBa─şlam:[0m label="Opening Cash"...
+
+   3. [35m[Title Prop][0m
+      Sat─▒r 190: "[31mStart Shift[0m"
+      [34mBa─şlam:[0m title="Start Shift"...
+
+
+[36m­şôä frontend\src\pages\StockCount.tsx[0m
+[33m   (4 ─░ngilizce metin bulundu)[0m
+
+   1. [31m[HTML Content][0m
+      Sat─▒r 71: "[31mStock Count[0m"
+      [34mBa─şlam:[0m <h1 className="fluent-title text-foreground">Stock Count</h1>...
+
+   2. [31m[HTML Content][0m
+      Sat─▒r 136: "[31mFull Count[0m"
+      [34mBa─şlam:[0m <option value="FULL">Full Count</option>...
+
+   3. [31m[HTML Content][0m
+      Sat─▒r 137: "[31mPartial Count[0m"
+      [34mBa─şlam:[0m <option value="PARTIAL">Partial Count</option>...
+
+   4. [35m[Title Prop][0m
+      Sat─▒r 125: "[31mNew Stock Count[0m"
+      [34mBa─şlam:[0m title="New Stock Count"...
+
+
+[36m­şôä frontend\src\pages\StockMovements.tsx[0m
+[33m   (1 ─░ngilizce metin bulundu)[0m
+
+   1. [34m[String Literal][0m
+      Sat─▒r 108: "[31mTransfer[0m"
+      [34mBa─şlam:[0m type === 'TRANSFER' ? t('stockMovements.transfer') || 'Transfer' :...
+
+
+[36m­şôä frontend\src\pages\Suppliers.tsx[0m
+[33m   (9 ─░ngilizce metin bulundu)[0m
+
+   1. [31m[HTML Content][0m
+      Sat─▒r 121: "[31mSuppliers[0m"
+      [34mBa─şlam:[0m <h1 className="fluent-title text-foreground">Suppliers</h1>...
+
+   2. [31m[HTML Content][0m
+      Sat─▒r 176: "[31mBalance[0m"
+      [34mBa─şlam:[0m <span className="text-sm text-foreground-secondary">Balance</span>...
+
+   3. [33m[Label Prop][0m
+      Sat─▒r 224: "[31mCompany Name[0m"
+      [34mBa─şlam:[0m label="Company Name"...
+
+   4. [33m[Label Prop][0m
+      Sat─▒r 231: "[31mContact Person[0m"
+      [34mBa─şlam:[0m label="Contact Person"...
+
+   5. [33m[Label Prop][0m
+      Sat─▒r 236: "[31mEmail[0m"
+      [34mBa─şlam:[0m label="Email"...
+
+   6. [33m[Label Prop][0m
+      Sat─▒r 243: "[31mPhone[0m"
+      [34mBa─şlam:[0m label="Phone"...
+
+   7. [34m[String Literal][0m
+      Sat─▒r 236: "[31mEmail[0m"
+      [34mBa─şlam:[0m label="Email"...
+
+   8. [34m[String Literal][0m
+      Sat─▒r 243: "[31mPhone[0m"
+      [34mBa─şlam:[0m label="Phone"...
+
+   9. [34m[String Literal][0m
+      Sat─▒r 257: "[31mAdres girin...[0m"
+      [34mBa─şlam:[0m placeholder={t('suppliers.enterAddress') || 'Adres girin...'}...
+
+
+[36m­şôä frontend\src\pages\UserManagement.tsx[0m
+[33m   (14 ─░ngilizce metin bulundu)[0m
+
+   1. [31m[HTML Content][0m
+      Sat─▒r 103: "[31mUser Management[0m"
+      [34mBa─şlam:[0m <h1 className="fluent-title text-foreground">User Management</h1>...
+
+   2. [31m[HTML Content][0m
+      Sat─▒r 200: "[31mRole[0m"
+      [34mBa─şlam:[0m <label className="fluent-body-small text-foreground-secondary block mb-2">Role</...
+
+   3. [33m[Label Prop][0m
+      Sat─▒r 178: "[31mName[0m"
+      [34mBa─şlam:[0m label="Name"...
+
+   4. [33m[Label Prop][0m
+      Sat─▒r 184: "[31mEmail[0m"
+      [34mBa─şlam:[0m label="Email"...
+
+   5. [33m[Label Prop][0m
+      Sat─▒r 192: "[31mPassword[0m"
+      [34mBa─şlam:[0m label="Password"...
+
+   6. [34m[String Literal][0m
+      Sat─▒r 42: "[31mFailed to fetch users[0m"
+      [34mBa─şlam:[0m toast.error('Failed to fetch users');...
+
+   7. [34m[String Literal][0m
+      Sat─▒r 53: "[31mUser updated[0m"
+      [34mBa─şlam:[0m toast.success('User updated');...
+
+   8. [34m[String Literal][0m
+      Sat─▒r 56: "[31mUser created[0m"
+      [34mBa─şlam:[0m toast.success('User created');...
+
+   9. [34m[String Literal][0m
+      Sat─▒r 61: "[31mFailed to save user[0m"
+      [34mBa─şlam:[0m toast.error(error.response?.data?.message || 'Failed to save user');...
+
+   10. [34m[String Literal][0m
+      Sat─▒r 130: "[31mActive[0m"
+      [34mBa─şlam:[0m {user.isActive ? 'Active' : 'Inactive'}...
+
+   11. [34m[String Literal][0m
+      Sat─▒r 130: "[31mInactive[0m"
+      [34mBa─şlam:[0m {user.isActive ? 'Active' : 'Inactive'}...
+
+   12. [34m[String Literal][0m
+      Sat─▒r 178: "[31mName[0m"
+      [34mBa─şlam:[0m label="Name"...
+
+   13. [34m[String Literal][0m
+      Sat─▒r 184: "[31mEmail[0m"
+      [34mBa─şlam:[0m label="Email"...
+
+   14. [34m[String Literal][0m
+      Sat─▒r 192: "[31mPassword[0m"
+      [34mBa─şlam:[0m label="Password"...
+
+
+[33mÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+  ­şôè ├ûZET
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ[0m
+  [31mÔØî Toplam Dosya: 19[0m
+  [31mÔØî Toplam ─░ngilizce Metin: 102[0m
+
+[33m  ­şÆí T─░P: T├╝m metinleri d├╝zeltmek i├ğin:[0m
+     npm run translate-all
+

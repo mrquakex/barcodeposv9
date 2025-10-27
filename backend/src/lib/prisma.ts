@@ -1,3 +1,10 @@
+// CRITICAL: Load .env BEFORE PrismaClient initialization!
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Force dotenv to look in the correct directory
+dotenv.config({ path: path.join(process.cwd(), '.env') });
+
 import { PrismaClient } from '@prisma/client';
 
 // PrismaClient is attached to the `global` object in development to prevent

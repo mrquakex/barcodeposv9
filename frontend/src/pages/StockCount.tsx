@@ -7,6 +7,7 @@ import FluentBadge from '../components/fluent/FluentBadge';
 import FluentDialog from '../components/fluent/FluentDialog';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 interface StockCount {
   id: string;
@@ -20,6 +21,7 @@ interface StockCount {
 }
 
 const StockCount: React.FC = () => {
+  const { t } = useTranslation();
   const [counts, setCounts] = useState<StockCount[]>([]);
   const [showDialog, setShowDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,9 +34,9 @@ const StockCount: React.FC = () => {
   const fetchCounts = async () => {
     try {
       const response = await api.get('/stock-counts');
-      setCounts(response.data);
+      setCounts(response.data.counts || response.data || []);
     } catch (error) {
-      toast.error('Failed to fetch counts');
+      toast.error(t('stockCount.fetchError'));
     } finally {
       setIsLoading(false);
     }
@@ -43,11 +45,11 @@ const StockCount: React.FC = () => {
   const handleCreate = async () => {
     try {
       await api.post('/stock-counts', formData);
-      toast.success('Stock count created');
+      toast.success(t('stockCount.startCount'));
       fetchCounts();
       setShowDialog(false);
     } catch (error) {
-      toast.error('Failed to create count');
+      toast.error(t('stockCount.fetchError'));
     }
   };
 
@@ -120,7 +122,7 @@ const StockCount: React.FC = () => {
       <FluentDialog
         open={showDialog}
         onClose={() => setShowDialog(false)}
-        title="New Stock Count"
+        title={t('stockCount.newCount') || 'Yeni Sayım'}
         size="small"
       >
         <div className="space-y-4">
@@ -131,8 +133,8 @@ const StockCount: React.FC = () => {
               onChange={(e) => setFormData({ type: e.target.value })}
               className="w-full h-10 px-3 bg-input border border-border rounded text-foreground fluent-body focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="FULL">Full Count</option>
-              <option value="PARTIAL">Partial Count</option>
+              <option value="FULL">{t('stockCount.fullCount') || 'Tam Sayım'}</option>
+              <option value="PARTIAL">{t('stockCount.partialCount') || 'Kısmi Sayım'}</option>
               <option value="CATEGORY">By Category</option>
             </select>
           </div>

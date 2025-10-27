@@ -6,6 +6,7 @@ import FluentInput from '../components/fluent/FluentInput';
 import FluentBadge from '../components/fluent/FluentBadge';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 interface Sale {
   id: string;
@@ -20,6 +21,7 @@ interface Sale {
 }
 
 const Sales: React.FC = () => {
+  const { t } = useTranslation();
   const [sales, setSales] = useState<Sale[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -31,9 +33,9 @@ const Sales: React.FC = () => {
   const fetchSales = async () => {
     try {
       const response = await api.get('/sales');
-      setSales(response.data);
+      setSales(response.data.sales || []);
     } catch (error) {
-      toast.error('Failed to fetch sales');
+      toast.error(t('sales.fetchError'));
     } finally {
       setIsLoading(false);
     }
@@ -50,7 +52,7 @@ const Sales: React.FC = () => {
       link.click();
       link.remove();
     } catch (error) {
-      toast.error('Failed to print receipt');
+      toast.error(t('sales.printError'));
     }
   };
 
@@ -65,7 +67,7 @@ const Sales: React.FC = () => {
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="mt-4 text-foreground-secondary">Loading sales...</p>
+          <p className="mt-4 text-foreground-secondary">{t('sales.loadingSales')}</p>
         </div>
       </div>
     );
@@ -76,9 +78,9 @@ const Sales: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="fluent-title text-foreground">Sales History</h1>
+          <h1 className="fluent-title text-foreground">{t('sales.title')}</h1>
           <p className="fluent-body text-foreground-secondary mt-1">
-            {filteredSales.length} sales
+            {t('sales.salesCount', { count: filteredSales.length })}
           </p>
         </div>
       </div>
@@ -89,12 +91,12 @@ const Sales: React.FC = () => {
           <FluentInput
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by sale number or customer..."
+            placeholder={t('sales.searchPlaceholder') || 'Satış no veya müşteri adı ile ara...'}
             icon={<Search className="w-4 h-4" />}
             className="flex-1"
           />
           <FluentButton appearance="subtle" icon={<Calendar className="w-4 h-4" />}>
-            Filter by Date
+            {t('sales.filterByDate')}
           </FluentButton>
         </div>
       </FluentCard>
@@ -130,7 +132,7 @@ const Sales: React.FC = () => {
                 </div>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-foreground-secondary">
                   <span>
-                    {new Date(sale.createdAt).toLocaleDateString('en-US', {
+                    {new Date(sale.createdAt).toLocaleDateString('tr-TR', {
                       year: 'numeric',
                       month: 'short',
                       day: 'numeric',
@@ -138,10 +140,10 @@ const Sales: React.FC = () => {
                       minute: '2-digit',
                     })}
                   </span>
-                  {sale.customer && <span>Customer: {sale.customer.name}</span>}
-                  <span>Cashier: {sale.user.name}</span>
-                  <span>Items: {sale._count?.items || 0}</span>
-                  <span>Method: {sale.paymentMethod}</span>
+                  {sale.customer && <span>{t('pos.customer')}: {sale.customer.name}</span>}
+                  <span>{t('sales.cashier') || 'Kasiyer'}: {sale.user.name}</span>
+                  <span>{t('sales.items')}: {sale._count?.items || 0}</span>
+                  <span>{t('pos.paymentMethod')}: {sale.paymentMethod}</span>
                 </div>
               </div>
 
@@ -167,7 +169,7 @@ const Sales: React.FC = () => {
                     icon={<Printer className="w-3 h-3" />}
                     onClick={() => handlePrint(sale.id)}
                   >
-                    Print
+                    {t('common.print')}
                   </FluentButton>
                 </div>
               </div>
@@ -180,7 +182,7 @@ const Sales: React.FC = () => {
         <div className="text-center py-12">
           <FileText className="w-12 h-12 text-foreground-secondary mx-auto mb-4" />
           <p className="fluent-body text-foreground-secondary">
-            {searchTerm ? 'No sales found' : 'No sales yet'}
+            {searchTerm ? t('common.noData') : t('sales.noSalesYet') || 'Henüz satış yok'}
           </p>
         </div>
       )}

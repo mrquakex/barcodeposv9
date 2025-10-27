@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { Bell, Sun, Moon, Menu } from 'lucide-react';
+import { Bell, Sun, Moon, Menu, Globe } from 'lucide-react';
 import { useThemeStore } from '../../store/themeStore';
 import { useAuthStore } from '../../store/authStore';
 import FluentButton from '../fluent/FluentButton';
 import FluentBadge from '../fluent/FluentBadge';
 import { cn } from '../../lib/utils';
+import { useTranslation } from 'react-i18next';
 
 /* ============================================
    FLUENT HEADER - Command Bar Style
@@ -13,8 +14,15 @@ import { cn } from '../../lib/utils';
 const FluentHeader: React.FC = () => {
   const { theme, toggleTheme } = useThemeStore();
   const { user, logout } = useAuthStore();
+  const { i18n } = useTranslation();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
+
+  const changeLanguage = (lng: string) => {
+    i18n.changeLanguage(lng);
+    setShowLanguageMenu(false);
+  };
 
   return (
     <header className="h-16 border-b border-border bg-background flex items-center justify-between px-4 md:px-6">
@@ -25,7 +33,7 @@ const FluentHeader: React.FC = () => {
         </button>
         <div className="hidden md:block">
           <p className="fluent-body text-foreground-secondary">
-            {new Date().toLocaleDateString('en-US', { 
+            {new Date().toLocaleDateString('tr-TR', { 
               weekday: 'long', 
               year: 'numeric', 
               month: 'long', 
@@ -37,6 +45,51 @@ const FluentHeader: React.FC = () => {
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2">
+        {/* Language Switcher */}
+        <div className="relative">
+          <button
+            onClick={() => setShowLanguageMenu(!showLanguageMenu)}
+            className="p-2 hover:bg-background-alt rounded transition-colors"
+            aria-label="Change language"
+          >
+            <Globe className="w-5 h-5 text-foreground-secondary" />
+          </button>
+          
+          {showLanguageMenu && (
+            <div className="absolute right-0 mt-2 w-32 bg-card border border-border rounded-md fluent-depth-16 z-50">
+              <div className="p-1">
+                <button
+                  onClick={() => changeLanguage('tr')}
+                  className={cn(
+                    "w-full px-3 py-2 text-left hover:bg-background-alt rounded fluent-body-small transition-colors",
+                    i18n.language === 'tr' && "bg-primary/10 text-primary"
+                  )}
+                >
+                  🇹🇷 Türkçe
+                </button>
+                <button
+                  onClick={() => changeLanguage('en')}
+                  className={cn(
+                    "w-full px-3 py-2 text-left hover:bg-background-alt rounded fluent-body-small transition-colors",
+                    i18n.language === 'en' && "bg-primary/10 text-primary"
+                  )}
+                >
+                  🇬🇧 English
+                </button>
+                <button
+                  onClick={() => changeLanguage('ar')}
+                  className={cn(
+                    "w-full px-3 py-2 text-left hover:bg-background-alt rounded fluent-body-small transition-colors",
+                    i18n.language === 'ar' && "bg-primary/10 text-primary"
+                  )}
+                >
+                  🇸🇦 العربية
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Theme Toggle */}
         <button
           onClick={toggleTheme}

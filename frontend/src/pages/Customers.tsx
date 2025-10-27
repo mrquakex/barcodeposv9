@@ -7,6 +7,7 @@ import FluentDialog from '../components/fluent/FluentDialog';
 import FluentBadge from '../components/fluent/FluentBadge';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 interface Customer {
   id: string;
@@ -20,6 +21,7 @@ interface Customer {
 }
 
 const Customers: React.FC = () => {
+  const { t } = useTranslation();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showDialog, setShowDialog] = useState(false);
@@ -39,9 +41,9 @@ const Customers: React.FC = () => {
   const fetchCustomers = async () => {
     try {
       const response = await api.get('/customers');
-      setCustomers(response.data);
+      setCustomers(response.data.customers || []);
     } catch (error) {
-      toast.error('Failed to fetch customers');
+      toast.error(t('customers.fetchError'));
     } finally {
       setIsLoading(false);
     }
@@ -52,15 +54,15 @@ const Customers: React.FC = () => {
     try {
       if (editingCustomer) {
         await api.put(`/customers/${editingCustomer.id}`, formData);
-        toast.success('Customer updated');
+        toast.success(t('customers.customerUpdated'));
       } else {
         await api.post('/customers', formData);
-        toast.success('Customer created');
+        toast.success(t('customers.customerCreated'));
       }
       fetchCustomers();
       handleCloseDialog();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to save customer');
+      toast.error(error.response?.data?.message || t('customers.saveError'));
     }
   };
 
@@ -68,10 +70,10 @@ const Customers: React.FC = () => {
     if (!confirm('Are you sure you want to delete this customer?')) return;
     try {
       await api.delete(`/customers/${id}`);
-      toast.success('Customer deleted');
+      toast.success(t('customers.customerDeleted'));
       fetchCustomers();
     } catch (error) {
-      toast.error('Failed to delete customer');
+      toast.error(t('customers.saveError'));
     }
   };
 
@@ -115,7 +117,7 @@ const Customers: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="fluent-title text-foreground">Customers</h1>
+          <h1 className="fluent-title text-foreground">{t('customers.title')}</h1>
           <p className="fluent-body text-foreground-secondary mt-1">
             {filteredCustomers.length} customers
           </p>
@@ -134,7 +136,7 @@ const Customers: React.FC = () => {
         <FluentInput
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search customers by name, email, or phone..."
+          placeholder={t('customers.searchPlaceholder') || 'Müşteri adı, e-posta veya telefon ile ara...'}
           icon={<Search className="w-4 h-4" />}
         />
       </FluentCard>
@@ -168,21 +170,21 @@ const Customers: React.FC = () => {
 
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-sm text-foreground-secondary">Debt</span>
+                <span className="text-sm text-foreground-secondary">{t('customers.debt')}</span>
                 <FluentBadge appearance={customer.debt > 0 ? 'error' : 'success'} size="small">
                   ₺{customer.debt.toFixed(2)}
                 </FluentBadge>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-foreground-secondary">Total Spent</span>
+                <span className="text-sm text-foreground-secondary">{t('customers.totalPurchases')}</span>
                 <span className="text-sm text-foreground font-medium">
                   ₺{customer.totalSpent.toFixed(2)}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-foreground-secondary">Points</span>
+                <span className="text-sm text-foreground-secondary">{t('customers.loyaltyPoints') || 'Puanlar'}</span>
                 <span className="text-sm text-primary font-medium">
-                  {customer.loyaltyPoints} pts
+                  {customer.loyaltyPoints} {t('common.points') || 'puan'}
                 </span>
               </div>
             </div>
@@ -229,21 +231,21 @@ const Customers: React.FC = () => {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <FluentInput
-            label="Name"
+            label={t('common.name') || 'İsim'}
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             icon={<User className="w-4 h-4" />}
             required
           />
           <FluentInput
-            label="Email"
+            label={t('customers.email')}
             type="email"
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             icon={<Mail className="w-4 h-4" />}
           />
           <FluentInput
-            label="Phone"
+            label={t('customers.phone')}
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
             icon={<Phone className="w-4 h-4" />}
@@ -257,7 +259,7 @@ const Customers: React.FC = () => {
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               rows={3}
               className="w-full px-3 py-2 bg-input border border-border rounded text-foreground fluent-body focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-              placeholder="Enter address..."
+              placeholder={t('customers.enterAddress') || 'Adres girin...'}
             />
           </div>
 
@@ -266,7 +268,7 @@ const Customers: React.FC = () => {
               Cancel
             </FluentButton>
             <FluentButton type="submit" appearance="primary" className="flex-1">
-              {editingCustomer ? 'Update' : 'Create'}
+              {editingCustomer ? t('common.update') || 'Güncelle' : t('common.create') || 'Oluştur'}
             </FluentButton>
           </div>
         </form>

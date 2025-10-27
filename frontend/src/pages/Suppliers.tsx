@@ -7,6 +7,7 @@ import FluentDialog from '../components/fluent/FluentDialog';
 import FluentBadge from '../components/fluent/FluentBadge';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 interface Supplier {
   id: string;
@@ -19,6 +20,7 @@ interface Supplier {
 }
 
 const Suppliers: React.FC = () => {
+  const { t } = useTranslation();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showDialog, setShowDialog] = useState(false);
@@ -39,9 +41,9 @@ const Suppliers: React.FC = () => {
   const fetchSuppliers = async () => {
     try {
       const response = await api.get('/suppliers');
-      setSuppliers(response.data);
+      setSuppliers(response.data.suppliers || []);
     } catch (error) {
-      toast.error('Failed to fetch suppliers');
+      toast.error(t('suppliers.fetchError'));
     } finally {
       setIsLoading(false);
     }
@@ -52,15 +54,15 @@ const Suppliers: React.FC = () => {
     try {
       if (editingSupplier) {
         await api.put(`/suppliers/${editingSupplier.id}`, formData);
-        toast.success('Supplier updated');
+        toast.success(t('suppliers.supplierUpdated'));
       } else {
         await api.post('/suppliers', formData);
-        toast.success('Supplier created');
+        toast.success(t('suppliers.supplierCreated'));
       }
       fetchSuppliers();
       handleCloseDialog();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to save supplier');
+      toast.error(error.response?.data?.message || t('suppliers.saveError'));
     }
   };
 
@@ -68,10 +70,10 @@ const Suppliers: React.FC = () => {
     if (!confirm('Are you sure you want to delete this supplier?')) return;
     try {
       await api.delete(`/suppliers/${id}`);
-      toast.success('Supplier deleted');
+      toast.success(t('suppliers.supplierDeleted'));
       fetchSuppliers();
     } catch (error) {
-      toast.error('Failed to delete supplier');
+      toast.error(t('suppliers.saveError'));
     }
   };
 
@@ -135,7 +137,7 @@ const Suppliers: React.FC = () => {
         <FluentInput
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search suppliers..."
+          placeholder={t('suppliers.searchPlaceholder') || 'Tedarikçi ara...'}
           icon={<Search className="w-4 h-4" />}
         />
       </FluentCard>
@@ -252,7 +254,7 @@ const Suppliers: React.FC = () => {
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               rows={3}
               className="w-full px-3 py-2 bg-input border border-border rounded text-foreground fluent-body focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-              placeholder="Enter address..."
+              placeholder={t('suppliers.enterAddress') || 'Adres girin...'}
             />
           </div>
 
@@ -261,7 +263,7 @@ const Suppliers: React.FC = () => {
               Cancel
             </FluentButton>
             <FluentButton type="submit" appearance="primary" className="flex-1">
-              {editingSupplier ? 'Update' : 'Create'}
+              {editingSupplier ? t('common.update') || 'Güncelle' : t('common.create') || 'Oluştur'}
             </FluentButton>
           </div>
         </form>

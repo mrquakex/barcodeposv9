@@ -9,6 +9,7 @@ import {
 import { useAuthStore } from '../../store/authStore';
 import { cn } from '../../lib/utils';
 import FluentBadge from '../fluent/FluentBadge';
+import { useTranslation } from 'react-i18next';
 
 /* ============================================
    FLUENT SIDEBAR - Microsoft Navigation
@@ -25,61 +26,62 @@ interface MenuItem {
 }
 
 const FluentSidebar: React.FC = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const { user } = useAuthStore();
   const [isExpanded, setIsExpanded] = useState(false);
   const [openCategories, setOpenCategories] = useState<string[]>(['Inventory', 'Finance']);
 
   const menuItems: MenuItem[] = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
-    { icon: ShoppingCart, label: 'POS', path: '/pos', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
+    { icon: LayoutDashboard, label: t('nav.dashboard'), path: '/dashboard', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
+    { icon: ShoppingCart, label: t('nav.pos'), path: '/pos', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
     { 
       icon: Package, 
-      label: 'Inventory',
+      label: t('nav.inventory'),
       roles: ['ADMIN', 'MANAGER'],
       children: [
-        { icon: Package, label: 'Products', path: '/products' },
-        { icon: FolderOpen, label: 'Categories', path: '/categories' },
-        { icon: TrendingUp, label: 'Stock Movements', path: '/stock-movements' },
-        { icon: ClipboardList, label: 'Stock Count', path: '/stock-count' },
-        { icon: ShoppingBag, label: 'Stock Transfer', path: '/stock-transfer' },
-        { icon: FileText, label: 'Purchase Orders', path: '/purchase-orders' },
-        { icon: Building2, label: 'Suppliers', path: '/suppliers' },
+        { icon: Package, label: t('nav.products'), path: '/products' },
+        { icon: FolderOpen, label: t('nav.categories'), path: '/categories' },
+        { icon: TrendingUp, label: t('nav.stockMovements'), path: '/stock-movements' },
+        { icon: ClipboardList, label: t('nav.stockCount'), path: '/stock-count' },
+        { icon: ShoppingBag, label: t('nav.stockTransfer'), path: '/stock-transfer' },
+        { icon: FileText, label: t('nav.purchaseOrders'), path: '/purchase-orders' },
+        { icon: Building2, label: t('nav.suppliers'), path: '/suppliers' },
       ]
     },
-    { icon: Users, label: 'Customers', path: '/customers', roles: ['ADMIN', 'MANAGER'] },
+    { icon: Users, label: t('nav.customers'), path: '/customers', roles: ['ADMIN', 'MANAGER'] },
     { 
       icon: Receipt, 
-      label: 'Sales',
+      label: t('nav.sales'),
       roles: ['ADMIN', 'MANAGER'],
       children: [
-        { icon: Receipt, label: 'Sales History', path: '/sales' },
-        { icon: FileText, label: 'Returns', path: '/returns' },
-        { icon: FileText, label: 'E-Invoice', path: '/e-invoice' },
+        { icon: Receipt, label: t('nav.salesHistory'), path: '/sales' },
+        { icon: FileText, label: t('nav.returns'), path: '/returns' },
+        { icon: FileText, label: t('nav.eInvoice'), path: '/e-invoice' },
       ]
     },
     { 
       icon: DollarSign, 
-      label: 'Finance',
+      label: t('nav.finance'),
       roles: ['ADMIN', 'MANAGER'],
       children: [
-        { icon: DollarSign, label: 'Expenses', path: '/expenses' },
-        { icon: BarChart3, label: 'Profit/Loss', path: '/profit-loss' },
-        { icon: Wallet, label: 'Cash Register', path: '/cash-register' },
+        { icon: DollarSign, label: t('nav.expenses'), path: '/expenses' },
+        { icon: BarChart3, label: t('nav.profitLoss'), path: '/profit-loss' },
+        { icon: Wallet, label: t('nav.cashRegister'), path: '/cash-register' },
       ]
     },
-    { icon: BarChart3, label: 'Reports', path: '/reports', roles: ['ADMIN', 'MANAGER'] },
+    { icon: BarChart3, label: t('nav.reports'), path: '/reports', roles: ['ADMIN', 'MANAGER'] },
     { 
       icon: UserCog, 
-      label: 'Operations',
+      label: t('nav.operations'),
       roles: ['ADMIN'],
       children: [
-        { icon: ClipboardList, label: 'Shifts', path: '/shifts' },
-        { icon: UserCog, label: 'Employees', path: '/employees' },
-        { icon: Building2, label: 'Branches', path: '/branches' },
+        { icon: ClipboardList, label: t('nav.shifts'), path: '/shifts' },
+        { icon: UserCog, label: t('nav.employees'), path: '/employees' },
+        { icon: Building2, label: t('nav.branches'), path: '/branches' },
       ]
     },
-    { icon: Settings, label: 'Settings', path: '/settings', roles: ['ADMIN', 'MANAGER'] },
+    { icon: Settings, label: t('nav.settings'), path: '/settings', roles: ['ADMIN', 'MANAGER'] },
   ];
 
   const filteredMenu = menuItems.filter(item => 
@@ -144,7 +146,7 @@ const FluentSidebar: React.FC = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground-secondary" />
               <input
                 type="text"
-                placeholder="Search..."
+                placeholder={t('common.search')}
                 className="w-full h-8 pl-10 pr-3 bg-input border-0 rounded text-sm focus:ring-2 focus:ring-primary"
               />
             </div>

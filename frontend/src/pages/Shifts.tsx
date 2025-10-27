@@ -7,6 +7,7 @@ import FluentDialog from '../components/fluent/FluentDialog';
 import FluentInput from '../components/fluent/FluentInput';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 interface Shift {
   id: string;
@@ -24,6 +25,7 @@ interface Shift {
 }
 
 const Shifts: React.FC = () => {
+  const { t } = useTranslation();
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [showDialog, setShowDialog] = useState(false);
   const [startCash, setStartCash] = useState(0);
@@ -36,9 +38,9 @@ const Shifts: React.FC = () => {
   const fetchShifts = async () => {
     try {
       const response = await api.get('/shifts');
-      setShifts(response.data);
+      setShifts(response.data.shifts || response.data || []);
     } catch (error) {
-      toast.error('Failed to fetch shifts');
+      toast.error(t('shifts.fetchError'));
     } finally {
       setIsLoading(false);
     }
@@ -48,12 +50,12 @@ const Shifts: React.FC = () => {
     e.preventDefault();
     try {
       await api.post('/shifts', { startCash });
-      toast.success('Shift started');
+      toast.success(t('shifts.startShift'));
       fetchShifts();
       setShowDialog(false);
       setStartCash(0);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to start shift');
+      toast.error(error.response?.data?.message || t('shifts.fetchError'));
     }
   };
 
@@ -74,8 +76,8 @@ const Shifts: React.FC = () => {
     <div className="p-4 md:p-6 space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="fluent-title text-foreground">Shifts</h1>
-          <p className="fluent-body text-foreground-secondary mt-1">{shifts.length} shifts</p>
+          <h1 className="fluent-title text-foreground">{t('shifts.title')}</h1>
+          <p className="fluent-body text-foreground-secondary mt-1">{t('shifts.shiftsCount', { count: shifts.length })}</p>
         </div>
         {!activeShift && (
           <FluentButton
@@ -83,7 +85,7 @@ const Shifts: React.FC = () => {
             icon={<Plus className="w-4 h-4" />}
             onClick={() => setShowDialog(true)}
           >
-            Start Shift
+            {t('shifts.startShift')}
           </FluentButton>
         )}
       </div>
@@ -97,14 +99,14 @@ const Shifts: React.FC = () => {
               </div>
               <div>
                 <h4 className="fluent-heading text-foreground">{activeShift.shiftNumber}</h4>
-                <p className="fluent-body-small text-foreground-secondary">Active Shift</p>
+                <p className="fluent-body-small text-foreground-secondary">{t('shifts.activeShift') || 'Aktif Vardiya'}</p>
               </div>
             </div>
-            <FluentBadge appearance="success">OPEN</FluentBadge>
+            <FluentBadge appearance="success">{t('shifts.open') || 'AÇIK'}</FluentBadge>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <p className="fluent-caption text-foreground-secondary">Started</p>
+              <p className="fluent-caption text-foreground-secondary">{t('shifts.startTime')}</p>
               <p className="fluent-body text-foreground">
                 {new Date(activeShift.startTime).toLocaleTimeString('en-US', {
                   hour: '2-digit',
@@ -113,11 +115,11 @@ const Shifts: React.FC = () => {
               </p>
             </div>
             <div>
-              <p className="fluent-caption text-foreground-secondary">Opening Cash</p>
+              <p className="fluent-caption text-foreground-secondary">{t('shifts.openingCash')}</p>
               <p className="fluent-body text-foreground">₺{activeShift.startCash.toFixed(2)}</p>
             </div>
             <div>
-              <p className="fluent-caption text-foreground-secondary">Sales</p>
+              <p className="fluent-caption text-foreground-secondary">{t('nav.sales')}</p>
               <p className="fluent-body text-foreground">{activeShift._count?.sales || 0}</p>
             </div>
             <div>
@@ -132,7 +134,7 @@ const Shifts: React.FC = () => {
       )}
 
       <FluentCard depth="depth-4" className="p-6">
-        <h3 className="fluent-heading text-foreground mb-4">Shift History</h3>
+        <h3 className="fluent-heading text-foreground mb-4">{t('shifts.shiftHistory') || 'Vardiya Geçmişi'}</h3>
         <div className="space-y-3">
           {shifts
             .filter((s) => s.status === 'CLOSED')
@@ -185,12 +187,12 @@ const Shifts: React.FC = () => {
       <FluentDialog
         open={showDialog}
         onClose={() => setShowDialog(false)}
-        title="Start Shift"
+        title={t('shifts.startShift')}
         size="small"
       >
         <form onSubmit={handleStartShift} className="space-y-4">
           <FluentInput
-            label="Opening Cash"
+            label={t('shifts.openingCash')}
             type="number"
             step="0.01"
             value={startCash}

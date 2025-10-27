@@ -1,0 +1,16 @@
+{
+  "name": "barcodepos-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "find-english": "node scripts/find-english-text.js",
+    "check-translations": "node scripts/find-english-text.js"
+  },
+  "description": "BarcodePOS - Professional Point of Sale System",
+  "keywords": ["pos", "barcode", "sales", "inventory"],
+  "author": "BarcodePOS Team"
+}
+
+
+
+

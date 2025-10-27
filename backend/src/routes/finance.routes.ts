@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getFinancialSummary, getCashFlow } from '../controllers/finance.controller';
+import { getFinancialSummary, getCashFlow, getProfitLoss, getProfitLossChart } from '../controllers/finance.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -9,6 +9,8 @@ router.use(authorize('ADMIN', 'MANAGER'));
 
 router.get('/summary', getFinancialSummary);
 router.get('/cash-flow', getCashFlow);
+router.get('/profit-loss', getProfitLoss);
+router.get('/profit-loss-chart', getProfitLossChart);
 
 export default router;
 

@@ -4,6 +4,7 @@ import FluentCard from '../components/fluent/FluentCard';
 import FluentBadge from '../components/fluent/FluentBadge';
 import { api } from '../lib/api';
 import { Line } from 'react-chartjs-2';
+import { useTranslation } from 'react-i18next';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -28,6 +29,7 @@ interface DashboardStats {
 }
 
 const Dashboard: React.FC = () => {
+  const { t } = useTranslation();
   const [stats, setStats] = useState<DashboardStats>({
     totalRevenue: 0,
     totalSales: 0,
@@ -62,7 +64,7 @@ const Dashboard: React.FC = () => {
           labels: data.last7DaysChart.map((d: any) => d.date),
           datasets: [
             {
-              label: 'Revenue',
+              label: t('dashboard.totalRevenue'),
               data: data.last7DaysChart.map((d: any) => d.revenue),
               borderColor: 'hsl(207, 100%, 41%)',
               backgroundColor: 'hsl(207, 100%, 41%, 0.1)',
@@ -81,31 +83,31 @@ const Dashboard: React.FC = () => {
 
   const kpiCards = [
     {
-      title: 'Total Revenue',
+      title: t('dashboard.totalRevenue'),
       value: `₺${stats.totalRevenue.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}`,
       change: stats.revenueChange,
       icon: DollarSign,
       color: 'text-green-600',
     },
     {
-      title: 'Total Sales',
+      title: t('dashboard.totalSales'),
       value: stats.totalSales.toString(),
       change: stats.salesChange,
       icon: ShoppingCart,
       color: 'text-blue-600',
     },
     {
-      title: 'Products',
+      title: t('dashboard.totalProducts'),
       value: stats.totalProducts.toString(),
       icon: Package,
       color: 'text-purple-600',
     },
     {
-      title: 'Low Stock',
+      title: t('dashboard.lowStock'),
       value: stats.lowStockCount.toString(),
       icon: TrendingUp,
       color: 'text-orange-600',
-      badge: stats.lowStockCount > 0 ? 'Alert' : undefined,
+      badge: stats.lowStockCount > 0 ? t('common.error') : undefined,
     },
   ];
 
@@ -114,7 +116,7 @@ const Dashboard: React.FC = () => {
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="mt-4 text-foreground-secondary">Loading dashboard...</p>
+          <p className="mt-4 text-foreground-secondary">{t('dashboard.loadingStats')}</p>
         </div>
       </div>
     );
@@ -124,9 +126,9 @@ const Dashboard: React.FC = () => {
     <div className="p-4 md:p-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="fluent-title text-foreground">Dashboard</h1>
+        <h1 className="fluent-title text-foreground">{t('dashboard.title')}</h1>
         <p className="fluent-body text-foreground-secondary mt-1">
-          Overview of your business performance
+          {t('dashboard.recentActivity')}
         </p>
       </div>
 
@@ -175,7 +177,7 @@ const Dashboard: React.FC = () => {
 
       {/* Chart */}
       <FluentCard depth="depth-4" className="p-6">
-        <h3 className="fluent-heading text-foreground mb-4">Revenue Trend</h3>
+        <h3 className="fluent-heading text-foreground mb-4">{t('dashboard.salesChart')}</h3>
         {chartData && (
           <div className="h-64">
             <Line

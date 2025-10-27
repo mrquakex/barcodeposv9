@@ -1,7 +1,13 @@
+// CRITICAL: Load environment variables BEFORE any imports that use them!
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Force dotenv to look in the correct directory
+dotenv.config({ path: path.join(process.cwd(), '.env') });
+
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import compression from 'compression';
@@ -28,6 +34,13 @@ import geminiRoutes from './routes/gemini.routes';
 import priceMonitorRoutes from './routes/price-monitor.routes';
 import aiActionsRoutes from './routes/ai-actions.routes';
 import aiAdvancedRoutes from './routes/ai-advanced.routes';
+import invoiceRoutes from './routes/invoice.routes';
+import shiftRoutes from './routes/shift.routes';
+import stockCountRoutes from './routes/stockCount.routes';
+import stockTransferRoutes from './routes/stockTransfer.routes';
+import stockMovementRoutes from './routes/stockMovement.routes';
+import purchaseOrderRoutes from './routes/purchaseOrder.routes';
+import returnRoutes from './routes/return.routes';
 import prisma from './lib/prisma';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -164,6 +177,13 @@ app.use('/api/gemini', geminiRoutes);
 app.use('/api/price-monitor', priceMonitorRoutes);
 app.use('/api/ai-actions', aiActionsRoutes);
 app.use('/api/ai-advanced', aiAdvancedRoutes);
+app.use('/api/invoices', invoiceRoutes);
+app.use('/api/shifts', shiftRoutes);
+app.use('/api/stock-counts', stockCountRoutes);
+app.use('/api/stock-transfers', stockTransferRoutes);
+app.use('/api/stock-movements', stockMovementRoutes);
+app.use('/api/purchase-orders', purchaseOrderRoutes);
+app.use('/api/returns', returnRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import prisma from '../utils/prisma';
+import prisma from '../lib/prisma';
 import { AuthRequest } from '../middleware/auth.middleware';
 
 export const getAllSales = async (req: Request, res: Response) => {
@@ -33,7 +33,7 @@ export const getAllSales = async (req: Request, res: Response) => {
           },
         },
         customer: true,
-        saleItems: {
+        items: {
           include: {
             product: true,
           },
@@ -44,10 +44,10 @@ export const getAllSales = async (req: Request, res: Response) => {
       },
     });
 
-    // saleItems'ı items olarak map et (frontend için)
+    // items'ı formatla (frontend için)
     const formattedSales = sales.map(sale => ({
       ...sale,
-      items: sale.saleItems.map(item => ({
+      items: sale.items.map(item => ({
         id: item.id,
         quantity: item.quantity,
         price: item.unitPrice,
@@ -56,8 +56,8 @@ export const getAllSales = async (req: Request, res: Response) => {
           barcode: item.product.barcode,
         },
       })),
-      // saleItems'ı kaldır (gereksiz)
-      saleItems: undefined,
+      // items'ı kaldır (gereksiz)
+      items: undefined,
     }));
 
     res.json({ sales: formattedSales });
@@ -82,7 +82,7 @@ export const getSaleById = async (req: Request, res: Response) => {
           },
         },
         customer: true,
-        saleItems: {
+        items: {
           include: {
             product: true,
           },
@@ -94,10 +94,10 @@ export const getSaleById = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Satış bulunamadı' });
     }
 
-    // saleItems'ı items olarak map et
+    // items'ı items olarak map et
     const formattedSale = {
       ...sale,
-      items: sale.saleItems.map(item => ({
+      items: sale.items.map(item => ({
         id: item.id,
         quantity: item.quantity,
         price: item.unitPrice,
@@ -106,7 +106,7 @@ export const getSaleById = async (req: Request, res: Response) => {
           barcode: item.product.barcode,
         },
       })),
-      saleItems: undefined,
+      items: undefined,
     };
 
     res.json({ sale: formattedSale });
@@ -128,7 +128,7 @@ export const createSale = async (req: AuthRequest, res: Response) => {
     let totalAmount = 0;
     let taxAmount = 0;
 
-    const saleItems = await Promise.all(
+    const processedItems = await Promise.all(
       items.map(async (item: any) => {
         const product = await prisma.product.findUnique({
           where: { id: item.productId },
@@ -179,12 +179,12 @@ export const createSale = async (req: AuthRequest, res: Response) => {
           userId: req.userId!,
           customerId,
           notes,
-          saleItems: {
-            create: saleItems,
+          items: {
+            create: processedItems,
           },
         },
         include: {
-          saleItems: {
+          items: {
             include: {
               product: true,
             },
@@ -201,7 +201,7 @@ export const createSale = async (req: AuthRequest, res: Response) => {
       });
 
       // Stokları güncelle
-      for (const item of items) {
+      for (const item of processedItems) {
         await tx.product.update({
           where: { id: item.productId },
           data: {
@@ -227,10 +227,10 @@ export const createSale = async (req: AuthRequest, res: Response) => {
       return newSale;
     });
 
-    // saleItems'ı items olarak map et
+    // items'ı items olarak map et
     const formattedSale = {
       ...sale,
-      items: sale.saleItems.map(item => ({
+      items: sale.items.map(item => ({
         id: item.id,
         quantity: item.quantity,
         price: item.unitPrice,
@@ -239,7 +239,7 @@ export const createSale = async (req: AuthRequest, res: Response) => {
           barcode: item.product.barcode,
         },
       })),
-      saleItems: undefined,
+      items: undefined,
     };
 
     res.status(201).json({ message: 'Satış başarıyla oluşturuldu', sale: formattedSale });
@@ -257,7 +257,7 @@ export const deleteSale = async (req: Request, res: Response) => {
     const sale = await prisma.sale.findUnique({
       where: { id },
       include: {
-        saleItems: true,
+        items: true,
       },
     });
 
@@ -267,7 +267,7 @@ export const deleteSale = async (req: Request, res: Response) => {
 
     await prisma.$transaction(async (tx) => {
       // Stokları geri ekle
-      for (const item of sale.saleItems) {
+      for (const item of sale.items) {
         await tx.product.update({
           where: { id: item.productId },
           data: {

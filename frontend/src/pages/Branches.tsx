@@ -7,6 +7,7 @@ import FluentDialog from '../components/fluent/FluentDialog';
 import FluentBadge from '../components/fluent/FluentBadge';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 interface Branch {
   id: string;
@@ -18,6 +19,7 @@ interface Branch {
 }
 
 const Branches: React.FC = () => {
+  const { t } = useTranslation();
   const [branches, setBranches] = useState<Branch[]>([]);
   const [showDialog, setShowDialog] = useState(false);
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null);
@@ -31,9 +33,9 @@ const Branches: React.FC = () => {
   const fetchBranches = async () => {
     try {
       const response = await api.get('/branches');
-      setBranches(response.data);
+      setBranches(response.data.branches || []);
     } catch (error) {
-      toast.error('Failed to fetch branches');
+      toast.error(t('branches.fetchError'));
     } finally {
       setIsLoading(false);
     }
@@ -44,15 +46,15 @@ const Branches: React.FC = () => {
     try {
       if (editingBranch) {
         await api.put(`/branches/${editingBranch.id}`, formData);
-        toast.success('Branch updated');
+        toast.success(t('branches.branchUpdated'));
       } else {
         await api.post('/branches', formData);
-        toast.success('Branch created');
+        toast.success(t('branches.branchCreated'));
       }
       fetchBranches();
       handleCloseDialog();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to save branch');
+      toast.error(error.response?.data?.message || t('branches.saveError'));
     }
   };
 
@@ -73,7 +75,7 @@ const Branches: React.FC = () => {
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="mt-4 text-foreground-secondary">Loading...</p>
+          <p className="mt-4 text-foreground-secondary">{t('branches.loadingBranches')}</p>
         </div>
       </div>
     );
@@ -83,15 +85,15 @@ const Branches: React.FC = () => {
     <div className="p-4 md:p-6 space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="fluent-title text-foreground">Branches</h1>
-          <p className="fluent-body text-foreground-secondary mt-1">{branches.length} branches</p>
+          <h1 className="fluent-title text-foreground">{t('branches.title')}</h1>
+          <p className="fluent-body text-foreground-secondary mt-1">{t('branches.branchesCount', { count: branches.length })}</p>
         </div>
         <FluentButton
           appearance="primary"
           icon={<Plus className="w-4 h-4" />}
           onClick={() => setShowDialog(true)}
         >
-          Add Branch
+          {t('branches.addBranch')}
         </FluentButton>
       </div>
 
@@ -106,7 +108,7 @@ const Branches: React.FC = () => {
                 <div className="flex items-center gap-2 mb-1">
                   <h4 className="fluent-body font-medium text-foreground">{branch.name}</h4>
                   <FluentBadge appearance={branch.isActive ? 'success' : 'error'} size="small">
-                    {branch.isActive ? 'Active' : 'Inactive'}
+                    {branch.isActive ? t('common.active') : t('common.inactive')}
                   </FluentBadge>
                 </div>
                 {branch.address && (
@@ -116,7 +118,7 @@ const Branches: React.FC = () => {
                   <p className="fluent-caption text-foreground-secondary">{branch.phone}</p>
                 )}
                 <p className="fluent-caption text-primary mt-2">
-                  {branch._count?.users || 0} employees
+                  {branch._count?.users || 0} {t('nav.employees') || 'çalışan'}
                 </p>
               </div>
             </div>
@@ -128,7 +130,7 @@ const Branches: React.FC = () => {
                 icon={<Edit className="w-3 h-3" />}
                 onClick={() => handleEdit(branch)}
               >
-                Edit
+                {t('common.edit')}
               </FluentButton>
             </div>
           </FluentCard>
@@ -138,23 +140,23 @@ const Branches: React.FC = () => {
       <FluentDialog
         open={showDialog}
         onClose={handleCloseDialog}
-        title={editingBranch ? 'Edit Branch' : 'Add Branch'}
+        title={editingBranch ? t('branches.editBranch') : t('branches.addBranch')}
         size="medium"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <FluentInput
-            label="Branch Name"
+            label={t('branches.branchName')}
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             required
           />
           <FluentInput
-            label="Phone"
+            label={t('branches.phone')}
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
           />
           <div>
-            <label className="fluent-body-small text-foreground-secondary block mb-2">Address</label>
+            <label className="fluent-body-small text-foreground-secondary block mb-2">{t('branches.address')}</label>
             <textarea
               value={formData.address}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
@@ -167,7 +169,7 @@ const Branches: React.FC = () => {
               Cancel
             </FluentButton>
             <FluentButton type="submit" appearance="primary" className="flex-1">
-              {editingBranch ? 'Update' : 'Create'}
+              {editingBranch ? t('common.update') || 'Güncelle' : t('common.create') || 'Oluştur'}
             </FluentButton>
           </div>
         </form>

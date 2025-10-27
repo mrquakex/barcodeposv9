@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -86,7 +86,7 @@ model Product {
   sku         String?   @unique
   barcode     String    @unique
   name        String
-  description String?   @db.Text
+  description String?  
   buyPrice    Float     @default(0) // Maliyet
   sellPrice   Float     // Satış fiyatı
   stock       Int       @default(0)
@@ -120,7 +120,7 @@ model ProductVariant {
   name       String   // "Kırmızı - S", "500ml"
   sku        String   @unique
   barcode    String?  @unique
-  attributes Json?    // {color: "red", size: "S"}
+  attributes String?    // {color: "red", size: "S"}
   price      Float    // Ek fiyat veya farklı fiyat
   stock      Int      @default(0)
   isActive   Boolean  @default(true)
@@ -138,11 +138,11 @@ model Supplier {
   contactPerson   String?
   email           String?  @unique
   phone           String?
-  address         String?  @db.Text
+  address         String? 
   taxNumber       String?
   paymentTerms    String?  // "30 gün", "Peşin"
   balance         Float    @default(0)
-  notes           String?  @db.Text
+  notes           String? 
   isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -167,7 +167,7 @@ model StockMovement {
   newStock        Int
   referenceType   String?  // SALE, PURCHASE, TRANSFER, COUNT, RETURN
   referenceId     String?
-  notes           String?  @db.Text
+  notes           String? 
   userId          String?
   branchId        String?
   createdAt       DateTime @default(now())
@@ -187,7 +187,7 @@ model StockCount {
   status       String   // IN_PROGRESS, COMPLETED
   startedAt    DateTime @default(now())
   completedAt  DateTime?
-  notes        String?  @db.Text
+  notes        String? 
   userId       String
   branchId     String?
   createdAt    DateTime @default(now())
@@ -222,7 +222,7 @@ model StockTransfer {
   fromBranchId   String
   toBranchId     String
   status         String   // PENDING, IN_TRANSIT, RECEIVED, CANCELLED
-  notes          String?  @db.Text
+  notes          String? 
   userId         String
   createdAt      DateTime @default(now())
   completedAt    DateTime?
@@ -260,7 +260,7 @@ model PurchaseOrder {
   orderDate       DateTime @default(now())
   expectedDate    DateTime?
   receivedDate    DateTime?
-  notes           String?  @db.Text
+  notes           String? 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
@@ -295,7 +295,7 @@ model Customer {
   name          String
   email         String?  @unique
   phone         String?
-  address       String?  @db.Text
+  address       String? 
   taxNumber     String?
   debt          Float    @default(0)
   loyaltyPoints Int      @default(0)
@@ -354,10 +354,10 @@ model Sale {
   taxAmount      Float        @default(0)
   total          Float        // Final toplam
   paymentMethod  String       @default("CASH") // CASH, CARD, CREDIT, MIXED
-  paymentDetails Json?        // Mixed payment details
+  paymentDetails String?        // Mixed payment details
   isPaid         Boolean      @default(true)
   status         String       @default("COMPLETED") // COMPLETED, VOIDED, RETURNED
-  notes          String?      @db.Text
+  notes          String?     
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   
@@ -392,12 +392,12 @@ model Return {
   id            String   @id @default(uuid())
   returnNumber  String   @unique
   saleId        String
-  reason        String   @db.Text
+  reason        String  
   status        String   // PENDING, APPROVED, COMPLETED, REJECTED
   refundAmount  Float
   refundMethod  String   // CASH, CARD, CREDIT
   userId        String
-  notes         String?  @db.Text
+  notes         String? 
   createdAt     DateTime @default(now())
   completedAt   DateTime?
   updatedAt     DateTime @updatedAt
@@ -434,7 +434,7 @@ model Invoice {
   subtotal      Float
   taxAmount     Float
   total         Float
-  eInvoiceData  Json?    // GİB response
+  eInvoiceData  String?    // GİB response
   pdfUrl        String?
   xmlUrl        String?
   sentAt        DateTime?
@@ -465,7 +465,7 @@ model Shift {
   actualCash    Float?
   difference    Float?   // actualCash - expectedCash
   status        String   // OPEN, CLOSED
-  notes         String?  @db.Text
+  notes         String? 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   
@@ -483,7 +483,7 @@ model CashTransaction {
   type     String   // IN, OUT
   amount   Float
   category String?  // SALE, EXPENSE, INITIAL, BANK_DEPOSIT, etc.
-  note     String   @db.Text
+  note     String  
   userId   String
   createdAt DateTime @default(now())
   
@@ -514,7 +514,7 @@ model Expense {
   id              String   @id @default(uuid())
   categoryId      String
   amount          Float
-  description     String   @db.Text
+  description     String  
   paymentMethod   String   @default("CASH")
   receiptNumber   String?
   expenseDate     DateTime @default(now())
@@ -537,7 +537,7 @@ model SupplierPayment {
   paymentMethod   String   @default("CASH")
   paymentDate     DateTime @default(now())
   referenceNumber String?
-  notes           String?  @db.Text
+  notes           String? 
   createdAt       DateTime @default(now())
   
   supplier        Supplier @relation(fields: [supplierId], references: [id])
@@ -562,7 +562,7 @@ model PaymentMethod {
   id        String   @id @default(uuid())
   name      String
   type      String   // CASH, CARD, BANK_TRANSFER, MOBILE, CRYPTO
-  config    Json?    // Payment gateway config
+  config    String?    // Payment gateway config
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -577,7 +577,7 @@ model PaymentMethod {
 model Settings {
   id              String   @id @default(uuid())
   storeName       String   @default("Store")
-  storeAddress    String?  @db.Text
+  storeAddress    String? 
   storePhone      String?
   storeEmail      String?
   storeTaxNumber  String?
@@ -586,8 +586,8 @@ model Settings {
   locale          String   @default("tr-TR")
   timezone        String   @default("Europe/Istanbul")
   theme           String   @default("light")
-  receiptFooter   String?  @db.Text
-  eInvoiceConfig  Json?    // E-Invoice provider config
+  receiptFooter   String? 
+  eInvoiceConfig  String?    // E-Invoice provider config
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
@@ -600,9 +600,9 @@ model ActivityLog {
   action          String   // CREATE, UPDATE, DELETE, LOGIN, LOGOUT
   module          String   // USER, PRODUCT, SALE, SHIFT, etc.
   entityId        String?
-  description     String   @db.Text
-  oldValue        Json?
-  newValue        Json?
+  description     String  
+  oldValue        String?
+  newValue        String?
   ipAddress       String?
   userAgent       String?
   branchId        String?
@@ -621,13 +621,13 @@ model ActivityLog {
 model Conversation {
   id                  String   @id @default(uuid())
   userId              String
-  userMessage         String   @db.Text
-  aiResponse          String   @db.Text
+  userMessage         String  
+  aiResponse          String  
   actionType          String?
-  actionData          Json?
-  actionResult        String?  @db.Text
+  actionData          String?
+  actionResult        String? 
   conversationSession String?
-  metadata            Json?
+  metadata            String?
   createdAt           DateTime @default(now())
   
   user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -641,14 +641,14 @@ model ScheduledTask {
   id            String   @id @default(uuid())
   userId        String
   name          String
-  description   String?  @db.Text
+  description   String? 
   actionType    String
-  actionData    Json
+  actionData    String
   schedule      String   // Cron expression
   isActive      Boolean  @default(true)
   lastRun       DateTime?
   lastStatus    String?
-  lastError     String?  @db.Text
+  lastError     String? 
   nextRun       DateTime?
   runCount      Int      @default(0)
   createdAt     DateTime @default(now())

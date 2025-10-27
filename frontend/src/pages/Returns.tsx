@@ -6,6 +6,7 @@ import FluentButton from '../components/fluent/FluentButton';
 import FluentBadge from '../components/fluent/FluentBadge';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 interface Return {
   id: string;
@@ -21,6 +22,7 @@ interface Return {
 }
 
 const Returns: React.FC = () => {
+  const { t } = useTranslation();
   const [returns, setReturns] = useState<Return[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -31,9 +33,9 @@ const Returns: React.FC = () => {
   const fetchReturns = async () => {
     try {
       const response = await api.get('/returns');
-      setReturns(response.data);
+      setReturns(response.data.returns || response.data || []);
     } catch (error) {
-      toast.error('Failed to fetch returns');
+      toast.error(t('returns.fetchError'));
     } finally {
       setIsLoading(false);
     }
@@ -54,7 +56,7 @@ const Returns: React.FC = () => {
     <div className="p-4 md:p-6 space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="fluent-title text-foreground">Returns</h1>
+          <h1 className="fluent-title text-foreground">{t('returns.title')}</h1>
           <p className="fluent-body text-foreground-secondary mt-1">{returns.length} returns</p>
         </div>
         <FluentButton appearance="primary" icon={<Plus className="w-4 h-4" />}>
@@ -63,7 +65,7 @@ const Returns: React.FC = () => {
       </div>
 
       <FluentCard depth="depth-4" className="p-4">
-        <FluentInput placeholder="Search returns..." icon={<Search className="w-4 h-4" />} />
+        <FluentInput placeholder={t('returns.searchPlaceholder') || 'İade ara...'} icon={<Search className="w-4 h-4" />} />
       </FluentCard>
 
       <div className="space-y-3">

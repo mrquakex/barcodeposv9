@@ -6,6 +6,7 @@ import FluentInput from '../components/fluent/FluentInput';
 import FluentDialog from '../components/fluent/FluentDialog';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 
 interface Product {
@@ -29,6 +30,7 @@ interface Customer {
 }
 
 const POS: React.FC = () => {
+  const { t } = useTranslation();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [barcodeInput, setBarcodeInput] = useState('');
   const [isScanning, setIsScanning] = useState(false);
@@ -53,7 +55,7 @@ const POS: React.FC = () => {
   const fetchCustomers = async () => {
     try {
       const response = await api.get('/customers');
-      setCustomers(response.data);
+      setCustomers(response.data.customers || []);
     } catch (error) {
       console.error('Failed to fetch customers:', error);
     }
@@ -67,15 +69,15 @@ const POS: React.FC = () => {
       const product = response.data;
 
       if (product.stock <= 0) {
-        toast.error('Product out of stock');
+        toast.error(t('pos.insufficientStock'));
         return;
       }
 
       addToCart(product);
       setBarcodeInput('');
-      toast.success(`${product.name} added to cart`);
+      toast.success(t('pos.addToCart'));
     } catch (error) {
-      toast.error('Product not found');
+      toast.error(t('pos.productNotFound'));
     }
   };
 
@@ -84,7 +86,7 @@ const POS: React.FC = () => {
       const existing = prev.find((item) => item.id === product.id);
       if (existing) {
         if (existing.quantity >= product.stock) {
-          toast.error('Not enough stock');
+          toast.error(t('pos.insufficientStock'));
           return prev;
         }
         return prev.map((item) =>
@@ -150,12 +152,12 @@ const POS: React.FC = () => {
 
   const handlePayment = async () => {
     if (cart.length === 0) {
-      toast.error('Cart is empty');
+      toast.error(t('pos.emptyCart'));
       return;
     }
 
     if (paymentMethod === 'CREDIT' && !selectedCustomer) {
-      toast.error('Please select a customer for credit sale');
+      toast.error(t('pos.selectCustomer'));
       return;
     }
 
@@ -182,11 +184,11 @@ const POS: React.FC = () => {
         total: subtotal,
       });
 
-      toast.success('Sale completed successfully');
+      toast.success(t('pos.saleCompleted'));
       clearCart();
       setShowPaymentDialog(false);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Sale failed');
+      toast.error(error.response?.data?.message || t('pos.saleError'));
     } finally {
       setIsProcessing(false);
     }
@@ -215,7 +217,7 @@ const POS: React.FC = () => {
                   handleBarcodeSubmit(barcodeInput);
                 }
               }}
-              placeholder="Scan or enter barcode..."
+              placeholder={t('pos.enterBarcode')}
               icon={<Search className="w-4 h-4" />}
               className="flex-1"
             />
@@ -224,7 +226,7 @@ const POS: React.FC = () => {
               onClick={isScanning ? stopCamera : startCamera}
               icon={<Camera className="w-4 h-4" />}
             >
-              {isScanning ? 'Stop' : 'Camera'}
+              {isScanning ? t('pos.stopCamera') || 'Durdur' : t('pos.camera') || 'Kamera'}
             </FluentButton>
           </div>
 
@@ -239,7 +241,7 @@ const POS: React.FC = () => {
             <div className="flex items-center gap-2">
               <User className="w-5 h-5 text-foreground-secondary" />
               <span className="fluent-body text-foreground">
-                {selectedCustomer ? selectedCustomer.name : 'No customer selected'}
+                {selectedCustomer ? selectedCustomer.name : t('pos.noCustomerSelected')}
               </span>
             </div>
             <FluentButton
@@ -247,7 +249,7 @@ const POS: React.FC = () => {
               size="small"
               onClick={() => setShowCustomerDialog(true)}
             >
-              {selectedCustomer ? 'Change' : 'Select'}
+              {selectedCustomer ? t('common.edit') || 'Değiştir' : t('pos.selectCustomer') || 'Seç'}
             </FluentButton>
           </div>
         </FluentCard>
@@ -258,7 +260,7 @@ const POS: React.FC = () => {
         <FluentCard depth="depth-8" className="flex-1 flex flex-col">
           {/* Cart Header */}
           <div className="p-4 border-b border-border flex items-center justify-between">
-            <h3 className="fluent-heading text-foreground">Cart ({cart.length})</h3>
+            <h3 className="fluent-heading text-foreground">{t('pos.cart')} ({cart.length})</h3>
             {cart.length > 0 && (
               <FluentButton
                 appearance="subtle"
@@ -266,7 +268,7 @@ const POS: React.FC = () => {
                 icon={<Trash2 className="w-4 h-4" />}
                 onClick={clearCart}
               >
-                Clear
+                {t('pos.clearCart')}
               </FluentButton>
             )}
           </div>
@@ -275,7 +277,7 @@ const POS: React.FC = () => {
           <div className="flex-1 overflow-y-auto fluent-scrollbar p-4 space-y-2">
             {cart.length === 0 ? (
               <div className="text-center text-foreground-secondary py-8">
-                <p className="fluent-body">Cart is empty</p>
+                <p className="fluent-body">{t('pos.emptyCart')}</p>
               </div>
             ) : (
               cart.map((item) => (
@@ -323,15 +325,15 @@ const POS: React.FC = () => {
           {cart.length > 0 && (
             <div className="p-4 border-t border-border space-y-2">
               <div className="flex justify-between fluent-body-small text-foreground-secondary">
-                <span>Subtotal</span>
+                <span>{t('pos.subtotal')}</span>
                 <span>₺{subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between fluent-body-small text-foreground-secondary">
-                <span>Tax</span>
+                <span>{t('pos.tax')}</span>
                 <span>₺{taxAmount.toFixed(2)}</span>
               </div>
               <div className="flex justify-between fluent-heading text-foreground pt-2 border-t border-border">
-                <span>Total</span>
+                <span>{t('pos.total')}</span>
                 <span>₺{total.toFixed(2)}</span>
               </div>
               <FluentButton
@@ -341,7 +343,7 @@ const POS: React.FC = () => {
                 onClick={() => setShowPaymentDialog(true)}
                 icon={<DollarSign className="w-5 h-5" />}
               >
-                Complete Sale
+                {t('pos.completeSale')}
               </FluentButton>
             </div>
           )}
@@ -352,7 +354,7 @@ const POS: React.FC = () => {
       <FluentDialog
         open={showCustomerDialog}
         onClose={() => setShowCustomerDialog(false)}
-        title="Select Customer"
+        title={t('pos.selectCustomer')}
         size="medium"
       >
         <div className="space-y-2">
@@ -364,7 +366,7 @@ const POS: React.FC = () => {
               setShowCustomerDialog(false);
             }}
           >
-            No customer (Cash sale)
+            {t('pos.noCashSale') || 'Müşteri Yok (Peşin Satış)'}
           </FluentButton>
           {customers.map((customer) => (
             <FluentButton
@@ -379,7 +381,7 @@ const POS: React.FC = () => {
               <span>{customer.name}</span>
               {customer.debt > 0 && (
                 <span className="text-destructive text-sm">
-                  Debt: ₺{customer.debt.toFixed(2)}
+                  {t('customers.debt')}: ₺{customer.debt.toFixed(2)}
                 </span>
               )}
             </FluentButton>
@@ -391,12 +393,12 @@ const POS: React.FC = () => {
       <FluentDialog
         open={showPaymentDialog}
         onClose={() => setShowPaymentDialog(false)}
-        title="Complete Payment"
+        title={t('pos.completeSale')}
         size="medium"
       >
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="fluent-body-small text-foreground-secondary">Payment Method</label>
+            <label className="fluent-body-small text-foreground-secondary">{t('pos.paymentMethod')}</label>
             <div className="grid grid-cols-3 gap-2">
               {['CASH', 'CARD', 'CREDIT'].map((method) => (
                 <FluentButton
@@ -405,7 +407,7 @@ const POS: React.FC = () => {
                   onClick={() => setPaymentMethod(method as any)}
                   size="small"
                 >
-                  {method}
+                  {method === 'CASH' ? t('pos.cash') : method === 'CARD' ? t('pos.card') : t('pos.credit')}
                 </FluentButton>
               ))}
             </div>
@@ -413,12 +415,12 @@ const POS: React.FC = () => {
 
           <div className="p-4 bg-background-alt rounded space-y-2">
             <div className="flex justify-between fluent-body text-foreground">
-              <span>Total</span>
+              <span>{t('pos.total')}</span>
               <span className="font-semibold">₺{total.toFixed(2)}</span>
             </div>
             {selectedCustomer && (
               <div className="flex justify-between fluent-body-small text-foreground-secondary">
-                <span>Customer</span>
+                <span>{t('pos.customer') || 'Müşteri'}</span>
                 <span>{selectedCustomer.name}</span>
               </div>
             )}
@@ -430,16 +432,16 @@ const POS: React.FC = () => {
               className="flex-1"
               onClick={() => setShowPaymentDialog(false)}
             >
-              Cancel
+              {t('common.cancel')}
             </FluentButton>
             <FluentButton
               appearance="primary"
               className="flex-1"
               onClick={handlePayment}
-              isLoading={isProcessing}
+              loading={isProcessing}
               icon={<CreditCard className="w-4 h-4" />}
             >
-              Confirm
+              {t('common.confirm') || 'Onayla'}
             </FluentButton>
           </div>
         </div>

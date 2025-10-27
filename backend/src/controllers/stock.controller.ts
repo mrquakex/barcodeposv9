@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import prisma from '../utils/prisma';
+import prisma from '../lib/prisma';
 import { AuthRequest } from '../middleware/auth.middleware';
 
 export const getStockMovements = async (req: Request, res: Response) => {

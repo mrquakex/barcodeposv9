@@ -6,6 +6,7 @@ import FluentButton from '../components/fluent/FluentButton';
 import FluentDialog from '../components/fluent/FluentDialog';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 interface Expense {
   id: string;
@@ -18,6 +19,7 @@ interface Expense {
 }
 
 const Expenses: React.FC = () => {
+  const { t } = useTranslation();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [showDialog, setShowDialog] = useState(false);
@@ -37,9 +39,9 @@ const Expenses: React.FC = () => {
   const fetchExpenses = async () => {
     try {
       const response = await api.get('/expenses');
-      setExpenses(response.data);
+      setExpenses(response.data.expenses || []);
     } catch (error) {
-      toast.error('Failed to fetch expenses');
+      toast.error(t('expenses.fetchError'));
     } finally {
       setIsLoading(false);
     }
@@ -47,7 +49,7 @@ const Expenses: React.FC = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await api.get('/expense-categories');
+      const response = await api.get('/expenses/categories');
       setCategories(response.data);
     } catch (error) {
       console.error('Failed to fetch categories:', error);
@@ -58,7 +60,7 @@ const Expenses: React.FC = () => {
     e.preventDefault();
     try {
       await api.post('/expenses', formData);
-      toast.success('Expense created');
+        toast.success(t('expenses.expenseCreated'));
       fetchExpenses();
       setShowDialog(false);
       setFormData({ categoryId: '', amount: 0, description: '', paymentMethod: 'CASH' });
@@ -82,20 +84,20 @@ const Expenses: React.FC = () => {
     <div className="p-4 md:p-6 space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="fluent-title text-foreground">Expenses</h1>
-          <p className="fluent-body text-foreground-secondary mt-1">{expenses.length} expenses</p>
+          <h1 className="fluent-title text-foreground">{t('expenses.title')}</h1>
+          <p className="fluent-body text-foreground-secondary mt-1">{t('expenses.expensesCount', { count: expenses.length })}</p>
         </div>
         <FluentButton
           appearance="primary"
           icon={<Plus className="w-4 h-4" />}
           onClick={() => setShowDialog(true)}
         >
-          Add Expense
+          {t('expenses.addExpense')}
         </FluentButton>
       </div>
 
       <FluentCard depth="depth-4" className="p-4">
-        <FluentInput placeholder="Search expenses..." icon={<Search className="w-4 h-4" />} />
+        <FluentInput placeholder={t('expenses.searchPlaceholder') || 'Gider ara...'} icon={<Search className="w-4 h-4" />} />
       </FluentCard>
 
       <div className="space-y-3">
@@ -110,9 +112,9 @@ const Expenses: React.FC = () => {
                   {expense.description}
                 </h4>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-foreground-secondary">
-                  <span>Category: {expense.category.name}</span>
-                  <span>Method: {expense.paymentMethod}</span>
-                  <span>By: {expense.user.name}</span>
+                  <span>{t('products.category')}: {expense.category.name}</span>
+                  <span>{t('pos.paymentMethod')}: {expense.paymentMethod}</span>
+                  <span>{t('common.by') || 'Kullanıcı'}: {expense.user.name}</span>
                   <span>
                     {new Date(expense.expenseDate).toLocaleDateString('en-US', {
                       month: 'short',
@@ -188,9 +190,9 @@ const Expenses: React.FC = () => {
               onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
               className="w-full h-10 px-3 bg-input border border-border rounded text-foreground fluent-body focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="CASH">Cash</option>
-              <option value="CARD">Card</option>
-              <option value="BANK_TRANSFER">Bank Transfer</option>
+              <option value="CASH">{t('pos.cash')}</option>
+              <option value="CARD">{t('pos.card')}</option>
+              <option value="BANK_TRANSFER">{t('expenses.bankTransfer') || 'Banka Havalesi'}</option>
             </select>
           </div>
           <div className="flex gap-2 pt-4">

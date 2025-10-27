@@ -10,13 +10,6 @@ export const useThemeStore = create<ThemeState>((set) => {
   // İlk tema kontrolü
   const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
   const initialTheme = savedTheme || 'light';
-  
-  // İlk tema uygula
-  if (initialTheme === 'dark') {
-    document.documentElement.classList.add('dark');
-  } else {
-    document.documentElement.classList.remove('dark');
-  }
 
   return {
     theme: initialTheme,
@@ -25,25 +18,11 @@ export const useThemeStore = create<ThemeState>((set) => {
       set((state) => {
         const newTheme = state.theme === 'light' ? 'dark' : 'light';
         localStorage.setItem('theme', newTheme);
-        
-        if (newTheme === 'dark') {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-        
         return { theme: newTheme };
       }),
 
     setTheme: (theme: 'light' | 'dark') => {
       localStorage.setItem('theme', theme);
-      
-      if (theme === 'dark') {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-      
       set({ theme });
     },
   };

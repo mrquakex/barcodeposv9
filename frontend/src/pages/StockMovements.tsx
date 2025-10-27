@@ -6,6 +6,7 @@ import FluentButton from '../components/fluent/FluentButton';
 import FluentBadge from '../components/fluent/FluentBadge';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 interface StockMovement {
   id: string;
@@ -20,6 +21,7 @@ interface StockMovement {
 }
 
 const StockMovements: React.FC = () => {
+  const { t } = useTranslation();
   const [movements, setMovements] = useState<StockMovement[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<string>('ALL');
@@ -32,9 +34,9 @@ const StockMovements: React.FC = () => {
   const fetchMovements = async () => {
     try {
       const response = await api.get('/stock-movements');
-      setMovements(response.data);
+      setMovements(response.data.movements || response.data || []);
     } catch (error) {
-      toast.error('Failed to fetch movements');
+      toast.error(t('stockMovements.fetchError'));
     } finally {
       setIsLoading(false);
     }
@@ -66,7 +68,7 @@ const StockMovements: React.FC = () => {
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="mt-4 text-foreground-secondary">Loading movements...</p>
+          <p className="mt-4 text-foreground-secondary">{t('stockMovements.loadingMovements')}</p>
         </div>
       </div>
     );
@@ -76,9 +78,9 @@ const StockMovements: React.FC = () => {
     <div className="p-4 md:p-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="fluent-title text-foreground">Stock Movements</h1>
+        <h1 className="fluent-title text-foreground">{t('stockMovements.title')}</h1>
         <p className="fluent-body text-foreground-secondary mt-1">
-          {filteredMovements.length} movements
+          {t('stockMovements.movementsCount', { count: filteredMovements.length })}
         </p>
       </div>
 
@@ -88,7 +90,7 @@ const StockMovements: React.FC = () => {
           <FluentInput
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by product name or barcode..."
+            placeholder={t('stockMovements.searchPlaceholder') || 'Ürün adı veya barkod ile ara...'}
             icon={<Search className="w-4 h-4" />}
             className="flex-1"
           />
@@ -100,7 +102,11 @@ const StockMovements: React.FC = () => {
                 size="small"
                 onClick={() => setFilterType(type)}
               >
-                {type}
+                {type === 'ALL' ? t('common.all') : 
+                 type === 'IN' ? t('stockMovements.in') : 
+                 type === 'OUT' ? t('stockMovements.out') : 
+                 type === 'TRANSFER' ? t('stockMovements.transfer') || 'Transfer' : 
+                 t('stockMovements.adjustment')}
               </FluentButton>
             ))}
           </div>
@@ -133,21 +139,24 @@ const StockMovements: React.FC = () => {
                     }
                     size="small"
                   >
-                    {movement.type}
+                    {movement.type === 'IN' ? t('stockMovements.in') :
+                     movement.type === 'OUT' ? t('stockMovements.out') :
+                     movement.type === 'TRANSFER' ? t('stockMovements.transfer') :
+                     t('stockMovements.adjustment')}
                   </FluentBadge>
                 </div>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-foreground-secondary">
-                  <span>Barcode: {movement.product.barcode}</span>
+                  <span>{t('products.barcode')}: {movement.product.barcode}</span>
                   <span>
-                    Quantity: {movement.type === 'OUT' ? '-' : '+'}
+                    {t('common.quantity')}: {movement.type === 'OUT' ? '-' : '+'}
                     {movement.quantity}
                   </span>
                   <span>
-                    Stock: {movement.previousStock} → {movement.newStock}
+                    {t('products.stock')}: {movement.previousStock} → {movement.newStock}
                   </span>
-                  {movement.user && <span>By: {movement.user.name}</span>}
+                  {movement.user && <span>{t('common.by')}: {movement.user.name}</span>}
                   <span>
-                    {new Date(movement.createdAt).toLocaleDateString('en-US', {
+                    {new Date(movement.createdAt).toLocaleDateString('tr-TR', {
                       month: 'short',
                       day: 'numeric',
                       hour: '2-digit',
@@ -156,7 +165,7 @@ const StockMovements: React.FC = () => {
                   </span>
                 </div>
                 {movement.notes && (
-                  <p className="text-sm text-foreground-tertiary mt-1">Note: {movement.notes}</p>
+                  <p className="text-sm text-foreground-tertiary mt-1">{t('stockMovements.notes')}: {movement.notes}</p>
                 )}
               </div>
             </div>
@@ -168,7 +177,7 @@ const StockMovements: React.FC = () => {
         <div className="text-center py-12">
           <TrendingUp className="w-12 h-12 text-foreground-secondary mx-auto mb-4" />
           <p className="fluent-body text-foreground-secondary">
-            {searchTerm || filterType !== 'ALL' ? 'No movements found' : 'No movements yet'}
+            {searchTerm || filterType !== 'ALL' ? t('common.noData') : t('stockMovements.noMovementsYet') || 'Henüz hareket yok'}
           </p>
         </div>
       )}

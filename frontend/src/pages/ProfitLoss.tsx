@@ -5,8 +5,10 @@ import FluentButton from '../components/fluent/FluentButton';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
 import { Line } from 'react-chartjs-2';
+import { useTranslation } from 'react-i18next';
 
 const ProfitLoss: React.FC = () => {
+  const { t } = useTranslation();
   const [stats, setStats] = useState({ revenue: 0, expenses: 0, profit: 0, profitMargin: 0 });
   const [chartData, setChartData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -64,10 +66,12 @@ const ProfitLoss: React.FC = () => {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="fluent-title text-foreground">Profit & Loss</h1>
-          <p className="fluent-body text-foreground-secondary mt-1">Financial overview</p>
+          <p className="fluent-body text-foreground-secondary mt-1">
+          {t('profitLoss.financialOverview') || 'Finansal genel bakış'}
+        </p>
         </div>
         <FluentButton appearance="subtle" icon={<Calendar className="w-4 h-4" />}>
-          Select Period
+          {t('profitLoss.selectPeriod') || 'Dönem Seç'}
         </FluentButton>
       </div>
 
@@ -75,7 +79,7 @@ const ProfitLoss: React.FC = () => {
         <FluentCard depth="depth-4" className="p-4">
           <div className="flex items-center gap-2 mb-2">
             <DollarSign className="w-5 h-5 text-success" />
-            <p className="fluent-body-small text-foreground-secondary">Revenue</p>
+            <p className="fluent-body-small text-foreground-secondary">{t('profitLoss.totalRevenue')}</p>
           </div>
           <p className="fluent-title text-success">₺{stats.revenue.toFixed(2)}</p>
         </FluentCard>
@@ -83,7 +87,7 @@ const ProfitLoss: React.FC = () => {
         <FluentCard depth="depth-4" className="p-4">
           <div className="flex items-center gap-2 mb-2">
             <DollarSign className="w-5 h-5 text-destructive" />
-            <p className="fluent-body-small text-foreground-secondary">Expenses</p>
+            <p className="fluent-body-small text-foreground-secondary">{t('profitLoss.totalExpenses')}</p>
           </div>
           <p className="fluent-title text-destructive">₺{stats.expenses.toFixed(2)}</p>
         </FluentCard>
@@ -95,7 +99,7 @@ const ProfitLoss: React.FC = () => {
             ) : (
               <TrendingDown className="w-5 h-5 text-destructive" />
             )}
-            <p className="fluent-body-small text-foreground-secondary">Net Profit</p>
+            <p className="fluent-body-small text-foreground-secondary">{t('profitLoss.netProfit')}</p>
           </div>
           <p className={`fluent-title ${stats.profit >= 0 ? 'text-success' : 'text-destructive'}`}>
             ₺{stats.profit.toFixed(2)}
@@ -105,7 +109,7 @@ const ProfitLoss: React.FC = () => {
         <FluentCard depth="depth-4" className="p-4">
           <div className="flex items-center gap-2 mb-2">
             <DollarSign className="w-5 h-5 text-primary" />
-            <p className="fluent-body-small text-foreground-secondary">Profit Margin</p>
+            <p className="fluent-body-small text-foreground-secondary">{t('profitLoss.profitMargin')}</p>
           </div>
           <p className="fluent-title text-primary">{stats.profitMargin.toFixed(1)}%</p>
         </FluentCard>
@@ -113,7 +117,7 @@ const ProfitLoss: React.FC = () => {
 
       {chartData && (
         <FluentCard depth="depth-4" className="p-6">
-          <h3 className="fluent-heading text-foreground mb-4">Profit & Loss Trend</h3>
+          <h3 className="fluent-heading text-foreground mb-4">{t('profitLoss.trendChart') || 'Kar/Zarar Trendi'}</h3>
           <div className="h-64">
             <Line
               data={chartData}

@@ -7,6 +7,7 @@ import FluentDialog from '../components/fluent/FluentDialog';
 import FluentBadge from '../components/fluent/FluentBadge';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 interface Product {
   id: string;
@@ -29,6 +30,7 @@ interface Category {
 }
 
 const Products: React.FC = () => {
+  const { t } = useTranslation();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -55,9 +57,9 @@ const Products: React.FC = () => {
   const fetchProducts = async () => {
     try {
       const response = await api.get('/products');
-      setProducts(response.data);
+      setProducts(response.data.products || []);
     } catch (error) {
-      toast.error('Failed to fetch products');
+      toast.error(t('products.fetchError'));
     } finally {
       setIsLoading(false);
     }
@@ -66,7 +68,7 @@ const Products: React.FC = () => {
   const fetchCategories = async () => {
     try {
       const response = await api.get('/categories');
-      setCategories(response.data);
+      setCategories(response.data.categories || []);
     } catch (error) {
       console.error('Failed to fetch categories:', error);
     }
@@ -77,26 +79,26 @@ const Products: React.FC = () => {
     try {
       if (editingProduct) {
         await api.put(`/products/${editingProduct.id}`, formData);
-        toast.success('Product updated');
+        toast.success(t('products.productUpdated'));
       } else {
         await api.post('/products', formData);
-        toast.success('Product created');
+        toast.success(t('products.productCreated'));
       }
       fetchProducts();
       handleCloseDialog();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to save product');
+      toast.error(error.response?.data?.message || t('products.saveError'));
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+    if (!confirm(t('common.confirmDelete'))) return;
     try {
       await api.delete(`/products/${id}`);
-      toast.success('Product deleted');
+      toast.success(t('products.productDeleted'));
       fetchProducts();
     } catch (error) {
-      toast.error('Failed to delete product');
+      toast.error(t('products.saveError'));
     }
   };
 
@@ -153,7 +155,7 @@ const Products: React.FC = () => {
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="mt-4 text-foreground-secondary">Loading products...</p>
+          <p className="mt-4 text-foreground-secondary">{t('products.loadingProducts')}</p>
         </div>
       </div>
     );
@@ -164,9 +166,9 @@ const Products: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="fluent-title text-foreground">Products</h1>
+          <h1 className="fluent-title text-foreground">{t('products.title')}</h1>
           <p className="fluent-body text-foreground-secondary mt-1">
-            {filteredProducts.length} products
+            {t('products.productsCount', { count: filteredProducts.length })}
           </p>
         </div>
         <FluentButton
@@ -174,7 +176,7 @@ const Products: React.FC = () => {
           icon={<Plus className="w-4 h-4" />}
           onClick={() => setShowDialog(true)}
         >
-          Add Product
+          {t('products.addProduct')}
         </FluentButton>
       </div>
 
@@ -183,7 +185,7 @@ const Products: React.FC = () => {
         <FluentInput
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Search products by name or barcode..."
+          placeholder={t('products.searchPlaceholder') || 'Ürün adı veya barkod ile ara...'}
           icon={<Search className="w-4 h-4" />}
         />
       </FluentCard>
@@ -286,7 +288,7 @@ const Products: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FluentInput
-              label="Barcode"
+              label={t('products.barcode')}
               value={formData.barcode}
               onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
               required
@@ -298,7 +300,7 @@ const Products: React.FC = () => {
               required
             />
             <FluentInput
-              label="Sell Price"
+              label={t('products.sellPrice')}
               type="number"
               step="0.01"
               value={formData.sellPrice}
@@ -306,7 +308,7 @@ const Products: React.FC = () => {
               required
             />
             <FluentInput
-              label="Buy Price"
+              label={t('products.buyPrice')}
               type="number"
               step="0.01"
               value={formData.buyPrice}
@@ -314,27 +316,27 @@ const Products: React.FC = () => {
               required
             />
             <FluentInput
-              label="Stock"
+              label={t('products.stock')}
               type="number"
               value={formData.stock}
               onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) })}
               required
             />
             <FluentInput
-              label="Min Stock"
+              label={t('products.minStock')}
               type="number"
               value={formData.minStock}
               onChange={(e) => setFormData({ ...formData, minStock: parseInt(e.target.value) })}
               required
             />
             <FluentInput
-              label="Unit"
+              label={t('products.unit')}
               value={formData.unit}
               onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
               required
             />
             <FluentInput
-              label="Tax Rate (%)"
+              label={t('products.taxRate')}
               type="number"
               value={formData.taxRate}
               onChange={(e) => setFormData({ ...formData, taxRate: parseFloat(e.target.value) })}
@@ -364,7 +366,7 @@ const Products: React.FC = () => {
               Cancel
             </FluentButton>
             <FluentButton type="submit" appearance="primary" className="flex-1">
-              {editingProduct ? 'Update' : 'Create'}
+              {editingProduct ? t('common.update') || 'Güncelle' : t('common.create') || 'Oluştur'}
             </FluentButton>
           </div>
         </form>

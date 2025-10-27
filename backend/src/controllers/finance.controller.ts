@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import prisma from '../utils/prisma';
+import prisma from '../lib/prisma';
 
 export const getFinancialSummary = async (req: Request, res: Response) => {
   try {
@@ -51,6 +51,58 @@ export const getCashFlow = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Cash flow error:', error);
     res.status(500).json({ error: 'Nakit akışı alınamadı' });
+  }
+};
+
+export const getProfitLoss = async (req: Request, res: Response) => {
+  try {
+    const sales = await prisma.sale.findMany();
+    const expenses = await prisma.expense.findMany();
+    
+    const revenue = sales.reduce((sum, s) => sum + s.netAmount, 0);
+    const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
+    const profit = revenue - totalExpenses;
+    const profitMargin = revenue > 0 ? (profit / revenue) * 100 : 0;
+
+    res.json({ revenue, expenses: totalExpenses, profit, profitMargin });
+  } catch (error) {
+    console.error('Profit/Loss error:', error);
+    res.status(500).json({ error: 'Kar/Zarar verisi alınamadı' });
+  }
+};
+
+export const getProfitLossChart = async (req: Request, res: Response) => {
+  try {
+    const last12Months = [];
+    const today = new Date();
+    const labels = [];
+    const profitData = [];
+    const lossData = [];
+    
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const nextMonth = new Date(today.getFullYear(), today.getMonth() - i + 1, 1);
+
+      const sales = await prisma.sale.findMany({
+        where: { createdAt: { gte: date, lt: nextMonth } }
+      });
+      const expenses = await prisma.expense.findMany({
+        where: { expenseDate: { gte: date, lt: nextMonth } }
+      });
+
+      const revenue = sales.reduce((sum, s) => sum + s.netAmount, 0);
+      const expense = expenses.reduce((sum, e) => sum + e.amount, 0);
+      const profit = revenue - expense;
+
+      labels.push(date.toLocaleDateString('tr-TR', { month: 'short' }));
+      profitData.push(profit > 0 ? profit : 0);
+      lossData.push(profit < 0 ? Math.abs(profit) : 0);
+    }
+
+    res.json({ labels, profit: profitData, loss: lossData });
+  } catch (error) {
+    console.error('Profit/Loss chart error:', error);
+    res.status(500).json({ error: 'Grafik verisi alınamadı' });
   }
 };
 

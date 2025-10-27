@@ -6,6 +6,7 @@ import FluentButton from '../components/fluent/FluentButton';
 import FluentBadge from '../components/fluent/FluentBadge';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 interface PurchaseOrder {
   id: string;
@@ -20,6 +21,7 @@ interface PurchaseOrder {
 }
 
 const PurchaseOrders: React.FC = () => {
+  const { t } = useTranslation();
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -30,9 +32,9 @@ const PurchaseOrders: React.FC = () => {
   const fetchOrders = async () => {
     try {
       const response = await api.get('/purchase-orders');
-      setOrders(response.data);
+      setOrders(response.data.orders || response.data || []);
     } catch (error) {
-      toast.error('Failed to fetch orders');
+      toast.error(t('purchaseOrders.fetchError'));
     } finally {
       setIsLoading(false);
     }
@@ -53,7 +55,7 @@ const PurchaseOrders: React.FC = () => {
     <div className="p-4 md:p-6 space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="fluent-title text-foreground">Purchase Orders</h1>
+          <h1 className="fluent-title text-foreground">{t('purchaseOrders.title')}</h1>
           <p className="fluent-body text-foreground-secondary mt-1">{orders.length} orders</p>
         </div>
         <FluentButton appearance="primary" icon={<Plus className="w-4 h-4" />}>
@@ -62,7 +64,7 @@ const PurchaseOrders: React.FC = () => {
       </div>
 
       <FluentCard depth="depth-4" className="p-4">
-        <FluentInput placeholder="Search orders..." icon={<Search className="w-4 h-4" />} />
+        <FluentInput placeholder={t('purchaseOrders.searchPlaceholder') || 'Sipariş ara...'} icon={<Search className="w-4 h-4" />} />
       </FluentCard>
 
       <div className="space-y-3">

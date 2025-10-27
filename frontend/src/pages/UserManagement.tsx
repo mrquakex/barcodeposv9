@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit, Trash2, UserCog, Shield } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import FluentCard from '../components/fluent/FluentCard';
 import FluentInput from '../components/fluent/FluentInput';
 import FluentButton from '../components/fluent/FluentButton';
@@ -19,6 +20,7 @@ interface User {
 }
 
 const UserManagement: React.FC = () => {
+  const { t } = useTranslation();
   const [users, setUsers] = useState<User[]>([]);
   const [showDialog, setShowDialog] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -37,9 +39,9 @@ const UserManagement: React.FC = () => {
   const fetchUsers = async () => {
     try {
       const response = await api.get('/users');
-      setUsers(response.data);
+      setUsers(response.data.users || []);
     } catch (error) {
-      toast.error('Failed to fetch users');
+      toast.error(t('userManagement.fetchError'));
     } finally {
       setIsLoading(false);
     }
@@ -50,26 +52,26 @@ const UserManagement: React.FC = () => {
     try {
       if (editingUser) {
         await api.put(`/users/${editingUser.id}`, formData);
-        toast.success('User updated');
+        toast.success(t('userManagement.userUpdated'));
       } else {
         await api.post('/users', formData);
-        toast.success('User created');
+        toast.success(t('userManagement.userCreated'));
       }
       fetchUsers();
       handleCloseDialog();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to save user');
+      toast.error(error.response?.data?.message || t('userManagement.saveError'));
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure?')) return;
+    if (!confirm(t('common.confirmDelete') || 'Emin misiniz?')) return;
     try {
       await api.delete(`/users/${id}`);
-      toast.success('User deleted');
+      toast.success(t('userManagement.userDeleted'));
       fetchUsers();
     } catch (error) {
-      toast.error('Failed to delete user');
+      toast.error(t('userManagement.saveError'));
     }
   };
 
@@ -90,7 +92,7 @@ const UserManagement: React.FC = () => {
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="mt-4 text-foreground-secondary">Loading...</p>
+          <p className="mt-4 text-foreground-secondary">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -100,7 +102,7 @@ const UserManagement: React.FC = () => {
     <div className="p-4 md:p-6 space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="fluent-title text-foreground">User Management</h1>
+          <h1 className="fluent-title text-foreground">{t('userManagement.title')}</h1>
           <p className="fluent-body text-foreground-secondary mt-1">{users.length} users</p>
         </div>
         <FluentButton
@@ -113,7 +115,7 @@ const UserManagement: React.FC = () => {
       </div>
 
       <FluentCard depth="depth-4" className="p-4">
-        <FluentInput placeholder="Search users..." icon={<Search className="w-4 h-4" />} />
+        <FluentInput placeholder={t('userManagement.searchPlaceholder') || 'Kullanıcı ara...'} icon={<Search className="w-4 h-4" />} />
       </FluentCard>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -127,7 +129,7 @@ const UserManagement: React.FC = () => {
                 <div className="flex items-center gap-2 mb-1">
                   <h4 className="fluent-body font-medium text-foreground">{user.name}</h4>
                   <FluentBadge appearance={user.isActive ? 'success' : 'error'} size="small">
-                    {user.isActive ? 'Active' : 'Inactive'}
+                    {user.isActive ? t('common.active') : t('common.inactive')}
                   </FluentBadge>
                 </div>
                 <p className="fluent-caption text-foreground-secondary mb-1">{user.email}</p>
@@ -175,13 +177,13 @@ const UserManagement: React.FC = () => {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <FluentInput
-            label="Name"
+            label={t('common.name') || 'İsim'}
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             required
           />
           <FluentInput
-            label="Email"
+            label={t('customers.email') || 'E-posta'}
             type="email"
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -189,7 +191,7 @@ const UserManagement: React.FC = () => {
           />
           {!editingUser && (
             <FluentInput
-              label="Password"
+              label={t('login.password') || 'Şifre'}
               type="password"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -197,7 +199,9 @@ const UserManagement: React.FC = () => {
             />
           )}
           <div>
-            <label className="fluent-body-small text-foreground-secondary block mb-2">Role</label>
+            <label className="fluent-body-small text-foreground-secondary block mb-2">
+              {t('userManagement.role') || 'Rol'}
+            </label>
             <select
               value={formData.role}
               onChange={(e) => setFormData({ ...formData, role: e.target.value })}
@@ -213,7 +217,7 @@ const UserManagement: React.FC = () => {
               Cancel
             </FluentButton>
             <FluentButton type="submit" appearance="primary" className="flex-1">
-              {editingUser ? 'Update' : 'Create'}
+              {editingUser ? t('common.update') || 'Güncelle' : t('common.create') || 'Oluştur'}
             </FluentButton>
           </div>
         </form>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Calendar, FileText } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import FluentCard from '../components/fluent/FluentCard';
 import FluentInput from '../components/fluent/FluentInput';
 import FluentBadge from '../components/fluent/FluentBadge';
@@ -16,6 +17,7 @@ interface ActivityLog {
 }
 
 const ActivityLogs: React.FC = () => {
+  const { t } = useTranslation();
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -26,9 +28,9 @@ const ActivityLogs: React.FC = () => {
   const fetchLogs = async () => {
     try {
       const response = await api.get('/activity-logs');
-      setLogs(response.data);
+      setLogs(response.data.logs || response.data || []);
     } catch (error) {
-      toast.error('Failed to fetch logs');
+      toast.error(t('activityLogs.fetchError') || 'Log yükleme hatası');
     } finally {
       setIsLoading(false);
     }
@@ -64,12 +66,14 @@ const ActivityLogs: React.FC = () => {
   return (
     <div className="p-4 md:p-6 space-y-6">
       <div>
-        <h1 className="fluent-title text-foreground">Activity Logs</h1>
-        <p className="fluent-body text-foreground-secondary mt-1">{logs.length} activities</p>
+        <h1 className="fluent-title text-foreground">{t('activityLogs.title')}</h1>
+        <p className="fluent-body text-foreground-secondary mt-1">
+          {t('activityLogs.activitiesCount', { count: logs.length })}
+        </p>
       </div>
 
       <FluentCard depth="depth-4" className="p-4">
-        <FluentInput placeholder="Search logs..." icon={<Search className="w-4 h-4" />} />
+        <FluentInput placeholder={t('activityLogs.searchPlaceholder') || 'Log ara...'} icon={<Search className="w-4 h-4" />} />
       </FluentCard>
 
       <div className="space-y-2">
@@ -91,7 +95,7 @@ const ActivityLogs: React.FC = () => {
                     </span>
                   )}
                   <span className="fluent-caption text-foreground-tertiary">
-                    {new Date(log.createdAt).toLocaleString('en-US', {
+                    {new Date(log.createdAt).toLocaleString('tr-TR', {
                       month: 'short',
                       day: 'numeric',
                       hour: '2-digit',

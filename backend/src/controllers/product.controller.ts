@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import prisma from '../utils/prisma';
+import prisma from '../lib/prisma';
 import { generateEAN13 } from '../utils/barcode';
 
 export const getAllProducts = async (req: Request, res: Response) => {

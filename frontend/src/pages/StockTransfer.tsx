@@ -6,6 +6,7 @@ import FluentButton from '../components/fluent/FluentButton';
 import FluentBadge from '../components/fluent/FluentBadge';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 interface StockTransfer {
   id: string;
@@ -19,6 +20,7 @@ interface StockTransfer {
 }
 
 const StockTransfer: React.FC = () => {
+  const { t } = useTranslation();
   const [transfers, setTransfers] = useState<StockTransfer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -29,9 +31,9 @@ const StockTransfer: React.FC = () => {
   const fetchTransfers = async () => {
     try {
       const response = await api.get('/stock-transfers');
-      setTransfers(response.data);
+      setTransfers(response.data.transfers || response.data || []);
     } catch (error) {
-      toast.error('Failed to fetch transfers');
+      toast.error(t('stockTransfer.fetchError'));
     } finally {
       setIsLoading(false);
     }
@@ -52,7 +54,7 @@ const StockTransfer: React.FC = () => {
     <div className="p-4 md:p-6 space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="fluent-title text-foreground">Stock Transfers</h1>
+          <h1 className="fluent-title text-foreground">{t('stockTransfer.title')}</h1>
           <p className="fluent-body text-foreground-secondary mt-1">{transfers.length} transfers</p>
         </div>
         <FluentButton appearance="primary" icon={<Plus className="w-4 h-4" />}>

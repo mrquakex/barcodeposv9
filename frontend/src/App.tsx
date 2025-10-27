@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
-import MainLayout from './components/layout/MainLayout';
+import { useThemeStore } from './store/themeStore';
+import MainLayout from './components/Layout/MainLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import POS from './pages/POS';
@@ -30,6 +31,16 @@ import UserManagement from './pages/UserManagement';
 
 const App: React.FC = () => {
   const { token } = useAuthStore();
+  const { theme } = useThemeStore();
+
+  // Tema'yı her değiştiğinde uygula
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
 
   return (
     <BrowserRouter>

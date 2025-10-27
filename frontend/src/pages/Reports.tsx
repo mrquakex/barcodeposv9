@@ -21,7 +21,7 @@ const Reports: React.FC = () => {
     },
     {
       title: 'Customer Analytics',
-      description: 'Customer behavior and loyalty insights',
+      description: t('reports.customerDescription'),
       icon: Users,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100 dark:bg-purple-900/20',
@@ -35,7 +35,7 @@ const Reports: React.FC = () => {
     },
     {
       title: 'Inventory Report',
-      description: 'Stock levels and movements',
+      description: t('reports.inventoryDescription'),
       icon: TrendingUp,
       color: 'text-indigo-600',
       bgColor: 'bg-indigo-100 dark:bg-indigo-900/20',
@@ -82,14 +82,14 @@ const Reports: React.FC = () => {
 
       {/* Quick Stats */}
       <FluentCard depth="depth-4" className="p-6">
-        <h3 className="fluent-heading text-foreground mb-4">Quick Stats</h3>
+        <h3 className="fluent-heading text-foreground mb-4">{t('reports.quickStats') || 'Hızlı İstatistikler'}</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="p-4 bg-background-alt rounded">
             <p className="fluent-caption text-foreground-secondary mb-1">Today's Sales</p>
             <p className="fluent-subtitle text-foreground">₺0.00</p>
           </div>
           <div className="p-4 bg-background-alt rounded">
-            <p className="fluent-caption text-foreground-secondary mb-1">This Week</p>
+            <p className="fluent-caption text-foreground-secondary mb-1">{t('reports.thisWeek') || 'Bu Hafta'}</p>
             <p className="fluent-subtitle text-foreground">₺0.00</p>
           </div>
           <div className="p-4 bg-background-alt rounded">
@@ -97,7 +97,7 @@ const Reports: React.FC = () => {
             <p className="fluent-subtitle text-foreground">₺0.00</p>
           </div>
           <div className="p-4 bg-background-alt rounded">
-            <p className="fluent-caption text-foreground-secondary mb-1">This Year</p>
+            <p className="fluent-caption text-foreground-secondary mb-1">{t('reports.thisYear') || 'Bu Yıl'}</p>
             <p className="fluent-subtitle text-foreground">₺0.00</p>
           </div>
         </div>

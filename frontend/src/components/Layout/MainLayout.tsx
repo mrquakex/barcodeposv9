@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import FluentSidebar from './FluentSidebar';
 import FluentHeader from './FluentHeader';
 import FluentToastContainer from '../fluent/FluentToast';
+import { useAuthStore } from '../../store/authStore';
 
 /* ============================================
    MAIN LAYOUT - Fluent Design
@@ -10,6 +11,15 @@ import FluentToastContainer from '../fluent/FluentToast';
    ============================================ */
 
 const MainLayout: React.FC = () => {
+  const { getMe, user } = useAuthStore();
+
+  useEffect(() => {
+    // Fetch user data on mount if not already loaded
+    if (!user) {
+      getMe();
+    }
+  }, [getMe, user]);
+
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       {/* Sidebar */}

@@ -4,7 +4,7 @@
   "description": "Market yönetim sistemi backend API",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
+    "dev": "tsx watch --env-file=.env src/server.ts",
     "build": "tsc && prisma generate",
     "start": "node dist/server.js",
     "render-build": "npm install && npx prisma generate && npx prisma db push --force-reset --accept-data-loss && npm run build",
@@ -24,8 +24,10 @@
   "dependencies": {
     "@apollo/server": "^4.10.0",
     "@google/generative-ai": "^0.24.1",
-    "@prisma/client": "^5.20.0",
+    "@prisma/client": "^5.22.0",
+    "axios": "^1.6.8",
     "bcryptjs": "^2.4.3",
+    "cheerio": "^1.0.0-rc.12",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
@@ -41,13 +43,11 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
     "node-cache": "^5.1.2",
-    "pg": "^8.11.3",
-    "socket.io": "^4.7.2",
-    "ws": "^8.16.0",
-    "puppeteer": "^22.0.0",
     "node-cron": "^3.0.3",
-    "cheerio": "^1.0.0-rc.12",
-    "axios": "^1.6.8"
+    "pg": "^8.11.3",
+    "puppeteer": "^22.0.0",
+    "socket.io": "^4.7.2",
+    "ws": "^8.16.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -58,9 +58,9 @@
     "@types/jsonwebtoken": "^9.0.6",
     "@types/multer": "^1.4.11",
     "@types/node": "^22.5.4",
-    "@types/ws": "^8.5.10",
     "@types/node-cron": "^3.0.11",
-    "prisma": "^5.20.0",
+    "@types/ws": "^8.5.10",
+    "prisma": "^5.22.0",
     "tsx": "^4.19.0",
     "typescript": "^5.6.2"
   }
