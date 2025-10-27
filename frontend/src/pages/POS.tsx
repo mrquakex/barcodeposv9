@@ -545,7 +545,7 @@ const POS: React.FC = () => {
       {/* 💠 ENTERPRISE: Multi-Channel Tabs & Customer Selection */}
       <FluentCard depth="depth-4" className="p-2 shrink-0 space-y-2">
         {/* Channel Tabs with Calculator */}
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-2 overflow-x-auto flex-1">
             {channels.map((channel) => (
               <button
@@ -605,55 +605,51 @@ const POS: React.FC = () => {
             </div>
           </div>
 
-          {/* 💠 ENTERPRISE: Quick Calculator Widget */}
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="flex flex-col items-center">
-              <span className="fluent-body-small text-foreground-secondary mb-1">Ödenen</span>
-              <input
-                type="text"
-                inputMode="decimal"
-                value={calculatorPaid}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  // Allow only numbers and decimal point
-                  if (value === '' || /^\d*\.?\d*$/.test(value)) {
-                    setCalculatorPaid(value);
-                    updateCalculator(value, total);
-                  }
-                }}
-                className="w-24 px-3 py-2 bg-background border border-border rounded fluent-body-small text-foreground text-center focus:border-primary focus:outline-none"
-                placeholder="0.00"
-              />
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="fluent-body-small text-foreground-secondary mb-1">Tutar</span>
-              <div className="w-24 px-3 py-2 bg-background-alt border border-border rounded fluent-body-small text-foreground font-semibold text-center">
-                {total.toFixed(2)}
+          {/* 💠 ENTERPRISE: Calculator & Clock Section */}
+          <div className="flex flex-col gap-2 shrink-0">
+            {/* Calculator Widget */}
+            <div className="flex items-center gap-3">
+              <div className="flex flex-col items-center">
+                <span className="fluent-body-small text-foreground-secondary mb-1">Ödenen</span>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  value={calculatorPaid}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Allow only numbers and decimal point
+                    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                      setCalculatorPaid(value);
+                      updateCalculator(value, total);
+                    }
+                  }}
+                  className="w-24 px-3 py-2 bg-background border border-border rounded fluent-body-small text-foreground text-center focus:border-primary focus:outline-none"
+                  placeholder="0.00"
+                />
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="fluent-body-small text-foreground-secondary mb-1">Tutar</span>
+                <div className="w-24 px-3 py-2 bg-background-alt border border-border rounded fluent-body-small text-foreground font-semibold text-center">
+                  {total.toFixed(2)}
+                </div>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="fluent-body-small text-foreground-secondary mb-1">Para Üstü</span>
+                <div className={cn(
+                  "w-28 px-3 py-2 border-2 rounded fluent-body-small font-bold text-center",
+                  calculatorChange > 0 ? "border-success bg-success/10 text-success" : 
+                  calculatorChange < 0 ? "border-destructive bg-destructive/10 text-destructive" : 
+                  "border-border bg-background text-foreground-secondary"
+                )}>
+                  {calculatorChange.toFixed(2)}
+                </div>
               </div>
             </div>
-            <div className="flex flex-col items-center">
-              <span className="fluent-body-small text-foreground-secondary mb-1">Para Üstü</span>
-              <div className={cn(
-                "w-28 px-3 py-2 border-2 rounded fluent-body-small font-bold text-center",
-                calculatorChange > 0 ? "border-success bg-success/10 text-success" : 
-                calculatorChange < 0 ? "border-destructive bg-destructive/10 text-destructive" : 
-                "border-border bg-background text-foreground-secondary"
-              )}>
-                {calculatorChange.toFixed(2)}
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {/* 💠 ENTERPRISE: Live Clock */}
-        <div className="flex items-center justify-center gap-2 px-4 py-2 bg-background-alt/50 rounded border border-border/50">
-          <div className="flex items-center gap-3">
-            <div className="text-center">
-              <p className="fluent-title-2 font-bold text-primary tabular-nums">
-                {formatTime(currentTime)}
-              </p>
-              <p className="fluent-caption text-foreground-secondary">
-                {formatDate(currentTime)}
+            {/* Live Clock */}
+            <div className="flex items-center justify-center px-3 py-1.5 bg-background-alt/50 rounded border border-border/50">
+              <p className="fluent-body-small text-foreground tabular-nums">
+                {formatDate(currentTime)} - {formatTime(currentTime)}
               </p>
             </div>
           </div>
