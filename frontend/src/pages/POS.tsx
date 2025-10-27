@@ -527,9 +527,9 @@ const POS: React.FC = () => {
           </div>
 
           {/* 💠 ENTERPRISE: Quick Calculator Widget */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-3 shrink-0">
             <div className="flex flex-col items-center">
-              <span className="fluent-caption text-foreground-secondary mb-0.5">Ödenen</span>
+              <span className="fluent-body-small text-foreground-secondary mb-1">Ödenen</span>
               <input
                 type="number"
                 step="0.01"
@@ -538,12 +538,12 @@ const POS: React.FC = () => {
                   setCalculatorPaid(e.target.value);
                   updateCalculator(e.target.value, calculatorTotal);
                 }}
-                className="w-16 px-2 py-1 bg-background border border-border rounded fluent-caption text-foreground text-center"
+                className="w-24 px-3 py-2 bg-background border border-border rounded fluent-body-small text-foreground text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 placeholder="0"
               />
             </div>
             <div className="flex flex-col items-center">
-              <span className="fluent-caption text-foreground-secondary mb-0.5">Tutar</span>
+              <span className="fluent-body-small text-foreground-secondary mb-1">Tutar</span>
               <input
                 type="number"
                 step="0.01"
@@ -552,14 +552,14 @@ const POS: React.FC = () => {
                   setCalculatorTotal(e.target.value);
                   updateCalculator(calculatorPaid, e.target.value);
                 }}
-                className="w-16 px-2 py-1 bg-background border border-border rounded fluent-caption text-foreground text-center"
+                className="w-24 px-3 py-2 bg-background border border-border rounded fluent-body-small text-foreground text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 placeholder="0"
               />
             </div>
             <div className="flex flex-col items-center">
-              <span className="fluent-caption text-foreground-secondary mb-0.5">Para Üstü</span>
+              <span className="fluent-body-small text-foreground-secondary mb-1">Para Üstü</span>
               <div className={cn(
-                "w-20 px-2 py-1 border-2 rounded fluent-caption font-bold text-center",
+                "w-28 px-3 py-2 border-2 rounded fluent-body-small font-bold text-center",
                 calculatorChange > 0 ? "border-success bg-success/10 text-success" : 
                 calculatorChange < 0 ? "border-destructive bg-destructive/10 text-destructive" : 
                 "border-border bg-background text-foreground-secondary"
