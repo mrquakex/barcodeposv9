@@ -3,7 +3,7 @@ import {
   Plus, Search, Edit, Trash2, Star, StarOff, Barcode, Package, Upload,
   Grid3x3, List, Filter, Download, Copy, MoreVertical, Eye, EyeOff,
   CheckSquare, Square, X, ChevronDown, ChevronUp, SlidersHorizontal, FileDown,
-  Printer, QrCode, Archive, RefreshCw, Tag, ArrowUpDown
+  Printer, QrCode, Archive, RefreshCw, Tag, ArrowUpDown, AlertCircle, TrendingUp
 } from 'lucide-react';
 import FluentButton from '../components/fluent/FluentButton';
 import FluentCard from '../components/fluent/FluentCard';
@@ -58,6 +58,12 @@ interface ContextMenu {
   product: Product | null;
 }
 
+interface SavedFilter {
+  id: string;
+  name: string;
+  filters: Filters;
+}
+
 const Products: React.FC = () => {
   const { t } = useTranslation();
   
@@ -87,6 +93,27 @@ const Products: React.FC = () => {
     activeStatus: [],
     isFavorite: null,
   });
+  
+  // 💠 ENTERPRISE: Saved Filters
+  const [savedFilters, setSavedFilters] = useState<SavedFilter[]>(() => {
+    const saved = localStorage.getItem('productFilters');
+    return saved ? JSON.parse(saved) : [];
+  });
+  
+  // 💠 ENTERPRISE: Column Visibility (Table View)
+  const [visibleColumns, setVisibleColumns] = useState<Record<string, boolean>>(() => {
+    const saved = localStorage.getItem('tableColumns');
+    return saved ? JSON.parse(saved) : {
+      barcode: true,
+      name: true,
+      category: true,
+      price: true,
+      stock: true,
+      favorite: true,
+      actions: true,
+    };
+  });
+  const [showColumnMenu, setShowColumnMenu] = useState(false);
   
   // 💠 Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -340,6 +367,73 @@ const Products: React.FC = () => {
     };
   }, []);
 
+  // 💠 ENTERPRISE: Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+N: Yeni ürün
+      if (e.ctrlKey && e.key === 'n') {
+        e.preventDefault();
+        setShowDialog(true);
+      }
+      
+      // Ctrl+F: Arama odakla
+      if (e.ctrlKey && e.key === 'f') {
+        e.preventDefault();
+        const searchInput = document.querySelector('input[type="text"]') as HTMLInputElement;
+        searchInput?.focus();
+      }
+      
+      // Ctrl+E: Export
+      if (e.ctrlKey && e.key === 'e') {
+        e.preventDefault();
+        exportToExcel();
+      }
+      
+      // Ctrl+A: Tümünü seç (eğer ürün varsa)
+      if (e.ctrlKey && e.key === 'a' && paginatedProducts.length > 0) {
+        e.preventDefault();
+        toggleSelectAll();
+      }
+      
+      // Delete: Seçili ürünleri sil
+      if (e.key === 'Delete' && selectedProducts.size > 0) {
+        e.preventDefault();
+        handleBulkDelete();
+      }
+      
+      // Escape: Dialog'ları kapat
+      if (e.key === 'Escape') {
+        if (showDialog) {
+          handleCloseDialog();
+        }
+        if (showFilters) {
+          setShowFilters(false);
+        }
+        if (showExcelImport) {
+          setShowExcelImport(false);
+        }
+        if (selectedProducts.size > 0) {
+          clearSelection();
+        }
+      }
+      
+      // Ctrl+G: Grid view
+      if (e.ctrlKey && e.key === 'g') {
+        e.preventDefault();
+        setViewMode('grid');
+      }
+      
+      // Ctrl+L: List view
+      if (e.ctrlKey && e.key === 'l') {
+        e.preventDefault();
+        setViewMode('list');
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showDialog, showFilters, showExcelImport, selectedProducts, paginatedProducts, viewMode]);
+
   // 💠 ENTERPRISE: Bulk Operations
   const handleBulkDelete = async () => {
     if (selectedProducts.size === 0) return;
@@ -382,6 +476,45 @@ const Products: React.FC = () => {
       setSortField(field);
       setSortOrder('asc');
     }
+  };
+
+  // 💠 ENTERPRISE: Saved Filters Handlers
+  const saveCurrentFilter = () => {
+    const name = prompt('Filtre adı girin:');
+    if (!name) return;
+    
+    const newFilter: SavedFilter = {
+      id: Date.now().toString(),
+      name,
+      filters: { ...filters },
+    };
+    
+    const updated = [...savedFilters, newFilter];
+    setSavedFilters(updated);
+    localStorage.setItem('productFilters', JSON.stringify(updated));
+    toast.success(`"${name}" filtresi kaydedildi`);
+  };
+
+  const loadSavedFilter = (filterId: string) => {
+    const saved = savedFilters.find(f => f.id === filterId);
+    if (saved) {
+      setFilters(saved.filters);
+      toast.success(`"${saved.name}" filtresi yüklendi`);
+    }
+  };
+
+  const deleteSavedFilter = (filterId: string) => {
+    const updated = savedFilters.filter(f => f.id !== filterId);
+    setSavedFilters(updated);
+    localStorage.setItem('productFilters', JSON.stringify(updated));
+    toast.success('Filtre silindi');
+  };
+
+  // 💠 ENTERPRISE: Column Visibility Handler
+  const toggleColumn = (columnKey: string) => {
+    const updated = { ...visibleColumns, [columnKey]: !visibleColumns[columnKey] };
+    setVisibleColumns(updated);
+    localStorage.setItem('tableColumns', JSON.stringify(updated));
   };
 
   // 💠 ENTERPRISE: Export Functions
@@ -468,6 +601,45 @@ const Products: React.FC = () => {
             </button>
           </div>
 
+          {/* 💠 ENTERPRISE: Column Menu (Table View Only) */}
+          {viewMode === 'list' && (
+            <div className="relative">
+              <FluentButton
+                appearance="subtle"
+                icon={<SlidersHorizontal className="w-4 h-4" />}
+                onClick={() => setShowColumnMenu(!showColumnMenu)}
+              >
+                Sütunlar
+              </FluentButton>
+              
+              {showColumnMenu && (
+                <div className="absolute top-full right-0 mt-2 bg-card border border-border rounded fluent-depth-8 p-2 min-w-[200px] z-50">
+                  <div className="space-y-1">
+                    {[
+                      { key: 'barcode', label: 'Barkod' },
+                      { key: 'name', label: 'Ürün Adı' },
+                      { key: 'category', label: 'Kategori' },
+                      { key: 'price', label: 'Fiyat' },
+                      { key: 'stock', label: 'Stok' },
+                      { key: 'favorite', label: 'Favori' },
+                      { key: 'actions', label: 'İşlemler' },
+                    ].map(col => (
+                      <label key={col.key} className="flex items-center gap-2 px-3 py-2 hover:bg-background-alt rounded cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={visibleColumns[col.key]}
+                          onChange={() => toggleColumn(col.key)}
+                          className="rounded border-border"
+                        />
+                        <span className="text-sm text-foreground">{col.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Filters Toggle */}
           <FluentButton
             appearance={showFilters ? 'primary' : 'subtle'}
@@ -504,6 +676,61 @@ const Products: React.FC = () => {
             Ekle
           </FluentButton>
         </div>
+      </div>
+
+      {/* 💠 ENTERPRISE: Statistics Widget */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <FluentCard depth="depth-4" className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-primary/10 rounded flex items-center justify-center">
+              <Package className="w-6 h-6 text-primary" />
+            </div>
+            <div>
+              <p className="fluent-caption text-foreground-secondary">Toplam Ürün</p>
+              <p className="fluent-title-3 font-bold text-foreground">{products.length}</p>
+            </div>
+          </div>
+        </FluentCard>
+
+        <FluentCard depth="depth-4" className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-success/10 rounded flex items-center justify-center">
+              <Package className="w-6 h-6 text-success" />
+            </div>
+            <div>
+              <p className="fluent-caption text-foreground-secondary">Toplam Değer</p>
+              <p className="fluent-title-3 font-bold text-foreground">
+                ₺{products.reduce((sum, p) => sum + (p.sellPrice * p.stock), 0).toFixed(2)}
+              </p>
+            </div>
+          </div>
+        </FluentCard>
+
+        <FluentCard depth="depth-4" className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-warning/10 rounded flex items-center justify-center">
+              <AlertCircle className="w-6 h-6 text-warning" />
+            </div>
+            <div>
+              <p className="fluent-caption text-foreground-secondary">Kritik Stok</p>
+              <p className="fluent-title-3 font-bold text-foreground">
+                {products.filter(p => p.stock <= p.minStock).length}
+              </p>
+            </div>
+          </div>
+        </FluentCard>
+
+        <FluentCard depth="depth-4" className="p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-info/10 rounded flex items-center justify-center">
+              <TrendingUp className="w-6 h-6 text-info" />
+            </div>
+            <div>
+              <p className="fluent-caption text-foreground-secondary">Kategoriler</p>
+              <p className="fluent-title-3 font-bold text-foreground">{categories.length}</p>
+            </div>
+          </div>
+        </FluentCard>
       </div>
 
       {/* 💠 ENTERPRISE: Bulk Actions Toolbar */}
@@ -559,7 +786,7 @@ const Products: React.FC = () => {
         {/* Filters Sidebar */}
         {showFilters && (
           <FluentCard depth="depth-4" className="w-64 p-4 space-y-6 h-fit shrink-0">
-            <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between">
               <h3 className="fluent-subtitle font-semibold text-foreground">Filtreler</h3>
               <button
                 onClick={() => setFilters({
@@ -574,6 +801,50 @@ const Products: React.FC = () => {
                 Temizle
               </button>
             </div>
+
+            {/* 💠 ENTERPRISE: Saved Filters */}
+            {savedFilters.length > 0 && (
+              <div>
+                <label className="fluent-body-small font-medium text-foreground block mb-2">
+                  Kayıtlı Filtreler
+                </label>
+                <div className="space-y-2">
+                  {savedFilters.map(saved => (
+                    <div key={saved.id} className="flex items-center gap-2">
+                      <button
+                        onClick={() => loadSavedFilter(saved.id)}
+                        className="flex-1 px-3 py-2 text-left text-sm bg-background hover:bg-background-alt border border-border rounded transition-colors"
+                      >
+                        {saved.name}
+                      </button>
+                      <button
+                        onClick={() => deleteSavedFilter(saved.id)}
+                        className="p-2 hover:bg-destructive/10 rounded transition-colors text-destructive"
+                        title="Sil"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={saveCurrentFilter}
+                  className="w-full mt-2 px-3 py-2 text-sm bg-primary/10 hover:bg-primary/20 text-primary rounded transition-colors font-medium"
+                >
+                  + Mevcut Filtreyi Kaydet
+                </button>
+              </div>
+            )}
+            
+            {/* Save Filter Button (if no saved filters) */}
+            {savedFilters.length === 0 && (
+              <button
+                onClick={saveCurrentFilter}
+                className="w-full px-3 py-2 text-sm bg-primary/10 hover:bg-primary/20 text-primary rounded transition-colors font-medium"
+              >
+                Filtreyi Kaydet
+              </button>
+            )}
 
             {/* Category Filter */}
             <div>
@@ -601,7 +872,7 @@ const Products: React.FC = () => {
             </div>
 
             {/* Stock Status Filter */}
-            <div>
+        <div>
               <label className="fluent-body-small font-medium text-foreground block mb-2">
                 Stok Durumu
               </label>
@@ -627,8 +898,8 @@ const Products: React.FC = () => {
                     <span className="text-sm text-foreground">{status.label}</span>
                   </label>
                 ))}
-              </div>
-            </div>
+        </div>
+      </div>
 
             {/* Favorite Filter */}
             <div>
@@ -702,8 +973,8 @@ const Products: React.FC = () => {
                           <Barcode className="w-3 h-3" />
                           {product.barcode}
                         </p>
-                      </div>
-                    </div>
+            </div>
+          </div>
                     <button
                       onClick={() => toggleFavorite(product)}
                       className="text-foreground-secondary hover:text-warning transition-colors"
@@ -783,69 +1054,84 @@ const Products: React.FC = () => {
                         </button>
                       </th>
                       
-                      {/* 💠 Sortable Headers */}
-                      <th className="px-4 py-3 text-left">
-                        <button
-                          onClick={() => handleSort('barcode')}
-                          className="flex items-center gap-2 hover:text-primary transition-colors fluent-body-small font-semibold text-foreground"
-                        >
-                          Barkod
-                          {sortField === 'barcode' ? (
-                            sortOrder === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
-                          ) : (
-                            <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50" />
-                          )}
-                        </button>
-                      </th>
+                      {/* 💠 Sortable Headers (Conditional) */}
+                      {visibleColumns.barcode && (
+                        <th className="px-4 py-3 text-left">
+                          <button
+                            onClick={() => handleSort('barcode')}
+                            className="flex items-center gap-2 hover:text-primary transition-colors fluent-body-small font-semibold text-foreground"
+                          >
+                            Barkod
+                            {sortField === 'barcode' ? (
+                              sortOrder === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                            ) : (
+                              <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50" />
+                            )}
+                          </button>
+                        </th>
+                      )}
                       
-                      <th className="px-4 py-3 text-left">
-                        <button
-                          onClick={() => handleSort('name')}
-                          className="flex items-center gap-2 hover:text-primary transition-colors fluent-body-small font-semibold text-foreground"
-                        >
-                          Ürün Adı
-                          {sortField === 'name' ? (
-                            sortOrder === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
-                          ) : (
-                            <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50" />
-                          )}
-                        </button>
-                      </th>
+                      {visibleColumns.name && (
+                        <th className="px-4 py-3 text-left">
+                          <button
+                            onClick={() => handleSort('name')}
+                            className="flex items-center gap-2 hover:text-primary transition-colors fluent-body-small font-semibold text-foreground"
+                          >
+                            Ürün Adı
+                            {sortField === 'name' ? (
+                              sortOrder === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                            ) : (
+                              <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50" />
+                            )}
+                          </button>
+                        </th>
+                      )}
                       
-                      <th className="px-4 py-3 text-left fluent-body-small font-semibold text-foreground">
-                        Kategori
-                      </th>
+                      {visibleColumns.category && (
+                        <th className="px-4 py-3 text-left fluent-body-small font-semibold text-foreground">
+                          Kategori
+                        </th>
+                      )}
                       
-                      <th className="px-4 py-3 text-right">
-                        <button
-                          onClick={() => handleSort('sellPrice')}
-                          className="flex items-center gap-2 ml-auto hover:text-primary transition-colors fluent-body-small font-semibold text-foreground"
-                        >
-                          Fiyat
-                          {sortField === 'sellPrice' ? (
-                            sortOrder === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
-                          ) : (
-                            <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50" />
-                          )}
-                        </button>
-                      </th>
+                      {visibleColumns.price && (
+                        <th className="px-4 py-3 text-right">
+                          <button
+                            onClick={() => handleSort('sellPrice')}
+                            className="flex items-center gap-2 ml-auto hover:text-primary transition-colors fluent-body-small font-semibold text-foreground"
+                          >
+                            Fiyat
+                            {sortField === 'sellPrice' ? (
+                              sortOrder === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                            ) : (
+                              <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50" />
+                            )}
+                          </button>
+                        </th>
+                      )}
                       
-                      <th className="px-4 py-3 text-center">
-                        <button
-                          onClick={() => handleSort('stock')}
-                          className="flex items-center gap-2 mx-auto hover:text-primary transition-colors fluent-body-small font-semibold text-foreground"
-                        >
-                          Stok
-                          {sortField === 'stock' ? (
-                            sortOrder === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
-                          ) : (
-                            <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50" />
-                          )}
-                        </button>
-                      </th>
+                      {visibleColumns.stock && (
+                        <th className="px-4 py-3 text-center">
+                          <button
+                            onClick={() => handleSort('stock')}
+                            className="flex items-center gap-2 mx-auto hover:text-primary transition-colors fluent-body-small font-semibold text-foreground"
+                          >
+                            Stok
+                            {sortField === 'stock' ? (
+                              sortOrder === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                            ) : (
+                              <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50" />
+                            )}
+                          </button>
+                        </th>
+                      )}
                       
-                      <th className="px-4 py-3 text-center fluent-body-small font-semibold text-foreground">Favori</th>
-                      <th className="px-4 py-3 text-center fluent-body-small font-semibold text-foreground">İşlemler</th>
+                      {visibleColumns.favorite && (
+                        <th className="px-4 py-3 text-center fluent-body-small font-semibold text-foreground">Favori</th>
+                      )}
+                      
+                      {visibleColumns.actions && (
+                        <th className="px-4 py-3 text-center fluent-body-small font-semibold text-foreground">İşlemler</th>
+                      )}
                     </tr>
                   </thead>
                   <tbody>
@@ -873,67 +1159,87 @@ const Products: React.FC = () => {
                             )}
                           </button>
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <Barcode className="w-4 h-4 text-foreground-secondary" />
-                            <span className="fluent-body-small font-mono text-foreground">
-                              {product.barcode}
+                        {visibleColumns.barcode && (
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-2">
+                              <Barcode className="w-4 h-4 text-foreground-secondary" />
+                              <span className="fluent-body-small font-mono text-foreground">
+                                {product.barcode}
+                              </span>
+                            </div>
+                          </td>
+                        )}
+                        
+                        {visibleColumns.name && (
+                          <td className="px-4 py-3">
+                            <span className="fluent-body font-medium text-foreground">
+                              {product.name}
                             </span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="fluent-body font-medium text-foreground">
-                            {product.name}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="fluent-body-small text-foreground-secondary">
-                            {product.category?.name || '-'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <span className="fluent-body font-semibold text-foreground">
-                            ₺{product.sellPrice.toFixed(2)}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <FluentBadge
-                            appearance={product.stock <= product.minStock ? 'error' : 'success'}
-                            size="small"
-                          >
-                            {product.stock} {product.unit}
-                          </FluentBadge>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <button
-                            onClick={() => toggleFavorite(product)}
-                            className="p-1 hover:bg-background rounded transition-colors"
-                          >
-                            {product.isFavorite ? (
-                              <Star className="w-4 h-4 fill-warning text-warning" />
-                            ) : (
-                              <StarOff className="w-4 h-4 text-foreground-secondary" />
-                            )}
-                          </button>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center justify-center gap-1">
-                            <button
-                              onClick={() => handleEdit(product)}
-                              className="p-1.5 hover:bg-background rounded transition-colors text-foreground-secondary hover:text-primary"
-                              title="Düzenle"
+                          </td>
+                        )}
+                        
+                        {visibleColumns.category && (
+                          <td className="px-4 py-3">
+                            <span className="fluent-body-small text-foreground-secondary">
+                              {product.category?.name || '-'}
+                            </span>
+                          </td>
+                        )}
+                        
+                        {visibleColumns.price && (
+                          <td className="px-4 py-3 text-right">
+                            <span className="fluent-body font-semibold text-foreground">
+                              ₺{product.sellPrice.toFixed(2)}
+                            </span>
+                          </td>
+                        )}
+                        
+                        {visibleColumns.stock && (
+                          <td className="px-4 py-3 text-center">
+                            <FluentBadge
+                              appearance={product.stock <= product.minStock ? 'error' : 'success'}
+                              size="small"
                             >
-                              <Edit className="w-4 h-4" />
-                            </button>
+                              {product.stock} {product.unit}
+                            </FluentBadge>
+                          </td>
+                        )}
+                        
+                        {visibleColumns.favorite && (
+                          <td className="px-4 py-3 text-center">
                             <button
-                              onClick={() => handleDelete(product.id)}
-                              className="p-1.5 hover:bg-destructive/10 rounded transition-colors text-foreground-secondary hover:text-destructive"
-                              title="Sil"
+                              onClick={() => toggleFavorite(product)}
+                              className="p-1 hover:bg-background rounded transition-colors"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              {product.isFavorite ? (
+                                <Star className="w-4 h-4 fill-warning text-warning" />
+                              ) : (
+                                <StarOff className="w-4 h-4 text-foreground-secondary" />
+                              )}
                             </button>
-                          </div>
-                        </td>
+                          </td>
+                        )}
+                        
+                        {visibleColumns.actions && (
+                          <td className="px-4 py-3">
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                onClick={() => handleEdit(product)}
+                                className="p-1.5 hover:bg-background rounded transition-colors text-foreground-secondary hover:text-primary"
+                                title="Düzenle"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(product.id)}
+                                className="p-1.5 hover:bg-destructive/10 rounded transition-colors text-foreground-secondary hover:text-destructive"
+                                title="Sil"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -1228,7 +1534,7 @@ const Products: React.FC = () => {
             <FluentButton type="submit" appearance="primary" className="flex-1">
               {editingProduct ? t('common.update') || 'Güncelle' : t('common.create') || 'Oluştur'}
             </FluentButton>
-          </div>
+                      </div>
         </form>
       </FluentDialog>
 
