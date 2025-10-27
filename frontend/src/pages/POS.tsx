@@ -55,15 +55,14 @@ const POS: React.FC = () => {
   const [activeChannelId, setActiveChannelId] = useState('1');
   
   // Basic States
-  const [barcodeInput, setBarcodeInput] = useState('');
   const [isScanning, setIsScanning] = useState(false);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [showCustomerDialog, setShowCustomerDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showReceiptDialog, setShowReceiptDialog] = useState(false);
   
-  // 💠 ENTERPRISE: Product Search States
-  const [searchQuery, setSearchQuery] = useState('');
+  // 💠 ENTERPRISE: Smart Search States (Unified Barcode + Product Search)
+  const [searchInput, setSearchInput] = useState('');
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
@@ -75,7 +74,6 @@ const POS: React.FC = () => {
   const [lastReceipt, setLastReceipt] = useState<any>(null);
   
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
-  const barcodeInputRef = useRef<HTMLInputElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<number | null>(null);
@@ -117,7 +115,7 @@ const POS: React.FC = () => {
     }
   };
 
-  // 💠 ENTERPRISE: Search Products with Debounce
+  // 💠 ENTERPRISE: Smart Search - Auto-detects barcode vs product name
   const searchProducts = async (query: string) => {
     if (!query || query.length < 2) {
       setSearchResults([]);
@@ -140,25 +138,69 @@ const POS: React.FC = () => {
     }
   };
 
-  // 💠 ENTERPRISE: Handle Search Input Change
-  const handleSearchChange = (value: string) => {
-    setSearchQuery(value);
+  // 💠 ENTERPRISE: Smart Input Handler - Unified barcode + product search
+  const handleSmartSearchChange = (value: string) => {
+    setSearchInput(value);
 
     // Clear previous timeout
     if (searchTimeoutRef.current) {
       window.clearTimeout(searchTimeoutRef.current);
     }
 
-    // Debounce: Wait 300ms after user stops typing
-    searchTimeoutRef.current = window.setTimeout(() => {
-      searchProducts(value);
-    }, 300);
+    // Auto-detect: If it looks like a barcode (only numbers), don't show dropdown immediately
+    // But still search in case user wants to see products with that barcode
+    const isNumeric = /^\d+$/.test(value);
+    
+    if (!isNumeric && value.length >= 2) {
+      // Text search - show dropdown with debounce
+      searchTimeoutRef.current = window.setTimeout(() => {
+        searchProducts(value);
+      }, 300);
+    } else if (value.length === 0) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+    }
+  };
+
+  // 💠 ENTERPRISE: Smart Enter Handler - Barcode or select first result
+  const handleSmartEnter = async () => {
+    if (!searchInput.trim()) return;
+
+    // If dropdown is shown and has results, select first one
+    if (showSearchResults && searchResults.length > 0) {
+      selectProductFromSearch(searchResults[0]);
+      return;
+    }
+
+    // Otherwise, treat as barcode
+    try {
+      const response = await api.get(`/products/barcode/${searchInput}`);
+      const product = response.data;
+
+      if (!product || !product.id) {
+        toast.error('Ürün bulunamadı!');
+        return;
+      }
+
+      if (!product.isActive) {
+        toast.error('Bu ürün inaktif!');
+        return;
+      }
+
+      addToCart(product);
+      setSearchInput('');
+      setSearchResults([]);
+      setShowSearchResults(false);
+      toast.success('Sepete eklendi');
+    } catch (error: any) {
+      toast.error('Ürün bulunamadı');
+    }
   };
 
   // 💠 ENTERPRISE: Select Product from Search
   const selectProductFromSearch = (product: Product) => {
     addToCart(product);
-    setSearchQuery('');
+    setSearchInput('');
     setSearchResults([]);
     setShowSearchResults(false);
     toast.success(`${product.name} sepete eklendi`);
@@ -209,7 +251,8 @@ const POS: React.FC = () => {
     ));
   };
 
-  const handleBarcodeSubmit = async (barcode: string) => {
+  // 💠 ENTERPRISE: Handle Camera Barcode Scan
+  const handleCameraScan = async (barcode: string) => {
     if (!barcode.trim()) return;
 
     try {
@@ -217,7 +260,7 @@ const POS: React.FC = () => {
       const product = response.data;
 
       if (!product || !product.id) {
-        toast.error('Ürün verisi eksik!');
+        toast.error('Ürün bulunamadı!');
         return;
       }
 
@@ -227,7 +270,6 @@ const POS: React.FC = () => {
       }
 
       addToCart(product);
-      setBarcodeInput('');
       toast.success('Sepete eklendi');
     } catch (error: any) {
       toast.error('Ürün bulunamadı');
@@ -293,7 +335,7 @@ const POS: React.FC = () => {
       );
       scanner.render(
         (decodedText) => {
-          handleBarcodeSubmit(decodedText);
+          handleCameraScan(decodedText);
           scanner.clear();
           setIsScanning(false);
         },
@@ -486,25 +528,33 @@ const POS: React.FC = () => {
       <div className="flex-1 flex flex-col md:flex-row gap-4 min-h-0">
         {/* Left: Scanner & Products */}
         <div className="flex-1 space-y-4">
-          {/* 💠 ENTERPRISE: Product Search */}
+          {/* 💠 ENTERPRISE: Smart Search (Barcode + Product Name) */}
           <FluentCard depth="depth-4" className="p-4 relative">
             <div className="flex flex-col sm:flex-row gap-2">
               <div className="flex-1 relative">
                 <FluentInput
                   ref={searchInputRef}
-                  value={searchQuery}
-                  onChange={(e) => handleSearchChange(e.target.value)}
+                  value={searchInput}
+                  onChange={(e) => handleSmartSearchChange(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSmartEnter();
+                    } else if (e.key === 'Escape') {
+                      setShowSearchResults(false);
+                      setSearchResults([]);
+                    }
+                  }}
                   onFocus={() => {
-                    if (searchQuery.length >= 2 && searchResults.length > 0) {
+                    if (searchInput.length >= 2 && searchResults.length > 0) {
                       setShowSearchResults(true);
                     }
                   }}
-                  placeholder="Ürün ara... (örn: coca)"
+                  placeholder="Barkod veya ürün adı... (örn: 123456 veya coca)"
                   icon={<Search className="w-4 h-4" />}
                   className="w-full"
                 />
 
-                {/* 💠 Search Dropdown */}
+                {/* 💠 Smart Search Dropdown */}
                 {showSearchResults && (
                   <div
                     ref={searchDropdownRef}
@@ -519,50 +569,39 @@ const POS: React.FC = () => {
                         <p className="fluent-body-small">Sonuç bulunamadı</p>
                       </div>
                     ) : (
-                      searchResults.map((product) => (
-                        <button
-                          key={product.id}
-                          onClick={() => selectProductFromSearch(product)}
-                          className="w-full px-4 py-3 text-left hover:bg-background-alt transition-colors border-b border-border last:border-b-0 flex items-center justify-between gap-3"
-                        >
-                          <div className="flex-1 min-w-0">
-                            <p className="fluent-body font-medium text-foreground truncate">
-                              {product.name}
-                            </p>
-                            <p className="fluent-caption text-foreground-secondary">
-                              Barkod: {product.barcode} • Stok: {product.stock}
-                            </p>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <p className="fluent-body font-semibold text-primary">
-                              ₺{(product.sellPrice || 0).toFixed(2)}
-                            </p>
-                          </div>
-                        </button>
-                      ))
+                      <>
+                        <div className="px-4 py-2 bg-background-alt border-b border-border">
+                          <p className="fluent-caption text-foreground-secondary">
+                            ↑↓ Yönlendirme • Enter Seç • Esc Kapat
+                          </p>
+                        </div>
+                        {searchResults.map((product) => (
+                          <button
+                            key={product.id}
+                            onClick={() => selectProductFromSearch(product)}
+                            className="w-full px-4 py-3 text-left hover:bg-background-alt transition-colors border-b border-border last:border-b-0 flex items-center justify-between gap-3"
+                          >
+                            <div className="flex-1 min-w-0">
+                              <p className="fluent-body font-medium text-foreground truncate">
+                                {product.name}
+                              </p>
+                              <p className="fluent-caption text-foreground-secondary">
+                                Barkod: {product.barcode} • Stok: {product.stock}
+                              </p>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <p className="fluent-body font-semibold text-primary">
+                                ₺{(product.sellPrice || 0).toFixed(2)}
+                              </p>
+                            </div>
+                          </button>
+                        ))}
+                      </>
                     )}
                   </div>
                 )}
               </div>
-            </div>
-          </FluentCard>
-
-          {/* Barcode Scanner */}
-          <FluentCard depth="depth-4" className="p-4">
-            <div className="flex flex-col sm:flex-row gap-2">
-              <FluentInput
-                ref={barcodeInputRef}
-                value={barcodeInput}
-                onChange={(e) => setBarcodeInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleBarcodeSubmit(barcodeInput);
-                  }
-                }}
-                placeholder="Barkod okutun veya yazın..."
-                icon={<Search className="w-4 h-4" />}
-                className="flex-1"
-              />
+              
               <FluentButton
                 appearance={isScanning ? 'subtle' : 'primary'}
                 onClick={isScanning ? stopCamera : startCamera}
