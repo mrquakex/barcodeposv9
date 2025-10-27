@@ -113,14 +113,13 @@ const FluentSidebar: React.FC<FluentSidebarProps> = ({ isMobileOpen = false, onM
       {/* Desktop: Hover to expand | Mobile: Drawer */}
       <aside
         className={cn(
-          'h-screen z-50 bg-background border-r border-border flex flex-col transition-all duration-300 ease-out',
+          'h-screen bg-background border-r border-border flex flex-col transition-all duration-300 ease-out overflow-visible',
           // 📱 Mobile: Drawer (slides in from left)
-          'fixed left-0 top-0',
+          'fixed left-0 top-0 z-50 w-64',
           isMobileOpen ? 'translate-x-0' : '-translate-x-full',
-          isMobileOpen ? 'w-64' : 'w-0',
           // 💻 Desktop: Always visible, hover to expand
-          'md:relative md:translate-x-0',
-          'md:' + (isExpanded ? 'w-64' : 'w-16')
+          'md:relative md:translate-x-0 md:z-0',
+          isExpanded ? 'md:w-64' : 'md:w-16'
         )}
         onMouseEnter={() => setIsExpanded(true)}
         onMouseLeave={() => setIsExpanded(false)}
@@ -151,8 +150,8 @@ const FluentSidebar: React.FC<FluentSidebarProps> = ({ isMobileOpen = false, onM
           )}
         </div>
 
-        {/* Search (Expanded only) */}
-        {isExpanded && (
+        {/* Search (Expanded or Mobile) */}
+        {(isExpanded || isMobileOpen) && (
           <div className="p-3 border-b border-border">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground-secondary" />
@@ -188,7 +187,7 @@ const FluentSidebar: React.FC<FluentSidebarProps> = ({ isMobileOpen = false, onM
                   )}
                 >
                   <Icon className="w-5 h-5 shrink-0" />
-                  {isExpanded && (
+                  {(isExpanded || isMobileOpen) && (
                     <>
                       <span className="fluent-body flex-1">{item.label}</span>
                       {item.badge !== undefined && (
@@ -196,7 +195,7 @@ const FluentSidebar: React.FC<FluentSidebarProps> = ({ isMobileOpen = false, onM
                       )}
                     </>
                   )}
-                  {!isExpanded && (
+                  {!isExpanded && !isMobileOpen && (
                     <div className="absolute left-full ml-2 px-3 py-2 bg-card border border-border rounded fluent-depth-8 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
                       {item.label}
                     </div>
@@ -209,7 +208,7 @@ const FluentSidebar: React.FC<FluentSidebarProps> = ({ isMobileOpen = false, onM
               return (
                 <div key={item.label} className="mb-1">
                   <button
-                    onClick={() => isExpanded && toggleCategory(item.label)}
+                    onClick={() => (isExpanded || isMobileOpen) && toggleCategory(item.label)}
                     className={cn(
                       'w-full flex items-center gap-3 px-3 py-2 rounded',
                       'transition-all fluent-motion-fast',
@@ -217,7 +216,7 @@ const FluentSidebar: React.FC<FluentSidebarProps> = ({ isMobileOpen = false, onM
                     )}
                   >
                     <Icon className="w-5 h-5 shrink-0" />
-                    {isExpanded && (
+                    {(isExpanded || isMobileOpen) && (
                       <>
                         <span className="fluent-body flex-1 text-left">{item.label}</span>
                         <ChevronRight 
@@ -229,7 +228,7 @@ const FluentSidebar: React.FC<FluentSidebarProps> = ({ isMobileOpen = false, onM
                       </>
                     )}
                   </button>
-                  {isExpanded && isOpen && item.children && (
+                  {(isExpanded || isMobileOpen) && isOpen && item.children && (
                     <div className="ml-4 mt-1 space-y-1">
                       {item.children.map((child) => {
                         const ChildIcon = child.icon;
@@ -261,8 +260,8 @@ const FluentSidebar: React.FC<FluentSidebarProps> = ({ isMobileOpen = false, onM
           })}
         </nav>
 
-        {/* Footer (User) */}
-        {isExpanded && (
+        {/* Footer (User - Expanded or Mobile) */}
+        {(isExpanded || isMobileOpen) && (
           <div className="p-3 border-t border-border">
             <div className="flex items-center gap-3 px-3 py-2">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">

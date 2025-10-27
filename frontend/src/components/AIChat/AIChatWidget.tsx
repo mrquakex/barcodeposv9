@@ -277,7 +277,7 @@ export const AIChatWidget: React.FC = () => {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50 group"
+        className="fixed bottom-20 right-4 md:bottom-6 md:right-6 z-50 group"
         style={{ boxShadow: 'var(--depth-16)' }}
       >
         {/* Main Button - Fluent Style */}
