@@ -32,22 +32,29 @@ async function main() {
     { name: 'Home & Kitchen' },
   ];
 
-  const createdCategories = await Promise.all(
-    categories.map((cat) =>
-      prisma.category.upsert({
-        where: { name: cat.name },
-        update: {},
-        create: cat,
-      })
-    )
-  );
+  const createdCategories = [];
+  for (const cat of categories) {
+    const existing = await prisma.category.findFirst({
+      where: { name: cat.name },
+    });
 
-  console.log(`✅ ${createdCategories.length} categories created`);
+    if (!existing) {
+      const created = await prisma.category.create({
+        data: cat,
+      });
+      createdCategories.push(created);
+    } else {
+      createdCategories.push(existing);
+    }
+  }
+
+  console.log(`✅ ${createdCategories.length} categories created/found`);
 
   // 3. Create Sample Products
   const products = [
     {
       barcode: '1234567890123',
+      sku: 'SKU-COLA-330',
       name: 'Coca Cola 330ml',
       sellPrice: 15.0,
       buyPrice: 10.0,
@@ -59,6 +66,7 @@ async function main() {
     },
     {
       barcode: '1234567890124',
+      sku: 'SKU-LAYS-150',
       name: 'Lays Chips 150g',
       sellPrice: 25.0,
       buyPrice: 18.0,
@@ -70,6 +78,7 @@ async function main() {
     },
     {
       barcode: '1234567890125',
+      sku: 'SKU-USB-CABLE',
       name: 'Samsung USB Cable',
       sellPrice: 45.0,
       buyPrice: 30.0,
