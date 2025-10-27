@@ -239,14 +239,32 @@ async function initializeScraperCron() {
 
 // Start server
 async function startServer() {
-  await initializeDatabase();
-  await initializeScraperCron();
-  
-  httpServer.listen(PORT, () => {
-    console.log(`Server çalışıyor: http://localhost:${PORT}`);
-    console.log(`Sistem hazır`);
-  });
+  try {
+    await initializeDatabase();
+    await initializeScraperCron();
+    
+    httpServer.listen(PORT, () => {
+      console.log(`Server çalışıyor: http://localhost:${PORT}`);
+      console.log(`Sistem hazır`);
+    });
+  } catch (error) {
+    console.error('❌ Server başlatma hatası:', error);
+    process.exit(1);
+  }
 }
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  console.log('SIGTERM alındı, graceful shutdown...');
+  await prisma.$disconnect();
+  process.exit(0);
+});
+
+process.on('SIGINT', async () => {
+  console.log('SIGINT alındı, graceful shutdown...');
+  await prisma.$disconnect();
+  process.exit(0);
+});
 
 startServer();
 
