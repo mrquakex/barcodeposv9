@@ -329,45 +329,63 @@ const POS: React.FC = () => {
       {/* 💠 ENTERPRISE: Multi-Channel Tabs */}
       <FluentCard depth="depth-4" className="p-2 shrink-0">
         <div className="flex items-center gap-2 overflow-x-auto">
+          {/* Channel Tabs */}
           {channels.map((channel) => (
-            <div key={channel.id} className="flex items-center gap-1 shrink-0">
-              <button
-                onClick={() => setActiveChannelId(channel.id)}
-                className={cn(
-                  'px-4 py-2 rounded transition-all fluent-motion-fast relative',
-                  channel.id === activeChannelId
-                    ? 'bg-primary text-white shadow-sm'
-                    : 'bg-background-alt text-foreground-secondary hover:bg-background-tertiary'
-                )}
-              >
-                {channel.name}
-                {channel.cart.length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-warning text-white text-xs rounded-full flex items-center justify-center">
-                    {channel.cart.length}
-                  </span>
-                )}
-              </button>
-              
-              {channels.length > 1 && (
-                <button
-                  onClick={() => closeChannel(channel.id)}
-                  className="w-6 h-6 flex items-center justify-center text-destructive hover:bg-destructive/10 rounded transition-colors"
-                  title="Kanalı Kapat"
-                >
-                  <X className="w-4 h-4" />
-                </button>
+            <button
+              key={channel.id}
+              onClick={() => setActiveChannelId(channel.id)}
+              className={cn(
+                'px-4 py-2 rounded transition-all fluent-motion-fast relative shrink-0',
+                channel.id === activeChannelId
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'bg-background-alt text-foreground-secondary hover:bg-background-tertiary'
               )}
-            </div>
+            >
+              {channel.name}
+              {channel.cart.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-warning text-white text-xs rounded-full flex items-center justify-center">
+                  {channel.cart.length}
+                </span>
+              )}
+            </button>
           ))}
           
-          <button
-            onClick={addNewChannel}
-            className="px-4 py-2 bg-success/10 text-success hover:bg-success/20 rounded transition-colors fluent-motion-fast flex items-center gap-2 shrink-0"
-            title="Yeni Kanal"
-          >
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Yeni Müşteri</span>
-          </button>
+          {/* 💠 Unified Add/Remove Buttons */}
+          <div className="flex items-center gap-1 shrink-0 ml-2 border-l border-border pl-2">
+            <button
+              onClick={() => {
+                if (channels.length === 1) {
+                  toast.error('En az bir kanal açık olmalı!');
+                  return;
+                }
+                // Close last channel
+                const lastChannel = channels[channels.length - 1];
+                if (lastChannel.cart.length > 0) {
+                  if (!confirm('Son kanalda ürünler var. Kapatmak istediğinize emin misiniz?')) {
+                    return;
+                  }
+                }
+                const newChannels = channels.slice(0, -1);
+                setChannels(newChannels);
+                if (activeChannelId === lastChannel.id) {
+                  setActiveChannelId(newChannels[newChannels.length - 1].id);
+                }
+                toast.success('Kanal kapatıldı');
+              }}
+              className="w-8 h-8 flex items-center justify-center bg-destructive/10 text-destructive hover:bg-destructive/20 rounded transition-colors"
+              title="Kanal Azalt"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            
+            <button
+              onClick={addNewChannel}
+              className="w-8 h-8 flex items-center justify-center bg-success/10 text-success hover:bg-success/20 rounded transition-colors"
+              title="Kanal Ekle"
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </FluentCard>
 
