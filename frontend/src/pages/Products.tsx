@@ -1,5 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit, Trash2, Star, StarOff, Barcode, Package, Upload } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  Plus, Search, Edit, Trash2, Star, StarOff, Barcode, Package, Upload,
+  Grid3x3, List, Filter, Download, Copy, MoreVertical, Eye, EyeOff,
+  CheckSquare, Square, X, ChevronDown, ChevronUp, SlidersHorizontal, FileDown,
+  Printer, QrCode, Archive, RefreshCw, Tag, ArrowUpDown
+} from 'lucide-react';
 import FluentButton from '../components/fluent/FluentButton';
 import FluentCard from '../components/fluent/FluentCard';
 import FluentInput from '../components/fluent/FluentInput';
@@ -9,6 +14,7 @@ import { ExcelImport } from '../components/ExcelImport';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+import { cn } from '../lib/utils';
 
 interface Product {
   id: string;
@@ -21,8 +27,11 @@ interface Product {
   unit: string;
   taxRate: number;
   isFavorite: boolean;
+  isActive?: boolean;
   categoryId?: string;
   category?: { name: string };
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface Category {
@@ -30,8 +39,29 @@ interface Category {
   name: string;
 }
 
+type ViewMode = 'grid' | 'list';
+type SortField = 'name' | 'barcode' | 'sellPrice' | 'stock' | 'createdAt';
+type SortOrder = 'asc' | 'desc';
+
+interface Filters {
+  categories: string[];
+  priceRange: [number, number];
+  stockStatus: string[];
+  activeStatus: string[];
+  isFavorite: boolean | null;
+}
+
+interface ContextMenu {
+  visible: boolean;
+  x: number;
+  y: number;
+  product: Product | null;
+}
+
 const Products: React.FC = () => {
   const { t } = useTranslation();
+  
+  // 💠 Basic States
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -39,8 +69,30 @@ const Products: React.FC = () => {
   const [showExcelImport, setShowExcelImport] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // 💠 Enterprise States
+  const [viewMode, setViewMode] = useState<ViewMode>('grid');
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
+  const [sortField, setSortField] = useState<SortField>('createdAt');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const [contextMenu, setContextMenu] = useState<ContextMenu>({ visible: false, x: 0, y: 0, product: null });
+  const contextMenuRef = useRef<HTMLDivElement>(null);
+  
+  // 💠 Filters
+  const [filters, setFilters] = useState<Filters>({
+    categories: [],
+    priceRange: [0, 10000],
+    stockStatus: [],
+    activeStatus: [],
+    isFavorite: null,
+  });
+  
+  // 💠 Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(12); // 🍎 Apple-style: 12 items per page (3x4 grid)
+  const [itemsPerPage] = useState(viewMode === 'grid' ? 12 : 20);
+  
+  // 💠 Form Data
   const [formData, setFormData] = useState({
     barcode: '',
     name: '',
@@ -148,26 +200,223 @@ const Products: React.FC = () => {
     });
   };
 
-  const filteredProducts = products.filter(
-    (p) =>
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.barcode.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // 💠 ENTERPRISE: Advanced Filtering & Sorting
+  const filteredProducts = products
+    .filter((p) => {
+      // Search filter
+      const matchesSearch = 
+        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.barcode.toLowerCase().includes(searchTerm.toLowerCase());
+      if (!matchesSearch) return false;
 
-  // 🍎 Pagination logic
+      // Category filter
+      if (filters.categories.length > 0 && !filters.categories.includes(p.categoryId || '')) {
+        return false;
+      }
+
+      // Price range filter
+      if (p.sellPrice < filters.priceRange[0] || p.sellPrice > filters.priceRange[1]) {
+        return false;
+      }
+
+      // Stock status filter
+      if (filters.stockStatus.length > 0) {
+        const status = 
+          p.stock === 0 ? 'out' :
+          p.stock <= p.minStock ? 'low' :
+          p.stock <= p.minStock * 2 ? 'medium' : 'high';
+        if (!filters.stockStatus.includes(status)) return false;
+      }
+
+      // Active status filter
+      if (filters.activeStatus.length > 0) {
+        const isActive = p.isActive !== false;
+        const status = isActive ? 'active' : 'inactive';
+        if (!filters.activeStatus.includes(status)) return false;
+      }
+
+      // Favorite filter
+      if (filters.isFavorite !== null && p.isFavorite !== filters.isFavorite) {
+        return false;
+      }
+
+      return true;
+    })
+    .sort((a, b) => {
+      let aValue: any, bValue: any;
+      
+      switch (sortField) {
+        case 'name':
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+          break;
+        case 'barcode':
+          aValue = a.barcode;
+          bValue = b.barcode;
+          break;
+        case 'sellPrice':
+          aValue = a.sellPrice;
+          bValue = b.sellPrice;
+          break;
+        case 'stock':
+          aValue = a.stock;
+          bValue = b.stock;
+          break;
+        case 'createdAt':
+          aValue = new Date(a.createdAt || 0).getTime();
+          bValue = new Date(b.createdAt || 0).getTime();
+          break;
+        default:
+          return 0;
+      }
+
+      if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+  // 💠 Pagination logic
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
 
-  // Reset to page 1 when search term changes
+  // Reset to page 1 when search/filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm]);
+  }, [searchTerm, filters, sortField, sortOrder]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // 💠 ENTERPRISE: Selection Handlers
+  const toggleSelectProduct = (id: string) => {
+    const newSelected = new Set(selectedProducts);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedProducts(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedProducts.size === paginatedProducts.length) {
+      setSelectedProducts(new Set());
+    } else {
+      setSelectedProducts(new Set(paginatedProducts.map(p => p.id)));
+    }
+  };
+
+  const clearSelection = () => setSelectedProducts(new Set());
+
+  // 💠 ENTERPRISE: Context Menu Handlers
+  const handleContextMenu = (e: React.MouseEvent, product: Product) => {
+    e.preventDefault();
+    setContextMenu({
+      visible: true,
+      x: e.clientX,
+      y: e.clientY,
+      product,
+    });
+  };
+
+  const closeContextMenu = () => {
+    setContextMenu({ visible: false, x: 0, y: 0, product: null });
+  };
+
+  useEffect(() => {
+    const handleClick = () => closeContextMenu();
+    const handleScroll = () => closeContextMenu();
+    
+    document.addEventListener('click', handleClick);
+    document.addEventListener('scroll', handleScroll, true);
+    
+    return () => {
+      document.removeEventListener('click', handleClick);
+      document.removeEventListener('scroll', handleScroll, true);
+    };
+  }, []);
+
+  // 💠 ENTERPRISE: Bulk Operations
+  const handleBulkDelete = async () => {
+    if (selectedProducts.size === 0) return;
+    if (!confirm(`${selectedProducts.size} ürünü silmek istediğinize emin misiniz?`)) return;
+    
+    try {
+      await Promise.all(
+        Array.from(selectedProducts).map(id => api.delete(`/products/${id}`))
+      );
+      toast.success(`${selectedProducts.size} ürün silindi`);
+      fetchProducts();
+      clearSelection();
+    } catch (error) {
+      toast.error('Toplu silme işlemi başarısız');
+    }
+  };
+
+  const handleBulkCategoryChange = async (categoryId: string) => {
+    if (selectedProducts.size === 0) return;
+    
+    try {
+      await Promise.all(
+        Array.from(selectedProducts).map(id => 
+          api.put(`/products/${id}`, { categoryId })
+        )
+      );
+      toast.success(`${selectedProducts.size} ürünün kategorisi güncellendi`);
+      fetchProducts();
+      clearSelection();
+    } catch (error) {
+      toast.error('Toplu kategori değiştirme başarısız');
+    }
+  };
+
+  // 💠 ENTERPRISE: Sorting Handler
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
+  };
+
+  // 💠 ENTERPRISE: Export Functions
+  const exportToExcel = () => {
+    const selectedData = products.filter(p => selectedProducts.has(p.id));
+    const dataToExport = selectedData.length > 0 ? selectedData : filteredProducts;
+    
+    // Simple CSV export (you can use XLSX library for better Excel support)
+    const headers = ['Barkod', 'Ürün Adı', 'Satış Fiyatı', 'Alış Fiyatı', 'Stok', 'Birim', 'Kategori'];
+    const rows = dataToExport.map(p => [
+      p.barcode,
+      p.name,
+      p.sellPrice,
+      p.buyPrice,
+      p.stock,
+      p.unit,
+      p.category?.name || '-'
+    ]);
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+    
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `products_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    
+    toast.success(`${dataToExport.length} ürün Excel'e aktarıldı`);
+  };
+
+  const exportToPDF = () => {
+    toast('PDF export özelliği yakında eklenecek');
   };
 
   if (isLoading) {
@@ -183,120 +432,515 @@ const Products: React.FC = () => {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
+      {/* 💠 ENTERPRISE: Header with View Mode Toggle */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h1 className="fluent-title text-foreground">{t('products.title')}</h1>
           <p className="fluent-body text-foreground-secondary mt-1">
-            {t('products.productsCount', { count: filteredProducts.length })}
+            {filteredProducts.length} ürün
+            {selectedProducts.size > 0 && ` • ${selectedProducts.size} seçili`}
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-2">
+          {/* View Mode Toggle */}
+          <div className="flex gap-1 bg-background-alt border border-border rounded p-1">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={cn(
+                'px-3 py-1.5 rounded text-sm font-medium transition-all fluent-motion-fast',
+                viewMode === 'grid'
+                  ? 'bg-background text-primary shadow-sm'
+                  : 'text-foreground-secondary hover:text-foreground'
+              )}
+            >
+              <Grid3x3 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={cn(
+                'px-3 py-1.5 rounded text-sm font-medium transition-all fluent-motion-fast',
+                viewMode === 'list'
+                  ? 'bg-background text-primary shadow-sm'
+                  : 'text-foreground-secondary hover:text-foreground'
+              )}
+            >
+              <List className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Filters Toggle */}
+          <FluentButton
+            appearance={showFilters ? 'primary' : 'subtle'}
+            icon={<Filter className="w-4 h-4" />}
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            Filtreler
+          </FluentButton>
+
+          {/* Export */}
+          <FluentButton
+            appearance="subtle"
+            icon={<Download className="w-4 h-4" />}
+            onClick={exportToExcel}
+          >
+            <span className="hidden sm:inline">Dışa Aktar</span>
+          </FluentButton>
+
+          {/* Excel Import */}
           <FluentButton
             appearance="subtle"
             icon={<Upload className="w-4 h-4" />}
             onClick={() => setShowExcelImport(true)}
           >
-            Excel İçe Aktar
+            <span className="hidden sm:inline">İçe Aktar</span>
           </FluentButton>
+
+          {/* Add Product */}
           <FluentButton
             appearance="primary"
             icon={<Plus className="w-4 h-4" />}
             onClick={() => setShowDialog(true)}
           >
-            {t('products.addProduct')}
+            Ekle
           </FluentButton>
         </div>
       </div>
 
-      {/* Search */}
-      <FluentCard depth="depth-4" className="p-4">
-        <FluentInput
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder={t('products.searchPlaceholder') || 'Ürün adı veya barkod ile ara...'}
-          icon={<Search className="w-4 h-4" />}
-        />
-      </FluentCard>
-
-      {/* Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {paginatedProducts.map((product) => (
-          <FluentCard key={product.id} depth="depth-4" hoverable className="p-4">
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 bg-primary/10 rounded flex items-center justify-center">
-                  <Package className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <h4 className="fluent-body font-medium text-foreground truncate max-w-[150px]">
-                    {product.name}
-                  </h4>
-                  <p className="fluent-caption text-foreground-secondary flex items-center gap-1">
-                    <Barcode className="w-3 h-3" />
-                    {product.barcode}
-                  </p>
-                </div>
-              </div>
+      {/* 💠 ENTERPRISE: Bulk Actions Toolbar */}
+      {selectedProducts.size > 0 && (
+        <FluentCard depth="depth-8" className="p-4 bg-primary/5 border-primary/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <FluentBadge appearance="info" size="medium">
+                {selectedProducts.size} seçili
+              </FluentBadge>
               <button
-                onClick={() => toggleFavorite(product)}
-                className="text-foreground-secondary hover:text-warning transition-colors"
+                onClick={clearSelection}
+                className="text-sm text-foreground-secondary hover:text-foreground transition-colors"
               >
-                {product.isFavorite ? (
-                  <Star className="w-4 h-4 fill-warning text-warning" />
-                ) : (
-                  <StarOff className="w-4 h-4" />
-                )}
+                Seçimi Temizle
+              </button>
+            </div>
+            <div className="flex gap-2">
+              <FluentButton
+                appearance="subtle"
+                size="small"
+                icon={<Trash2 className="w-4 h-4" />}
+                onClick={handleBulkDelete}
+              >
+                Sil
+              </FluentButton>
+              <FluentButton
+                appearance="subtle"
+                size="small"
+                icon={<Tag className="w-4 h-4" />}
+                onClick={() => {
+                  const categoryId = prompt('Kategori ID girin:');
+                  if (categoryId) handleBulkCategoryChange(categoryId);
+                }}
+              >
+                Kategori Değiştir
+              </FluentButton>
+              <FluentButton
+                appearance="subtle"
+                size="small"
+                icon={<Download className="w-4 h-4" />}
+                onClick={exportToExcel}
+              >
+                Export
+              </FluentButton>
+            </div>
+          </div>
+        </FluentCard>
+      )}
+
+      {/* 💠 ENTERPRISE: Search & Filters Layout */}
+      <div className="flex gap-6">
+        {/* Filters Sidebar */}
+        {showFilters && (
+          <FluentCard depth="depth-4" className="w-64 p-4 space-y-6 h-fit shrink-0">
+            <div className="flex items-center justify-between">
+              <h3 className="fluent-subtitle font-semibold text-foreground">Filtreler</h3>
+              <button
+                onClick={() => setFilters({
+                  categories: [],
+                  priceRange: [0, 10000],
+                  stockStatus: [],
+                  activeStatus: [],
+                  isFavorite: null,
+                })}
+                className="text-sm text-primary hover:underline"
+              >
+                Temizle
               </button>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="text-foreground-secondary">Price</span>
-                <span className="text-foreground font-medium">
-                  ₺{product.sellPrice.toFixed(2)}
-                </span>
+            {/* Category Filter */}
+            <div>
+              <label className="fluent-body-small font-medium text-foreground block mb-2">
+                Kategori
+              </label>
+              <div className="space-y-2 max-h-40 overflow-y-auto fluent-scrollbar">
+                {categories.map(cat => (
+                  <label key={cat.id} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={filters.categories.includes(cat.id)}
+                      onChange={(e) => {
+                        const newCategories = e.target.checked
+                          ? [...filters.categories, cat.id]
+                          : filters.categories.filter(c => c !== cat.id);
+                        setFilters({ ...filters, categories: newCategories });
+                      }}
+                      className="rounded border-border"
+                    />
+                    <span className="text-sm text-foreground">{cat.name}</span>
+                  </label>
+                ))}
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-foreground-secondary">Stock</span>
-                <FluentBadge
-                  appearance={product.stock <= product.minStock ? 'error' : 'success'}
-                  size="small"
-                >
-                  {product.stock} {product.unit}
-                </FluentBadge>
-              </div>
-              {product.category && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-foreground-secondary">Category</span>
-                  <span className="text-foreground-tertiary">{product.category.name}</span>
-                </div>
-              )}
             </div>
 
-            <div className="flex gap-2 mt-4 pt-4 border-t border-border">
-              <FluentButton
-                appearance="subtle"
-                size="small"
-                className="flex-1"
-                icon={<Edit className="w-3 h-3" />}
-                onClick={() => handleEdit(product)}
-              >
-                Edit
-              </FluentButton>
-              <FluentButton
-                appearance="subtle"
-                size="small"
-                className="flex-1 text-destructive hover:bg-destructive/10"
-                icon={<Trash2 className="w-3 h-3" />}
-                onClick={() => handleDelete(product.id)}
-              >
-                Delete
-              </FluentButton>
+            {/* Stock Status Filter */}
+            <div>
+              <label className="fluent-body-small font-medium text-foreground block mb-2">
+                Stok Durumu
+              </label>
+              <div className="space-y-2">
+                {[
+                  { value: 'out', label: 'Tükendi', color: 'error' },
+                  { value: 'low', label: 'Kritik', color: 'warning' },
+                  { value: 'medium', label: 'Düşük', color: 'info' },
+                  { value: 'high', label: 'Normal', color: 'success' },
+                ].map(status => (
+                  <label key={status.value} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={filters.stockStatus.includes(status.value)}
+                      onChange={(e) => {
+                        const newStatus = e.target.checked
+                          ? [...filters.stockStatus, status.value]
+                          : filters.stockStatus.filter(s => s !== status.value);
+                        setFilters({ ...filters, stockStatus: newStatus });
+                      }}
+                      className="rounded border-border"
+                    />
+                    <span className="text-sm text-foreground">{status.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Favorite Filter */}
+            <div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={filters.isFavorite === true}
+                  onChange={(e) => {
+                    setFilters({ ...filters, isFavorite: e.target.checked ? true : null });
+                  }}
+                  className="rounded border-border"
+                />
+                <Star className="w-4 h-4 text-warning" />
+                <span className="text-sm text-foreground">Sadece Favoriler</span>
+              </label>
             </div>
           </FluentCard>
-        ))}
-      </div>
+        )}
+
+        {/* Main Content */}
+        <div className="flex-1 space-y-4">
+          {/* Search */}
+          <FluentCard depth="depth-4" className="p-4">
+            <FluentInput
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder={t('products.searchPlaceholder') || 'Ürün adı veya barkod ile ara...'}
+              icon={<Search className="w-4 h-4" />}
+            />
+          </FluentCard>
+
+          {/* 💠 ENTERPRISE: View Mode Rendering */}
+          {viewMode === 'grid' ? (
+            /* GRID VIEW */
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {paginatedProducts.map((product) => (
+                <FluentCard 
+                  key={product.id} 
+                  depth="depth-4" 
+                  hoverable 
+                  className="p-4 relative"
+                  onContextMenu={(e) => handleContextMenu(e, product)}
+                >
+                  {/* Checkbox for selection */}
+                  <div className="absolute top-4 left-4 z-10">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleSelectProduct(product.id);
+                      }}
+                      className="p-1 hover:bg-background-alt rounded transition-colors"
+                    >
+                      {selectedProducts.has(product.id) ? (
+                        <CheckSquare className="w-5 h-5 text-primary" />
+                      ) : (
+                        <Square className="w-5 h-5 text-foreground-secondary" />
+                      )}
+                    </button>
+                  </div>
+
+                  <div className="flex items-start justify-between mb-3 ml-8">
+                    <div className="flex items-center gap-2">
+                      <div className="w-10 h-10 bg-primary/10 rounded flex items-center justify-center">
+                        <Package className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <h4 className="fluent-body font-medium text-foreground truncate max-w-[150px]">
+                          {product.name}
+                        </h4>
+                        <p className="fluent-caption text-foreground-secondary flex items-center gap-1">
+                          <Barcode className="w-3 h-3" />
+                          {product.barcode}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => toggleFavorite(product)}
+                      className="text-foreground-secondary hover:text-warning transition-colors"
+                    >
+                      {product.isFavorite ? (
+                        <Star className="w-4 h-4 fill-warning text-warning" />
+                      ) : (
+                        <StarOff className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-foreground-secondary">Fiyat</span>
+                      <span className="text-foreground font-medium">
+                        ₺{product.sellPrice.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-foreground-secondary">Stok</span>
+                      <FluentBadge
+                        appearance={product.stock <= product.minStock ? 'error' : 'success'}
+                        size="small"
+                      >
+                        {product.stock} {product.unit}
+                      </FluentBadge>
+                    </div>
+                    {product.category && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-foreground-secondary">Kategori</span>
+                        <span className="text-foreground-tertiary">{product.category.name}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex gap-2 mt-4 pt-4 border-t border-border">
+                    <FluentButton
+                      appearance="subtle"
+                      size="small"
+                      className="flex-1"
+                      icon={<Edit className="w-3 h-3" />}
+                      onClick={() => handleEdit(product)}
+                    >
+                      Düzenle
+                    </FluentButton>
+                    <FluentButton
+                      appearance="subtle"
+                      size="small"
+                      className="flex-1 text-destructive hover:bg-destructive/10"
+                      icon={<Trash2 className="w-3 h-3" />}
+                      onClick={() => handleDelete(product.id)}
+                    >
+                      Sil
+                    </FluentButton>
+                  </div>
+                </FluentCard>
+              ))}
+            </div>
+          ) : (
+            /* TABLE VIEW */
+            <FluentCard depth="depth-4" className="overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border bg-background-alt">
+                      <th className="px-4 py-3 text-left">
+                        <button
+                          onClick={toggleSelectAll}
+                          className="p-1 hover:bg-background rounded transition-colors"
+                        >
+                          {selectedProducts.size === paginatedProducts.length && paginatedProducts.length > 0 ? (
+                            <CheckSquare className="w-5 h-5 text-primary" />
+                          ) : (
+                            <Square className="w-5 h-5 text-foreground-secondary" />
+                          )}
+                        </button>
+                      </th>
+                      
+                      {/* 💠 Sortable Headers */}
+                      <th className="px-4 py-3 text-left">
+                        <button
+                          onClick={() => handleSort('barcode')}
+                          className="flex items-center gap-2 hover:text-primary transition-colors fluent-body-small font-semibold text-foreground"
+                        >
+                          Barkod
+                          {sortField === 'barcode' ? (
+                            sortOrder === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                          ) : (
+                            <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50" />
+                          )}
+                        </button>
+                      </th>
+                      
+                      <th className="px-4 py-3 text-left">
+                        <button
+                          onClick={() => handleSort('name')}
+                          className="flex items-center gap-2 hover:text-primary transition-colors fluent-body-small font-semibold text-foreground"
+                        >
+                          Ürün Adı
+                          {sortField === 'name' ? (
+                            sortOrder === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                          ) : (
+                            <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50" />
+                          )}
+                        </button>
+                      </th>
+                      
+                      <th className="px-4 py-3 text-left fluent-body-small font-semibold text-foreground">
+                        Kategori
+                      </th>
+                      
+                      <th className="px-4 py-3 text-right">
+                        <button
+                          onClick={() => handleSort('sellPrice')}
+                          className="flex items-center gap-2 ml-auto hover:text-primary transition-colors fluent-body-small font-semibold text-foreground"
+                        >
+                          Fiyat
+                          {sortField === 'sellPrice' ? (
+                            sortOrder === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                          ) : (
+                            <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50" />
+                          )}
+                        </button>
+                      </th>
+                      
+                      <th className="px-4 py-3 text-center">
+                        <button
+                          onClick={() => handleSort('stock')}
+                          className="flex items-center gap-2 mx-auto hover:text-primary transition-colors fluent-body-small font-semibold text-foreground"
+                        >
+                          Stok
+                          {sortField === 'stock' ? (
+                            sortOrder === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />
+                          ) : (
+                            <ArrowUpDown className="w-3 h-3 opacity-0 group-hover:opacity-50" />
+                          )}
+                        </button>
+                      </th>
+                      
+                      <th className="px-4 py-3 text-center fluent-body-small font-semibold text-foreground">Favori</th>
+                      <th className="px-4 py-3 text-center fluent-body-small font-semibold text-foreground">İşlemler</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedProducts.map((product) => (
+                      <tr
+                        key={product.id}
+                        className={cn(
+                          'border-b border-border transition-colors hover:bg-background-alt',
+                          selectedProducts.has(product.id) && 'bg-primary/5'
+                        )}
+                        onContextMenu={(e) => handleContextMenu(e, product)}
+                      >
+                        <td className="px-4 py-3">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleSelectProduct(product.id);
+                            }}
+                            className="p-1 hover:bg-background rounded transition-colors"
+                          >
+                            {selectedProducts.has(product.id) ? (
+                              <CheckSquare className="w-5 h-5 text-primary" />
+                            ) : (
+                              <Square className="w-5 h-5 text-foreground-secondary" />
+                            )}
+                          </button>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <Barcode className="w-4 h-4 text-foreground-secondary" />
+                            <span className="fluent-body-small font-mono text-foreground">
+                              {product.barcode}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="fluent-body font-medium text-foreground">
+                            {product.name}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="fluent-body-small text-foreground-secondary">
+                            {product.category?.name || '-'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <span className="fluent-body font-semibold text-foreground">
+                            ₺{product.sellPrice.toFixed(2)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <FluentBadge
+                            appearance={product.stock <= product.minStock ? 'error' : 'success'}
+                            size="small"
+                          >
+                            {product.stock} {product.unit}
+                          </FluentBadge>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <button
+                            onClick={() => toggleFavorite(product)}
+                            className="p-1 hover:bg-background rounded transition-colors"
+                          >
+                            {product.isFavorite ? (
+                              <Star className="w-4 h-4 fill-warning text-warning" />
+                            ) : (
+                              <StarOff className="w-4 h-4 text-foreground-secondary" />
+                            )}
+                          </button>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              onClick={() => handleEdit(product)}
+                              className="p-1.5 hover:bg-background rounded transition-colors text-foreground-secondary hover:text-primary"
+                              title="Düzenle"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(product.id)}
+                              className="p-1.5 hover:bg-destructive/10 rounded transition-colors text-foreground-secondary hover:text-destructive"
+                              title="Sil"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </FluentCard>
+          )}
 
       {/* 🍎 Apple-style Pagination */}
       {filteredProducts.length > 0 && totalPages > 1 && (
@@ -384,12 +1028,113 @@ const Products: React.FC = () => {
         </div>
       )}
 
-      {filteredProducts.length === 0 && (
-        <div className="text-center py-12">
-          <Package className="w-12 h-12 text-foreground-secondary mx-auto mb-4" />
-          <p className="fluent-body text-foreground-secondary">
-            {searchTerm ? 'No products found' : 'No products yet'}
-          </p>
+          {filteredProducts.length === 0 && (
+            <div className="text-center py-12">
+              <Package className="w-12 h-12 text-foreground-secondary mx-auto mb-4" />
+              <p className="fluent-body text-foreground-secondary">
+                {searchTerm ? 'No products found' : 'No products yet'}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 💠 ENTERPRISE: Context Menu (Right-click) */}
+      {contextMenu.visible && contextMenu.product && (
+        <div
+          ref={contextMenuRef}
+          className="fixed z-50 bg-card border border-border rounded fluent-depth-16 py-2 min-w-[200px]"
+          style={{
+            left: `${contextMenu.x}px`,
+            top: `${contextMenu.y}px`,
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            onClick={() => {
+              handleEdit(contextMenu.product!);
+              closeContextMenu();
+            }}
+            className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-background-alt transition-colors text-foreground"
+          >
+            <Edit className="w-4 h-4" />
+            <span className="fluent-body">Düzenle</span>
+          </button>
+          
+          <button
+            onClick={() => {
+              if (contextMenu.product) {
+                navigator.clipboard.writeText(contextMenu.product.name);
+                toast.success('Ürün adı kopyalandı');
+              }
+              closeContextMenu();
+            }}
+            className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-background-alt transition-colors text-foreground"
+          >
+            <Copy className="w-4 h-4" />
+            <span className="fluent-body">Kopyala</span>
+          </button>
+
+          <button
+            onClick={() => {
+              if (contextMenu.product) {
+                toggleFavorite(contextMenu.product);
+              }
+              closeContextMenu();
+            }}
+            className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-background-alt transition-colors text-foreground"
+          >
+            {contextMenu.product.isFavorite ? (
+              <>
+                <StarOff className="w-4 h-4" />
+                <span className="fluent-body">Favorilerden Çıkar</span>
+              </>
+            ) : (
+              <>
+                <Star className="w-4 h-4" />
+                <span className="fluent-body">Favorilere Ekle</span>
+              </>
+            )}
+          </button>
+
+          <div className="border-t border-border my-1" />
+
+          <button
+            onClick={() => {
+              toast('Barkod yazdırma özelliği yakında eklenecek');
+              closeContextMenu();
+            }}
+            className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-background-alt transition-colors text-foreground"
+          >
+            <Printer className="w-4 h-4" />
+            <span className="fluent-body">Barkod Yazdır</span>
+          </button>
+
+          <button
+            onClick={() => {
+              toast('QR kod özelliği yakında eklenecek');
+              closeContextMenu();
+            }}
+            className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-background-alt transition-colors text-foreground"
+          >
+            <QrCode className="w-4 h-4" />
+            <span className="fluent-body">QR Kod Oluştur</span>
+          </button>
+
+          <div className="border-t border-border my-1" />
+
+          <button
+            onClick={() => {
+              if (contextMenu.product) {
+                handleDelete(contextMenu.product.id);
+              }
+              closeContextMenu();
+            }}
+            className="w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-destructive/10 transition-colors text-destructive"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span className="fluent-body">Sil</span>
+          </button>
         </div>
       )}
 
