@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, ShoppingCart, Package, Users, BarChart3, 
   Settings, ChevronRight, Search, Menu, X,
   FolderOpen, Building2, TrendingUp, ShoppingBag, FileText,
-  DollarSign, Receipt, Wallet, UserCog, ClipboardList
+  Banknote, Receipt, Wallet, UserCog, ClipboardList
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { cn } from '../../lib/utils';
@@ -25,12 +25,25 @@ interface MenuItem {
   roles?: string[];
 }
 
-const FluentSidebar: React.FC = () => {
+interface FluentSidebarProps {
+  isMobileOpen?: boolean;
+  onMobileClose?: () => void;
+}
+
+const FluentSidebar: React.FC<FluentSidebarProps> = ({ isMobileOpen = false, onMobileClose }) => {
   const { t } = useTranslation();
   const location = useLocation();
   const { user } = useAuthStore();
   const [isExpanded, setIsExpanded] = useState(false);
   const [openCategories, setOpenCategories] = useState<string[]>(['Inventory', 'Finance']);
+
+  // 📱 Close mobile sidebar on route change
+  useEffect(() => {
+    if (isMobileOpen) {
+      onMobileClose?.();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname]);
 
   const menuItems: MenuItem[] = [
     { icon: LayoutDashboard, label: t('nav.dashboard'), path: '/dashboard', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
@@ -61,11 +74,11 @@ const FluentSidebar: React.FC = () => {
       ]
     },
     { 
-      icon: DollarSign, 
+      icon: Banknote, 
       label: t('nav.finance'),
       roles: ['ADMIN', 'MANAGER'],
       children: [
-        { icon: DollarSign, label: t('nav.expenses'), path: '/expenses' },
+        { icon: Banknote, label: t('nav.expenses'), path: '/expenses' },
         { icon: BarChart3, label: t('nav.profitLoss'), path: '/profit-loss' },
         { icon: Wallet, label: t('nav.cashRegister'), path: '/cash-register' },
       ]
@@ -96,34 +109,33 @@ const FluentSidebar: React.FC = () => {
 
   return (
     <>
-      {/* Mobile Overlay */}
-      {isExpanded && (
-        <div 
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden"
-          onClick={() => setIsExpanded(false)}
-        />
-      )}
-
-      {/* Sidebar */}
+      {/* 💠 Sidebar - Microsoft Fluent Design */}
+      {/* Desktop: Hover to expand | Mobile: Drawer */}
       <aside
         className={cn(
-          'fixed left-0 top-0 h-screen z-50',
-          'bg-background border-r border-border',
-          'transition-all duration-300 ease-out',
-          'flex flex-col',
-          'md:relative md:z-0',
-          isExpanded ? 'w-64' : 'w-16'
+          'h-screen z-50 bg-background border-r border-border flex flex-col transition-all duration-300 ease-out',
+          // 📱 Mobile: Drawer (slides in from left)
+          'fixed left-0 top-0',
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full',
+          isMobileOpen ? 'w-64' : 'w-0',
+          // 💻 Desktop: Always visible, hover to expand
+          'md:relative md:translate-x-0',
+          'md:' + (isExpanded ? 'w-64' : 'w-16')
         )}
         onMouseEnter={() => setIsExpanded(true)}
         onMouseLeave={() => setIsExpanded(false)}
       >
         {/* Header */}
         <div className="h-16 border-b border-border flex items-center px-4">
-          {isExpanded ? (
+          {(isExpanded || isMobileOpen) ? (
             <div className="flex items-center justify-between w-full">
               <h1 className="fluent-title text-foreground">BarcodePOS</h1>
+              {/* 📱 Mobile Close Button */}
               <button
-                onClick={() => setIsExpanded(false)}
+                onClick={() => {
+                  setIsExpanded(false);
+                  onMobileClose?.();
+                }}
                 className="md:hidden p-1 hover:bg-background-alt rounded"
               >
                 <X className="w-5 h-5" />

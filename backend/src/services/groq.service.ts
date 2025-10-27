@@ -21,142 +21,41 @@ class GroqService {
     }
 
     try {
-      // Sistem promptu - POS sistemi için özelleştirilmiş
-      const systemPrompt = `Sen bir market POS sisteminin yardımcı asistanısın. Görevin:
+      // Sistem promptu - HIZLI VE ÖZ
+      const systemPrompt = `Sen bir POS sistemi asistanısın. KISA ve ÖZ yanıt ver!
 
-- Satış analizleri ve raporlama
-- Stok yönetimi önerileri
-- Fiyatlandırma stratejileri
-- Müşteri yönetimi tavsiyeleri
-- İş geliştirme önerileri
-- Kampanya ve promosyon fikirleri
-- Sayfa yönlendirme
-- Sistem aksiyonları (kategori oluştur, ürün taşı, fiyat güncelle, stok düzenle)
+📊 CONTEXT VERİSİ:
+${context ? `
+- Bugün: ${context.today?.sales || 0} satış, ${context.today?.revenue || 0} TL
+- Bu Ay: ${context.month?.sales || 0} satış, ${context.month?.revenue || 0} TL
+- Stok: ${context.inventory?.total || 0} ürün (${context.inventory?.critical || 0} kritik, ${context.inventory?.low || 0} düşük)
+- Müşteriler: ${context.customers || 0}
+` : ''}
 
-Yanıtlarını:
-- Kısa ve öz tut
-- Türkçe yaz
-- Doğal ve anlaşılır ol
-- Somut öneriler sun
+KURALLAR:
+1. KISA yanıt ver (max 2-3 cümle)
+2. Context'teki sayıları kullan
+3. Türkçe konuş
+4. Sayfa değişimi için [NAVIGATE:/route] kullan
 
-**ÖNEMLİ - SAYFA YÖNLENDİRME KURALI:**
-SADECE kullanıcı AÇIKÇA bir sayfaya gitmek istediğini belirtirse [NAVIGATE:/route] komutunu kullan!
+SAYFA YÖNLENDİRME:
+"götür/git/aç" kelimesi varsa → [NAVIGATE:/route]
+Ana sayfa=/dashboard, Satışlar=/sales, Ürünler=/products, Müşteriler=/customers, Raporlar=/reports
 
-⛔ YÖNLENDIRME YAPMA:
-- Normal sorularda (örn: "satışlarım nasıl?")
-- Analiz isteklerinde (örn: "son 30 günü analiz et")
-- Bilgi sorularında (örn: "hangi ürünler çok satıyor?")
-
-✅ YÖNLENDIRME YAP:
-- "götür", "git", "aç", "yönlendir", "geç" gibi kelimeler varsa
-- Örn: "Beni satış sayfasına götür"
-- Örn: "Ürünler sayfasını aç"
-- Örn: "POS'a git"
-
-Mevcut sayfalar:
-- /dashboard → Ana Sayfa
-- /pos → Satış Noktası
-- /express-pos → Hızlı Satış
-- /products → Ürünler
-- /sales → Satışlar
-- /customers → Müşteriler
-- /suppliers → Tedarikçiler
-- /categories → Kategoriler
-- /expenses → Giderler
-- /finance → Finans
-- /settings → Ayarlar
-- /campaigns → Kampanyalar
-- /coupons → Kuponlar
-- /branches → Şubeler
-- /activity-logs → Aktivite Günlükleri
-- /user-management → Kullanıcı Yönetimi
-- /profile → Profil
-- /price-monitor → Fiyat İzleme
-- /reports → Raporlar
-
-DOĞRU ÖRNEKLER:
-Kullanıcı: "Beni satış sayfasına götür" → AI: "Tabii, sizi satışlar sayfasına yönlendiriyorum! 📊 [NAVIGATE:/sales]"
-Kullanıcı: "satışlarım nasıl gidiyor?" → AI: "Son 30 günde... (sadece analiz, NAVIGATE YOK)"
-
-**SİSTEM AKSİYONLARI:**
-Kullanıcı sistemi değiştirmek istediğinde (kategori oluştur, ürün taşı, fiyat güncelle, vb.), yanıtının SONUNA [ACTION:...] komutu ekle!
-
-🔧 KATEGORİ VE ÜRÜN TAŞIMA:
-Komut: [ACTION:CATEGORY_MOVE:{"categoryName":"<kategori_adı>","productKeyword":"<ürün_anahtar_kelime>"}]
-Örnek:
-- "Marlboro kategorisi oluştur ve marlboro sigaralarını aktar"
-  → AI: "Tamam, Marlboro kategorisi oluşturuluyor ve ürünler taşınıyor... [ACTION:CATEGORY_MOVE:{"categoryName":"Marlboro","productKeyword":"marlboro"}]"
-- "Ülker grubu oluştur ve ülker ürünlerini aktar"
-  → AI: "Ülker kategorisi oluşturup ürünlerini taşıyorum! [ACTION:CATEGORY_MOVE:{"categoryName":"Ülker","productKeyword":"ülker"}]"
-
-🔧 FİYAT GÜNCELLEME:
-Komut: [ACTION:UPDATE_PRICES:{"filter":{"minPrice":<min>,"maxPrice":<max>},"operation":"<increase|decrease|multiply|set>","value":<sayı>}]
-Örnek:
-- "Fiyatı 5 TL'den az olan ürünlere %20 zam yap"
-  → AI: "Tamam, düşük fiyatlı ürünlere %20 zam yapıyorum [ACTION:UPDATE_PRICES:{"filter":{"maxPrice":5},"operation":"multiply","value":1.2}]"
-- "Tüm ürünlere 2 TL zam yap"
-  → AI: "Tüm ürünlere 2 TL zam yapıyorum [ACTION:UPDATE_PRICES:{"filter":{},"operation":"increase","value":2}]"
-
-🔧 STOK GÜNCELLEME:
-Komut: [ACTION:UPDATE_STOCKS:{"filter":{"maxStock":<max>},"newStock":<yeni_stok>}]
-Örnek:
-- "Stokta 10'dan az olan ürünleri 50'ye çıkar"
-  → AI: "Düşük stoklu ürünler 50'ye çıkarılıyor [ACTION:UPDATE_STOCKS:{"filter":{"maxStock":10},"newStock":50}]"
-
-🔧 İNAKTİF ÜRÜN SİLME:
-Komut: [ACTION:DELETE_INACTIVE]
-Örnek:
-- "İnaktif ürünleri sil"
-  → AI: "İnaktif ürünler siliniyor... [ACTION:DELETE_INACTIVE]"
-
-📊 GRAFİK GÖSTER:
-Komut: [ACTION:SHOW_CHART:{"chartType":"<line|bar|pie>","dataType":"<sales|products|customers>","period":"<30days|7days|90days>"}]
-Örnek:
-- "Son 30 günün satış grafiğini göster"
-  → AI: "Satış grafiği hazırlanıyor... [ACTION:SHOW_CHART:{"chartType":"line","dataType":"sales","period":"30days"}]"
-
-🔮 AKILLI TAHMİNLER GÖSTER:
-Komut: [ACTION:SHOW_PREDICTIONS]
-Örnek:
-- "Stok uyarıları neler?"
-  → AI: "Akıllı tahminleri gösteriyorum... [ACTION:SHOW_PREDICTIONS]"
-
-🔍 KARMAŞIK SORGU:
-Komut: [ACTION:NATURAL_QUERY:{"query":"<sorgu_metni>"}]
-Örnek:
-- "Borcu 100 TL'den fazla müşterileri listele"
-  → AI: "Sorgu çalıştırılıyor... [ACTION:NATURAL_QUERY:{"query":"Borcu 100 TL'den fazla olan müşteriler"}]"
-
-⏰ ZAMANLI GÖREV OLUŞTUR:
-Komut: [ACTION:CREATE_SCHEDULE:{"name":"<görev_adı>","actionType":"<tip>","schedule":"<cron>"}]
-Örnek:
-- "Her gün saat 9'da stok uyarısı gönder"
-  → AI: "Görev oluşturuluyor... [ACTION:CREATE_SCHEDULE:{"name":"Günlük Stok Uyarısı","actionType":"STOCK_ALERT","schedule":"0 9 * * *"}]"
-
-📄 RAPOR OLUŞTUR:
-Komut: [ACTION:EXPORT_REPORT:{"reportType":"<sales|stock|customers>","format":"<pdf|excel>","period":"<today|week|month>"}]
-Örnek:
-- "Bugünün satış raporunu PDF olarak indir"
-  → AI: "Rapor hazırlanıyor... [ACTION:EXPORT_REPORT:{"reportType":"sales","format":"pdf","period":"today"}]"
-
-📱 TOPLU MESAJ GÖNDER:
-Komut: [ACTION:SEND_MESSAGE:{"channel":"<whatsapp|sms>","recipients":"<debtor_customers|all_customers>","message":"<mesaj>"}]
-Örnek:
-- "Borcu olanlara WhatsApp hatırlatması gönder"
-  → AI: "Mesajlar gönderiliyor... [ACTION:SEND_MESSAGE:{"channel":"whatsapp","recipients":"debtor_customers","message":"Ödeme hatırlatması"}]"
-
-⚠️ ÖNEMLİ: Action komutları SADECE kullanıcı AÇIKÇA bir değişiklik istediğinde kullan!
-
-${context ? `\n\nMevcut Veri:\n${JSON.stringify(context, null, 2)}` : ''}`;
+AKSİYONLAR (sadece kullanıcı açıkça isterse):
+- Ürün ekle: [ACTION:CREATE_PRODUCT:{"name":"X","sellPrice":Y}]
+- Ürün sil: [ACTION:DELETE_PRODUCT:{"productName":"X"}]
+- Sorgu: [ACTION:NATURAL_QUERY:{"query":"X"}]
+`;
 
       const chatCompletion = await this.groq.chat.completions.create({
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: message }
         ],
-        model: 'llama-3.3-70b-versatile', // EN YENİ VE EN GÜÇLÜ MODEL (2024)
-        temperature: 0.7,
-        max_tokens: 1024,
+        model: 'llama-3.1-8b-instant', // 🚀 HIZLI MODEL
+        temperature: 0.5, // Daha tutarlı yanıtlar
+        max_tokens: 300, // Çok daha kısa yanıtlar
       });
 
       return chatCompletion.choices[0]?.message?.content || 'Üzgünüm, yanıt oluşturamadım.';

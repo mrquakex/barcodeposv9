@@ -43,7 +43,12 @@ const App: React.FC = () => {
   }, [theme]);
 
   return (
-    <BrowserRouter>
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true,
+      }}
+    >
       <Routes>
         <Route path="/login" element={token ? <Navigate to="/dashboard" /> : <Login />} />
         

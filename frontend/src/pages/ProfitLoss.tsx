@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, DollarSign, Calendar } from 'lucide-react';
+import { TrendingUp, TrendingDown, Banknote, Calendar } from 'lucide-react';
 import FluentCard from '../components/fluent/FluentCard';
 import FluentButton from '../components/fluent/FluentButton';
 import { api } from '../lib/api';
@@ -78,7 +78,7 @@ const ProfitLoss: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <FluentCard depth="depth-4" className="p-4">
           <div className="flex items-center gap-2 mb-2">
-            <DollarSign className="w-5 h-5 text-success" />
+            <Banknote className="w-5 h-5 text-success" />
             <p className="fluent-body-small text-foreground-secondary">{t('profitLoss.totalRevenue')}</p>
           </div>
           <p className="fluent-title text-success">₺{stats.revenue.toFixed(2)}</p>
@@ -86,7 +86,7 @@ const ProfitLoss: React.FC = () => {
 
         <FluentCard depth="depth-4" className="p-4">
           <div className="flex items-center gap-2 mb-2">
-            <DollarSign className="w-5 h-5 text-destructive" />
+            <Banknote className="w-5 h-5 text-destructive" />
             <p className="fluent-body-small text-foreground-secondary">{t('profitLoss.totalExpenses')}</p>
           </div>
           <p className="fluent-title text-destructive">₺{stats.expenses.toFixed(2)}</p>
@@ -108,7 +108,7 @@ const ProfitLoss: React.FC = () => {
 
         <FluentCard depth="depth-4" className="p-4">
           <div className="flex items-center gap-2 mb-2">
-            <DollarSign className="w-5 h-5 text-primary" />
+            <Banknote className="w-5 h-5 text-primary" />
             <p className="fluent-body-small text-foreground-secondary">{t('profitLoss.profitMargin')}</p>
           </div>
           <p className="fluent-title text-primary">{stats.profitMargin.toFixed(1)}%</p>

@@ -39,6 +39,8 @@ const Products: React.FC = () => {
   const [showExcelImport, setShowExcelImport] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(12); // 🍎 Apple-style: 12 items per page (3x4 grid)
   const [formData, setFormData] = useState({
     barcode: '',
     name: '',
@@ -152,6 +154,22 @@ const Products: React.FC = () => {
       p.barcode.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // 🍎 Pagination logic
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedProducts = filteredProducts.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search term changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -175,7 +193,7 @@ const Products: React.FC = () => {
         </div>
         <div className="flex gap-3">
           <FluentButton
-            appearance="secondary"
+            appearance="subtle"
             icon={<Upload className="w-4 h-4" />}
             onClick={() => setShowExcelImport(true)}
           >
@@ -203,7 +221,7 @@ const Products: React.FC = () => {
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredProducts.map((product) => (
+        {paginatedProducts.map((product) => (
           <FluentCard key={product.id} depth="depth-4" hoverable className="p-4">
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -279,6 +297,92 @@ const Products: React.FC = () => {
           </FluentCard>
         ))}
       </div>
+
+      {/* 🍎 Apple-style Pagination */}
+      {filteredProducts.length > 0 && totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-8">
+          {/* Previous Button */}
+          <button
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 1}
+            className={`
+              px-3 py-2 rounded-lg text-sm font-medium transition-all
+              ${currentPage === 1
+                ? 'text-gray-300 cursor-not-allowed'
+                : 'text-gray-700 hover:bg-gray-100 active:bg-gray-200'
+              }
+            `}
+          >
+            ‹
+          </button>
+
+          {/* Page Numbers */}
+          <div className="flex items-center gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+              // Show first page, last page, current page, and pages around current
+              const showPage =
+                page === 1 ||
+                page === totalPages ||
+                (page >= currentPage - 1 && page <= currentPage + 1);
+
+              // Show ellipsis
+              const showEllipsisBefore = page === currentPage - 2 && currentPage > 3;
+              const showEllipsisAfter = page === currentPage + 2 && currentPage < totalPages - 2;
+
+              if (!showPage && !showEllipsisBefore && !showEllipsisAfter) {
+                return null;
+              }
+
+              if (showEllipsisBefore || showEllipsisAfter) {
+                return (
+                  <span
+                    key={`ellipsis-${page}`}
+                    className="px-2 text-gray-400"
+                  >
+                    ···
+                  </span>
+                );
+              }
+
+              return (
+                <button
+                  key={page}
+                  onClick={() => handlePageChange(page)}
+                  className={`
+                    min-w-[36px] h-9 px-3 rounded-lg text-sm font-medium transition-all
+                    ${page === currentPage
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-gray-700 hover:bg-gray-100 active:bg-gray-200'
+                    }
+                  `}
+                >
+                  {page}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Next Button */}
+          <button
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages}
+            className={`
+              px-3 py-2 rounded-lg text-sm font-medium transition-all
+              ${currentPage === totalPages
+                ? 'text-gray-300 cursor-not-allowed'
+                : 'text-gray-700 hover:bg-gray-100 active:bg-gray-200'
+              }
+            `}
+          >
+            ›
+          </button>
+
+          {/* Page Info */}
+          <span className="ml-4 text-sm text-gray-500 font-medium">
+            {startIndex + 1}-{Math.min(endIndex, filteredProducts.length)} / {filteredProducts.length}
+          </span>
+        </div>
+      )}
 
       {filteredProducts.length === 0 && (
         <div className="text-center py-12">

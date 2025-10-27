@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart3, TrendingUp, Package, Users, DollarSign, FileText } from 'lucide-react';
+import { BarChart3, TrendingUp, Package, Users, Banknote, FileText } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import FluentCard from '../components/fluent/FluentCard';
 import FluentButton from '../components/fluent/FluentButton';
@@ -31,7 +31,7 @@ const Reports: React.FC = () => {
     {
       title: 'Financial Report',
       description: 'Profit, loss, and expense analysis',
-      icon: DollarSign,
+      icon: Banknote,
       color: 'text-orange-600',
       bgColor: 'bg-orange-100 dark:bg-orange-900/20',
     },

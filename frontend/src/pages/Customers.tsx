@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit, Trash2, User, Mail, Phone, MapPin, DollarSign } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, User, Mail, Phone, MapPin, Banknote } from 'lucide-react';
 import FluentButton from '../components/fluent/FluentButton';
 import FluentCard from '../components/fluent/FluentCard';
 import FluentInput from '../components/fluent/FluentInput';

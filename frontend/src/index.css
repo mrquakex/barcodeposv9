@@ -324,3 +324,149 @@
     display: none;
   }
 }
+
+/* 💠 Microsoft Fluent Animations */
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s var(--motion-normal);
+}
+
+.animate-fade-in {
+  animation: fade-in 0.15s var(--motion-fast);
+}
+
+/* ============================================
+   📱 MOBILE RESPONSIVE - Microsoft Fluent
+   Touch-friendly, Optimized for Small Screens
+   ============================================ */
+
+@media (max-width: 768px) {
+  /* 📱 Touch-Friendly Button Sizes (Min 44px) */
+  button, a[role="button"], .fluent-button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* 📱 Mobile Typography - Smaller Sizes */
+  .fluent-display {
+    font-size: 1.75rem;
+    line-height: 2rem;
+  }
+  
+  .fluent-title-1 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+  
+  .fluent-title-2 {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+  
+  .fluent-title-3 {
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+  }
+  
+  .fluent-subtitle {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  
+  .fluent-body {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  
+  .fluent-body-small {
+    font-size: 0.8125rem;
+    line-height: 1.125rem;
+  }
+
+  /* 📱 Mobile Spacing - More Compact */
+  .p-4 {
+    padding: 0.75rem;
+  }
+  
+  .p-6 {
+    padding: 1rem;
+  }
+  
+  .gap-4 {
+    gap: 0.75rem;
+  }
+
+  /* 📱 Mobile Depth Shadows - Lighter */
+  .fluent-depth-4 {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.1);
+  }
+  
+  .fluent-depth-8 {
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+  }
+  
+  .fluent-depth-16 {
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.12);
+  }
+  
+  .fluent-depth-64 {
+    box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.15);
+  }
+
+  /* 📱 Mobile Card Padding */
+  .fluent-card {
+    padding: 1rem;
+  }
+
+  /* 📱 Hide Non-Essential Elements on Mobile */
+  .mobile-hidden {
+    display: none !important;
+  }
+  
+  /* 📱 Full Width on Mobile */
+  .mobile-full-width {
+    width: 100% !important;
+  }
+
+  /* 📱 Bottom Safe Area (for iPhone notch) */
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .mobile-safe-bottom {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+  }
+}
+
+/* ============================================
+   📱 MOBILE LANDSCAPE
+   ============================================ */
+@media (max-width: 768px) and (orientation: landscape) {
+  /* 📱 Reduce vertical spacing in landscape */
+  .h-16 {
+    height: 3rem;
+  }
+  
+  .fluent-title-1 {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+}

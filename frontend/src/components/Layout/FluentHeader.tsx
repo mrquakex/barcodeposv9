@@ -9,9 +9,14 @@ import { useTranslation } from 'react-i18next';
 
 /* ============================================
    FLUENT HEADER - Command Bar Style
+   Desktop & Mobile Optimized
    ============================================ */
 
-const FluentHeader: React.FC = () => {
+interface FluentHeaderProps {
+  onMobileMenuClick?: () => void;
+}
+
+const FluentHeader: React.FC<FluentHeaderProps> = ({ onMobileMenuClick }) => {
   const { theme, toggleTheme } = useThemeStore();
   const { user, logout } = useAuthStore();
   const { i18n } = useTranslation();
@@ -28,7 +33,12 @@ const FluentHeader: React.FC = () => {
     <header className="h-16 border-b border-border bg-background flex items-center justify-between px-4 md:px-6">
       {/* Left: Mobile menu */}
       <div className="flex items-center gap-4">
-        <button className="md:hidden p-2 hover:bg-background-alt rounded">
+        {/* 📱 Mobile Hamburger Menu Button */}
+        <button 
+          onClick={onMobileMenuClick}
+          className="md:hidden p-2 hover:bg-background-alt rounded transition-colors"
+          aria-label="Menüyü Aç"
+        >
           <Menu className="w-5 h-5" />
         </button>
         <div className="hidden md:block">

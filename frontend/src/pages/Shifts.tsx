@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Clock, DollarSign, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, Clock, Banknote, CheckCircle, XCircle } from 'lucide-react';
 import FluentCard from '../components/fluent/FluentCard';
 import FluentButton from '../components/fluent/FluentButton';
 import FluentBadge from '../components/fluent/FluentBadge';
@@ -197,7 +197,7 @@ const Shifts: React.FC = () => {
             step="0.01"
             value={startCash}
             onChange={(e) => setStartCash(parseFloat(e.target.value))}
-            icon={<DollarSign className="w-4 h-4" />}
+            icon={<Banknote className="w-4 h-4" />}
             required
           />
           <p className="fluent-caption text-foreground-secondary">

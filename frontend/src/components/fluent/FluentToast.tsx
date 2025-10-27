@@ -39,7 +39,7 @@ export const FluentToastContainer: React.FC = () => {
     >
       {(t) => {
         const type = (t as any).type || 'info';
-        const Icon = iconMap[type as keyof typeof iconMap];
+        const Icon = iconMap[type as keyof typeof iconMap] || Info;
 
         return (
           <div
@@ -49,7 +49,7 @@ export const FluentToastContainer: React.FC = () => {
               t.visible ? 'opacity-100' : 'opacity-0'
             )}
           >
-            <Icon className={cn('w-5 h-5 shrink-0 mt-0.5', colorMap[type as keyof typeof colorMap])} />
+            {Icon && <Icon className={cn('w-5 h-5 shrink-0 mt-0.5', colorMap[type as keyof typeof colorMap] || 'text-info')} />}
             <div className="flex-1 fluent-body text-foreground pr-4">
               {typeof t.message === 'function' ? t.message(t) : t.message}
             </div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { TrendingUp, DollarSign, ShoppingCart, Package, ArrowUp, ArrowDown } from 'lucide-react';
+import { TrendingUp, Banknote, ShoppingCart, Package, ArrowUp, ArrowDown } from 'lucide-react';
 import FluentCard from '../components/fluent/FluentCard';
 import FluentBadge from '../components/fluent/FluentBadge';
 import { api } from '../lib/api';
@@ -86,7 +86,7 @@ const Dashboard: React.FC = () => {
       title: t('dashboard.totalRevenue'),
       value: `₺${stats.totalRevenue.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}`,
       change: stats.revenueChange,
-      icon: DollarSign,
+      icon: Banknote,
       color: 'text-green-600',
     },
     {

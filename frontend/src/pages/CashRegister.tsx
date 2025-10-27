@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Wallet, Plus, Minus, DollarSign } from 'lucide-react';
+import { Wallet, Plus, Minus, Banknote } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import FluentCard from '../components/fluent/FluentCard';
 import FluentButton from '../components/fluent/FluentButton';
@@ -173,7 +173,7 @@ const CashRegister: React.FC = () => {
             step="0.01"
             value={formData.amount}
             onChange={(e) => setFormData({ ...formData, amount: parseFloat(e.target.value) })}
-            icon={<DollarSign className="w-4 h-4" />}
+            icon={<Banknote className="w-4 h-4" />}
             required
           />
           <FluentInput

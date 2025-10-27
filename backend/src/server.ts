@@ -140,6 +140,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// UTF-8 Charset for responses
+app.use((req, res, next) => {
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  next();
+});
+
 // Rate limiting - CORS'tan SONRA
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 dakika

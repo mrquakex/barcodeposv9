@@ -69,9 +69,6 @@ export const getProductByBarcode = async (req: Request, res: Response) => {
     
     // 🔥 BARKOD NORMALİZE ET (boşlukları kaldır, büyük harf yap)
     const normalizedBarcode = barcode.trim().replace(/\s+/g, '').toUpperCase();
-    
-    console.log('📸 Aranan barkod (raw):', barcode);
-    console.log('📸 Aranan barkod (normalized):', normalizedBarcode);
 
     // İLK DENEME: Tam eşleşme (exact match)
     let product = await prisma.product.findUnique({
@@ -128,17 +125,14 @@ export const getProductByBarcode = async (req: Request, res: Response) => {
       
       if (products.length > 0) {
         product = products[0];
-        console.log('⚠️ CONTAINS ile bulundu:', product.barcode);
       }
     }
 
     if (!product) {
-      console.log('❌ Ürün bulunamadı. Aranan:', normalizedBarcode);
       return res.status(404).json({ error: 'Ürün bulunamadı' });
     }
 
-    console.log('✅ Ürün bulundu:', product.name, '(', product.barcode, ')');
-    res.json({ product });
+    res.json(product); // 🔥 Direkt product objesini dön
   } catch (error) {
     console.error('Get product by barcode error:', error);
     res.status(500).json({ error: 'Ürün getirilemedi' });
@@ -458,43 +452,80 @@ export const bulkImportProducts = async (req: Request, res: Response) => {
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
     
-    // JSON'a çevir
-    const rawData = XLSX.utils.sheet_to_json(worksheet);
+    // JSON'a çevir (header: 1 ile array olarak al - başlık olup olmadığına bakmaksızın)
+    const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
 
     if (rawData.length === 0) {
       return res.status(400).json({ error: 'Excel dosyası boş' });
     }
 
+    // İlk satır başlık mı yoksa data mı kontrol et
+    const firstRow: any = rawData[0];
+    const hasHeaders = 
+      typeof firstRow[0] === 'string' && 
+      (firstRow[0].toLowerCase().includes('barkod') || 
+       firstRow[1].toLowerCase().includes('ürün') ||
+       firstRow[1].toLowerCase().includes('ad'));
+
+    // Başlık varsa 2. satırdan başla, yoksa 1. satırdan
+    const startRow = hasHeaders ? 1 : 0;
+
     // Başarılı ve başarısız kayıtları takip et
     const results = {
       success: 0,
+      updated: 0,
+      created: 0,
       failed: 0,
       errors: [] as string[],
     };
 
     // Her satırı işle
-    for (let i = 0; i < rawData.length; i++) {
+    for (let i = startRow; i < rawData.length; i++) {
       const row: any = rawData[i];
 
+      // Boş satırları atla
+      if (!row || row.every((cell: any) => !cell)) {
+        continue;
+      }
+
       try {
-        // Excel sütun isimleri (case-insensitive)
-        const barcode = row['Barkod'] || row['barkod'] || row['BARKOD'] || row['Barcode'] || '';
-        const name = row['Ürün Adı'] || row['ürün adı'] || row['ÜRÜN ADI'] || row['Name'] || row['name'] || '';
-        const categoryName = row['Kategori'] || row['kategori'] || row['KATEGORI'] || row['Category'] || '';
-        const buyPrice = parseFloat(row['Alış Fiyatı'] || row['alış fiyatı'] || row['ALIŞ FİYATI'] || row['Buy Price'] || row['Cost'] || '0');
-        const sellPrice = parseFloat(row['Satış Fiyatı'] || row['satış fiyatı'] || row['SATIŞ FİYATI'] || row['Sell Price'] || row['Price'] || '0');
-        const stock = parseInt(row['Stok'] || row['stok'] || row['STOK'] || row['Stock'] || row['Quantity'] || '0');
-        const taxRate = parseFloat(row['KDV'] || row['kdv'] || row['KDV Oranı'] || row['Tax'] || row['VAT'] || '18');
+        // Excel sütunları - İNDEKS BAZLI (BenimPOS formatı)
+        // A: Ürün Barkodu, B: Ürün Adı, C: Adet, D: Birim, E: Fiyat 1, 
+        // F: KDV, G: Alış Fiyatı, H: Üst Grup, I: Ürün Grubu, 
+        // J: Fiyat 2, K: Stok Kodu, L: Ürün Detayı, M: Hızlı Grup, 
+        // N: Sıra, O: Kritik Stok
+        
+        let barcode = String(row[0] || '').trim();
+        const name = String(row[1] || '').trim();
+        const stock = parseInt(String(row[2] || '0')) || 0;
+        const unit = String(row[3] || 'ADET').trim();
+        const sellPrice = parseFloat(String(row[4] || '0')) || 0;
+        const taxRate = parseFloat(String(row[5] || '18')) || 18;
+        const buyPrice = parseFloat(String(row[6] || '0')) || 0;
+        const categoryName = String(row[8] || '').trim(); // I sütunu (Ürün Grubu)
+        const sku = String(row[10] || '').trim(); // K sütunu
+        const description = String(row[11] || '').trim(); // L sütunu
+        const minStock = parseInt(String(row[14] || '5')) || 5; // O sütunu
+
+        // 🧹 BARKOD TEMİZLİĞİ - Başındaki/sonundaki gereksiz karakterleri kaldır
+        if (barcode && typeof barcode === 'string') {
+          barcode = barcode
+            .trim() // Boşlukları kaldır
+            .replace(/^[.,'"´`\-\s]+/, '') // Başındaki: . , ' " ´ ` - boşluk
+            .replace(/[.,'"´`\-\s]+$/, ''); // Sonundaki: . , ' " ´ ` - boşluk
+        }
 
         // Validasyon
-        if (!name || name.trim() === '') {
-          results.errors.push(`Satır ${i + 2}: Ürün adı boş olamaz`);
+        const rowNumber = hasHeaders ? i + 1 : i + 1; // Excel satır numarası (1-based)
+        
+        if (!name || name === '') {
+          results.errors.push(`Satır ${rowNumber}: Ürün adı boş olamaz (B sütunu)`);
           results.failed++;
           continue;
         }
 
         if (sellPrice <= 0) {
-          results.errors.push(`Satır ${i + 2}: Satış fiyatı 0'dan büyük olmalı`);
+          results.errors.push(`Satır ${rowNumber}: Satış fiyatı 0'dan büyük olmalı (E sütunu)`);
           results.failed++;
           continue;
         }
@@ -515,6 +546,9 @@ export const bulkImportProducts = async (req: Request, res: Response) => {
 
         // Barkod yoksa otomatik oluştur
         let finalBarcode = barcode && barcode.trim() !== '' ? barcode.trim() : generateEAN13();
+        
+        // SKU yoksa otomatik oluştur
+        let finalSku = sku && sku.trim() !== '' ? sku.trim() : `SKU-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
         // Barkod zaten var mı kontrol et
         const existingProduct = await prisma.product.findUnique({
@@ -531,29 +565,38 @@ export const bulkImportProducts = async (req: Request, res: Response) => {
               buyPrice,
               sellPrice,
               stock,
+              minStock,
+              unit,
               taxRate,
+              description: description || '',
             },
           });
+          results.updated++;
         } else {
           // Yoksa yeni oluştur
           await prisma.product.create({
             data: {
               barcode: finalBarcode,
-              sku: `SKU-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              sku: finalSku,
               name: name.trim(),
               categoryId: category?.id,
               buyPrice,
               sellPrice,
               stock,
+              minStock,
+              unit,
               taxRate,
+              description: description || '',
               isActive: true,
             },
           });
+          results.created++;
         }
 
         results.success++;
       } catch (error: any) {
-        results.errors.push(`Satır ${i + 2}: ${error.message}`);
+        const rowNumber = hasHeaders ? i + 1 : i + 1;
+        results.errors.push(`Satır ${rowNumber}: ${error.message}`);
         results.failed++;
       }
     }
@@ -568,4 +611,22 @@ export const bulkImportProducts = async (req: Request, res: Response) => {
   }
 };
 
+// 🔧 TEK SEFERLİK: Tüm stokları 50'ye çek
+export const resetAllStocksTo50 = async (req: Request, res: Response) => {
+  try {
+    const result = await prisma.product.updateMany({
+      data: {
+        stock: 50,
+      },
+    });
 
+    res.json({
+      success: true,
+      message: `${result.count} ürünün stoğu 50'ye güncellendi`,
+      updatedCount: result.count,
+    });
+  } catch (error) {
+    console.error('Reset stocks error:', error);
+    res.status(500).json({ error: 'Stoklar güncellenemedi' });
+  }
+};

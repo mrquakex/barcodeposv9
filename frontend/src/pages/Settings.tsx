@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Store, User, Bell, Shield, Globe, DollarSign, Save } from 'lucide-react';
+import { Store, User, Bell, Shield, Globe, Banknote, Save } from 'lucide-react';
 import FluentCard from '../components/fluent/FluentCard';
 import FluentInput from '../components/fluent/FluentInput';
 import FluentButton from '../components/fluent/FluentButton';
@@ -174,7 +174,7 @@ const Settings: React.FC = () => {
       {/* Receipt */}
       <FluentCard depth="depth-4" className="p-6">
         <div className="flex items-center gap-2 mb-4">
-          <DollarSign className="w-5 h-5 text-primary" />
+          <Banknote className="w-5 h-5 text-primary" />
           <h3 className="fluent-heading text-foreground">{t('settings.receiptSettings') || 'Fiş Ayarları'}</h3>
         </div>
         <div>

@@ -17,6 +17,28 @@ export const chatWithAI = async (req: Request, res: Response) => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+    // 🚨 Kritik stok kontrolü - SADECE ÖZET VERİ
+    const [criticalStockProducts, lowStockProducts] = await Promise.all([
+      // Kritik seviyedeki ürünler (stok <= minStock)
+      prisma.$queryRaw<Array<{ name: string; stock: number; minStock: number; categoryName: string | null; sellPrice: number; buyPrice: number }>>`
+        SELECT p.name, p.stock, p."minStock", p."sellPrice", p."buyPrice", c.name as "categoryName"
+        FROM products p
+        LEFT JOIN categories c ON p."categoryId" = c.id
+        WHERE p.stock <= p."minStock"
+        ORDER BY p.stock ASC
+        LIMIT 20
+      `,
+      // Düşük stoklu ürünler (stok <= minStock * 2)
+      prisma.$queryRaw<Array<{ name: string; stock: number; minStock: number; categoryName: string | null; sellPrice: number; buyPrice: number }>>`
+        SELECT p.name, p.stock, p."minStock", p."sellPrice", p."buyPrice", c.name as "categoryName"
+        FROM products p
+        LEFT JOIN categories c ON p."categoryId" = c.id
+        WHERE p.stock > p."minStock" AND p.stock <= (p."minStock" * 2)
+        ORDER BY p.stock ASC
+        LIMIT 20
+      `,
+    ]);
+
     const [recentSales, products, customers, topProducts] = await Promise.all([
       // Son 30 günün satışları
       prisma.sale.findMany({
@@ -70,18 +92,29 @@ export const chatWithAI = async (req: Request, res: Response) => {
       })
     );
 
-    // AI için context hazırla
+    // Bugünün satışlarını hesapla
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todaySales = recentSales.filter(sale => sale.createdAt >= today);
+    const todayRevenue = todaySales.reduce((sum, sale) => sum + sale.total, 0);
+
+    // AI için context hazırla - MİNİMAL VE HIZLI
     const context = {
-      summary: {
-        totalSales: recentSales.length,
-        totalRevenue: totalRevenue.toFixed(2),
-        averageSale: averageSale.toFixed(2),
-        totalProducts: products,
-        totalCustomers: customers,
-        period: 'Son 30 gün',
+      today: {
+        sales: todaySales.length,
+        revenue: todayRevenue.toFixed(2),
       },
-      topProducts: topProductDetails,
-      recentSalesCount: recentSales.length,
+      month: {
+        sales: recentSales.length,
+        revenue: totalRevenue.toFixed(2),
+        avgSale: averageSale.toFixed(2),
+      },
+      inventory: {
+        total: products,
+        critical: criticalStockProducts.length,
+        low: lowStockProducts.length,
+      },
+      customers: customers,
     };
 
     // AI'ye context ile birlikte mesaj gönder

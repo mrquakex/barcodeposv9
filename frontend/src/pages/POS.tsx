@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, Search, X, Trash2, CreditCard, DollarSign, User } from 'lucide-react';
+import { Camera, Search, X, Trash2, CreditCard, Banknote, User } from 'lucide-react';
 import FluentButton from '../components/fluent/FluentButton';
 import FluentCard from '../components/fluent/FluentCard';
 import FluentInput from '../components/fluent/FluentInput';
@@ -68,15 +68,21 @@ const POS: React.FC = () => {
       const response = await api.get(`/products/barcode/${barcode}`);
       const product = response.data;
 
-      if (product.stock <= 0) {
-        toast.error(t('pos.insufficientStock'));
+      if (!product || !product.id) {
+        toast.error('Ürün verisi eksik!');
+        return;
+      }
+
+      // ✅ İnaktif ürünleri engelle (stok kontrolü YOK - negatif stok kabul edilir)
+      if (!product.isActive) {
+        toast.error('Bu ürün inaktif!');
         return;
       }
 
       addToCart(product);
       setBarcodeInput('');
       toast.success(t('pos.addToCart'));
-    } catch (error) {
+    } catch (error: any) {
       toast.error(t('pos.productNotFound'));
     }
   };
@@ -85,17 +91,14 @@ const POS: React.FC = () => {
     setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id);
       if (existing) {
-        if (existing.quantity >= product.stock) {
-          toast.error(t('pos.insufficientStock'));
-          return prev;
-        }
+        // ✅ Stok kontrolü kaldırıldı - negatif stok kabul edilir
         return prev.map((item) =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + 1, total: (item.quantity + 1) * item.sellPrice }
+            ? { ...item, quantity: item.quantity + 1, total: (item.quantity + 1) * (item.sellPrice || 0) }
             : item
         );
       }
-      return [...prev, { ...product, quantity: 1, total: product.sellPrice }];
+      return [...prev, { ...product, quantity: 1, total: product.sellPrice || 0 }];
     });
   };
 
@@ -106,7 +109,7 @@ const POS: React.FC = () => {
     }
     setCart((prev) =>
       prev.map((item) =>
-        item.id === productId ? { ...item, quantity, total: quantity * item.sellPrice } : item
+        item.id === productId ? { ...item, quantity, total: quantity * (item.sellPrice || 0) } : item
       )
     );
   };
@@ -164,9 +167,9 @@ const POS: React.FC = () => {
     setIsProcessing(true);
 
     try {
-      const subtotal = cart.reduce((sum, item) => sum + item.total, 0);
+      const subtotal = cart.reduce((sum, item) => sum + (item.total || 0), 0);
       const taxAmount = cart.reduce(
-        (sum, item) => sum + (item.total * item.taxRate) / (100 + item.taxRate),
+        (sum, item) => sum + ((item.total || 0) * (item.taxRate || 0)) / (100 + (item.taxRate || 0)),
         0
       );
 
@@ -175,8 +178,8 @@ const POS: React.FC = () => {
         items: cart.map((item) => ({
           productId: item.id,
           quantity: item.quantity,
-          unitPrice: item.sellPrice,
-          taxRate: item.taxRate,
+          unitPrice: item.sellPrice || 0,
+          taxRate: item.taxRate || 0,
         })),
         paymentMethod,
         subtotal,
@@ -194,9 +197,9 @@ const POS: React.FC = () => {
     }
   };
 
-  const subtotal = cart.reduce((sum, item) => sum + item.total, 0);
+  const subtotal = cart.reduce((sum, item) => sum + (item.total || 0), 0);
   const taxAmount = cart.reduce(
-    (sum, item) => sum + (item.total * item.taxRate) / (100 + item.taxRate),
+    (sum, item) => sum + ((item.total || 0) * (item.taxRate || 0)) / (100 + (item.taxRate || 0)),
     0
   );
   const total = subtotal;
@@ -287,7 +290,7 @@ const POS: React.FC = () => {
                       {item.name}
                     </p>
                     <p className="fluent-caption text-foreground-secondary">
-                      ₺{item.sellPrice.toFixed(2)} x {item.quantity}
+                      ₺{(item.sellPrice || 0).toFixed(2)} x {item.quantity}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -314,7 +317,7 @@ const POS: React.FC = () => {
                     </button>
                   </div>
                   <p className="fluent-body font-medium text-foreground w-20 text-right">
-                    ₺{item.total.toFixed(2)}
+                    ₺{(item.total || 0).toFixed(2)}
                   </p>
                 </div>
               ))
@@ -341,7 +344,7 @@ const POS: React.FC = () => {
                 size="large"
                 className="w-full mt-4"
                 onClick={() => setShowPaymentDialog(true)}
-                icon={<DollarSign className="w-5 h-5" />}
+                icon={<Banknote className="w-5 h-5" />}
               >
                 {t('pos.completeSale')}
               </FluentButton>
@@ -379,9 +382,9 @@ const POS: React.FC = () => {
               }}
             >
               <span>{customer.name}</span>
-              {customer.debt > 0 && (
+              {(customer.debt || 0) > 0 && (
                 <span className="text-destructive text-sm">
-                  {t('customers.debt')}: ₺{customer.debt.toFixed(2)}
+                  {t('customers.debt')}: ₺{(customer.debt || 0).toFixed(2)}
                 </span>
               )}
             </FluentButton>
