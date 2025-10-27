@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -88,7 +88,7 @@ model Product {
   name        String
   description String?  
   buyPrice    Float     @default(0) // Maliyet
-  sellPrice   Float     // Satış fiyatı
+  sellPrice   Float     @default(0) // Satış fiyatı
   stock       Int       @default(0)
   minStock    Int       @default(5)
   unit        String    @default("Adet")
@@ -349,10 +349,10 @@ model Sale {
   customerId     String?
   userId         String
   shiftId        String?
-  subtotal       Float        // Ara toplam
+  subtotal       Float        @default(0) // Ara toplam
   discountAmount Float        @default(0)
   taxAmount      Float        @default(0)
-  total          Float        // Final toplam
+  total          Float        @default(0) // Final toplam
   paymentMethod  String       @default("CASH") // CASH, CARD, CREDIT, MIXED
   paymentDetails String?        // Mixed payment details
   isPaid         Boolean      @default(true)
