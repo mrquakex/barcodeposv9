@@ -23,17 +23,3 @@ router.post('/return', processSaleReturn); // 💠 ENTERPRISE: Process return/re
 router.delete('/:id', authorize('ADMIN', 'MANAGER'), deleteSale);
 
 export default router;
-
-
-
-router.delete('/:id', authorize('ADMIN', 'MANAGER'), deleteSale);
-
-export default router;
-
-
-
-router.delete('/:id', authorize('ADMIN', 'MANAGER'), deleteSale);
-
-export default router;
-
-
