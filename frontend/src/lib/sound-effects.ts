@@ -18,6 +18,18 @@ class SoundEffects {
   private initAudioContext() {
     try {
       this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      
+      // Resume AudioContext on any user interaction
+      const resumeAudio = () => {
+        if (this.audioContext && this.audioContext.state === 'suspended') {
+          this.audioContext.resume();
+        }
+      };
+      
+      // Listen for user interactions
+      document.addEventListener('click', resumeAudio, { once: true });
+      document.addEventListener('keydown', resumeAudio, { once: true });
+      document.addEventListener('touchstart', resumeAudio, { once: true });
     } catch (e) {
       console.warn('Web Audio API not supported', e);
     }
@@ -31,10 +43,15 @@ class SoundEffects {
     return this.enabled;
   }
 
-  private playTone(frequency: number, duration: number, type: OscillatorType = 'sine', volume: number = 0.3) {
+  private async playTone(frequency: number, duration: number, type: OscillatorType = 'sine', volume: number = 0.3) {
     if (!this.enabled || !this.audioContext) return;
 
     try {
+      // Resume AudioContext if suspended
+      if (this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+      }
+
       const oscillator = this.audioContext.createOscillator();
       const gainNode = this.audioContext.createGain();
 
