@@ -5,9 +5,9 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch --env-file=.env src/server.ts",
-    "build": "tsc && prisma generate",
+    "build": "tsc && npx prisma generate",
     "start": "node dist/server.js",
-    "render-build": "npm install && npx prisma generate && npx prisma db push --force-reset --accept-data-loss && npm run build",
+    "render-build": "npm install && npx prisma db push --force-reset --accept-data-loss && npx prisma generate && tsc",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
