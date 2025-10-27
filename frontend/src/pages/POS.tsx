@@ -821,7 +821,7 @@ const POS: React.FC = () => {
                   disabled={isProcessing}
                   icon={<Banknote className="w-5 h-5" />}
                 >
-                  {isProcessing ? 'İşleniyor...' : '💵 Nakit Satış'}
+                  {isProcessing ? 'İşleniyor...' : 'Nakit Satış'}
                 </FluentButton>
               </div>
             )}
