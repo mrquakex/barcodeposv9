@@ -21,6 +21,7 @@ import { cn } from '../lib/utils';
 import { useKeyboardShortcuts, POSShortcuts } from '../hooks/useKeyboardShortcuts';
 import { soundEffects } from '../lib/sound-effects';
 import { useAuthStore } from '../store/authStore';
+import storage from '../lib/storage';
 
 interface Product {
   id: string;
@@ -101,20 +102,17 @@ const POS: React.FC = () => {
   
   // 💠 ENTERPRISE: Shift Management State (persisted in localStorage)
   const [currentShift, setCurrentShift] = useState<any>(() => {
-    const saved = localStorage.getItem('pos_current_shift');
-    return saved ? JSON.parse(saved) : null;
+    return storage.getItem('pos_current_shift', null);
   });
   
   // 💠 ENTERPRISE: Held Sales State (persisted in localStorage)
   const [heldSales, setHeldSales] = useState<HeldSale[]>(() => {
-    const saved = localStorage.getItem('pos_held_sales');
-    return saved ? JSON.parse(saved) : [];
+    return storage.getItem<HeldSale[]>('pos_held_sales', []);
   });
 
   // 💠 ENTERPRISE: Frequent Products (persisted in localStorage)
   const [frequentProducts, setFrequentProducts] = useState<Product[]>(() => {
-    const saved = localStorage.getItem('pos_frequent_products');
-    return saved ? JSON.parse(saved) : [];
+    return storage.getItem<Product[]>('pos_frequent_products', []);
   });
   const [showFrequentProducts, setShowFrequentProducts] = useState(true);
   
@@ -525,12 +523,12 @@ const POS: React.FC = () => {
       // Move to front
       const updated = [product, ...frequentProducts.filter(p => p.id !== product.id)].slice(0, 6);
       setFrequentProducts(updated);
-      localStorage.setItem('pos_frequent_products', JSON.stringify(updated));
+      storage.setItem('pos_frequent_products', updated);
     } else {
       // Add new product to front, keep max 6
       const updated = [product, ...frequentProducts].slice(0, 6);
       setFrequentProducts(updated);
-      localStorage.setItem('pos_frequent_products', JSON.stringify(updated));
+      storage.setItem('pos_frequent_products', updated);
     }
   };
 
@@ -592,15 +590,15 @@ const POS: React.FC = () => {
 
   // 💠 ENTERPRISE: Persist held sales to localStorage
   useEffect(() => {
-    localStorage.setItem('pos_held_sales', JSON.stringify(heldSales));
+    storage.setItem('pos_held_sales', heldSales);
   }, [heldSales]);
 
   // 💠 ENTERPRISE: Persist current shift to localStorage
   useEffect(() => {
     if (currentShift) {
-      localStorage.setItem('pos_current_shift', JSON.stringify(currentShift));
+      storage.setItem('pos_current_shift', currentShift);
     } else {
-      localStorage.removeItem('pos_current_shift');
+      storage.removeItem('pos_current_shift');
     }
   }, [currentShift]);
 
