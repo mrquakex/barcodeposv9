@@ -1,9 +1,11 @@
 import React from 'react';
 import { BarChart3, TrendingUp, Package, Users, DollarSign, FileText } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import FluentCard from '../components/fluent/FluentCard';
 import FluentButton from '../components/fluent/FluentButton';
 
 const Reports: React.FC = () => {
+  const { t } = useTranslation();
   const reportTypes = [
     {
       title: 'Sales Report',
