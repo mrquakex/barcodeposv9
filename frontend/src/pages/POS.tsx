@@ -17,6 +17,7 @@ interface Product {
   sellPrice: number;
   stock: number;
   taxRate: number;
+  isActive?: boolean;
 }
 
 interface CartItem extends Product {
@@ -61,6 +62,12 @@ const POS: React.FC = () => {
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [showReceiptDialog, setShowReceiptDialog] = useState(false);
   
+  // 💠 ENTERPRISE: Product Search States
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  
   // 💠 ENTERPRISE: Payment States
   const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'CARD' | 'CREDIT' | 'SPLIT'>('CASH');
   const [splitPayment, setSplitPayment] = useState<SplitPayment>({ cash: 0, card: 0 });
@@ -69,6 +76,9 @@ const POS: React.FC = () => {
   
   const scannerRef = useRef<Html5QrcodeScanner | null>(null);
   const barcodeInputRef = useRef<HTMLInputElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchDropdownRef = useRef<HTMLDivElement>(null);
+  const searchTimeoutRef = useRef<number | null>(null);
 
   // Get active channel
   const activeChannel = channels.find(ch => ch.id === activeChannelId) || channels[0];
@@ -82,6 +92,22 @@ const POS: React.FC = () => {
     };
   }, []);
 
+  // 💠 ENTERPRISE: Click outside to close search dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchDropdownRef.current &&
+        !searchDropdownRef.current.contains(event.target as Node) &&
+        !searchInputRef.current?.contains(event.target as Node)
+      ) {
+        setShowSearchResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const fetchCustomers = async () => {
     try {
       const response = await api.get('/customers');
@@ -89,6 +115,56 @@ const POS: React.FC = () => {
     } catch (error) {
       console.error('Failed to fetch customers:', error);
     }
+  };
+
+  // 💠 ENTERPRISE: Search Products with Debounce
+  const searchProducts = async (query: string) => {
+    if (!query || query.length < 2) {
+      setSearchResults([]);
+      setShowSearchResults(false);
+      return;
+    }
+
+    setIsSearching(true);
+    setShowSearchResults(true);
+
+    try {
+      const response = await api.get(`/products?search=${encodeURIComponent(query)}&limit=10`);
+      const products = response.data.products || [];
+      setSearchResults(products.filter((p: Product) => p.isActive));
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // 💠 ENTERPRISE: Handle Search Input Change
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+
+    // Clear previous timeout
+    if (searchTimeoutRef.current) {
+      window.clearTimeout(searchTimeoutRef.current);
+    }
+
+    // Debounce: Wait 300ms after user stops typing
+    searchTimeoutRef.current = window.setTimeout(() => {
+      searchProducts(value);
+    }, 300);
+  };
+
+  // 💠 ENTERPRISE: Select Product from Search
+  const selectProductFromSearch = (product: Product) => {
+    addToCart(product);
+    setSearchQuery('');
+    setSearchResults([]);
+    setShowSearchResults(false);
+    toast.success(`${product.name} sepete eklendi`);
+    
+    // Focus back to search input
+    setTimeout(() => searchInputRef.current?.focus(), 100);
   };
 
   // 💠 ENTERPRISE: Multi-Channel Functions
@@ -410,7 +486,68 @@ const POS: React.FC = () => {
       <div className="flex-1 flex flex-col md:flex-row gap-4 min-h-0">
         {/* Left: Scanner & Products */}
         <div className="flex-1 space-y-4">
-          {/* Scanner */}
+          {/* 💠 ENTERPRISE: Product Search */}
+          <FluentCard depth="depth-4" className="p-4 relative">
+            <div className="flex flex-col sm:flex-row gap-2">
+              <div className="flex-1 relative">
+                <FluentInput
+                  ref={searchInputRef}
+                  value={searchQuery}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  onFocus={() => {
+                    if (searchQuery.length >= 2 && searchResults.length > 0) {
+                      setShowSearchResults(true);
+                    }
+                  }}
+                  placeholder="Ürün ara... (örn: coca)"
+                  icon={<Search className="w-4 h-4" />}
+                  className="w-full"
+                />
+
+                {/* 💠 Search Dropdown */}
+                {showSearchResults && (
+                  <div
+                    ref={searchDropdownRef}
+                    className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-md fluent-depth-16 max-h-80 overflow-y-auto z-50"
+                  >
+                    {isSearching ? (
+                      <div className="p-4 text-center text-foreground-secondary">
+                        <p className="fluent-body-small">Aranıyor...</p>
+                      </div>
+                    ) : searchResults.length === 0 ? (
+                      <div className="p-4 text-center text-foreground-secondary">
+                        <p className="fluent-body-small">Sonuç bulunamadı</p>
+                      </div>
+                    ) : (
+                      searchResults.map((product) => (
+                        <button
+                          key={product.id}
+                          onClick={() => selectProductFromSearch(product)}
+                          className="w-full px-4 py-3 text-left hover:bg-background-alt transition-colors border-b border-border last:border-b-0 flex items-center justify-between gap-3"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <p className="fluent-body font-medium text-foreground truncate">
+                              {product.name}
+                            </p>
+                            <p className="fluent-caption text-foreground-secondary">
+                              Barkod: {product.barcode} • Stok: {product.stock}
+                            </p>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <p className="fluent-body font-semibold text-primary">
+                              ₺{(product.sellPrice || 0).toFixed(2)}
+                            </p>
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </FluentCard>
+
+          {/* Barcode Scanner */}
           <FluentCard depth="depth-4" className="p-4">
             <div className="flex flex-col sm:flex-row gap-2">
               <FluentInput
