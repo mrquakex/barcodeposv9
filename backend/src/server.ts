@@ -30,7 +30,7 @@ import financeRoutes from './routes/finance.routes';
 import branchRoutes from './routes/branch.routes';
 import activityRoutes from './routes/activity.routes';
 import aiRoutes from './routes/ai.routes';
-import geminiRoutes from './routes/gemini.routes';
+import groqRoutes from './routes/groq.routes';
 // import priceMonitorRoutes from './routes/price-monitor.routes'; // Disabled: PriceChange/ScraperConfig models removed from schema
 import aiActionsRoutes from './routes/ai-actions.routes';
 import aiAdvancedRoutes from './routes/ai-advanced.routes';
@@ -173,7 +173,7 @@ app.use('/api/finance', financeRoutes);
 app.use('/api/branches', branchRoutes);
 app.use('/api/activity-logs', activityRoutes);
 app.use('/api/ai', aiRoutes);
-app.use('/api/gemini', geminiRoutes);
+app.use('/api/groq', groqRoutes);
 // app.use('/api/price-monitor', priceMonitorRoutes); // Disabled: PriceChange/ScraperConfig models removed from schema
 app.use('/api/ai-actions', aiActionsRoutes);
 app.use('/api/ai-advanced', aiAdvancedRoutes);

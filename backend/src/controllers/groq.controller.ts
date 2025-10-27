@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { geminiService } from '../services/gemini.service';
+import { groqService } from '../services/groq.service';
 import prisma from '../lib/prisma';
 
 export const chatWithAI = async (req: Request, res: Response) => {
@@ -85,7 +85,7 @@ export const chatWithAI = async (req: Request, res: Response) => {
     };
 
     // AI'ye context ile birlikte mesaj gönder
-    const response = await geminiService.chat(message, context);
+    const response = await groqService.chat(message, context);
 
     const responseTime = Date.now() - startTime;
 
@@ -156,7 +156,7 @@ export const getBusinessInsights = async (req: Request, res: Response) => {
       }),
     ]);
 
-    const insights = await geminiService.analyzeBusinessData({
+    const insights = await groqService.analyzeBusinessData({
       sales,
       products,
       customers,
@@ -196,7 +196,7 @@ export const getSuggestedProducts = async (req: Request, res: Response) => {
       });
     }
 
-    const suggestions = await geminiService.suggestProducts(customerHistory);
+    const suggestions = await groqService.suggestProducts(customerHistory);
 
     res.json({
       success: true,

@@ -1,6 +1,6 @@
 import Groq from 'groq-sdk';
 
-class GeminiService {
+class GroqService {
   private groq: Groq | null = null;
 
   constructor() {
@@ -248,4 +248,4 @@ Yanıtını kısa ve öz tut. Max 5 öneri.
   }
 }
 
-export const geminiService = new GeminiService();
+export const groqService = new GroqService();
