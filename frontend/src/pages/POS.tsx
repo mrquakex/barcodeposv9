@@ -531,29 +531,37 @@ const POS: React.FC = () => {
             <div className="flex flex-col items-center">
               <span className="fluent-body-small text-foreground-secondary mb-1">Ödenen</span>
               <input
-                type="number"
-                step="0.01"
+                type="text"
+                inputMode="decimal"
                 value={calculatorPaid}
                 onChange={(e) => {
-                  setCalculatorPaid(e.target.value);
-                  updateCalculator(e.target.value, calculatorTotal);
+                  const value = e.target.value;
+                  // Allow only numbers and decimal point
+                  if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                    setCalculatorPaid(value);
+                    updateCalculator(value, calculatorTotal);
+                  }
                 }}
-                className="w-24 px-3 py-2 bg-background border border-border rounded fluent-body-small text-foreground text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                placeholder="0"
+                className="w-24 px-3 py-2 bg-background border border-border rounded fluent-body-small text-foreground text-center focus:border-primary focus:outline-none"
+                placeholder="0.00"
               />
             </div>
             <div className="flex flex-col items-center">
               <span className="fluent-body-small text-foreground-secondary mb-1">Tutar</span>
               <input
-                type="number"
-                step="0.01"
+                type="text"
+                inputMode="decimal"
                 value={calculatorTotal}
                 onChange={(e) => {
-                  setCalculatorTotal(e.target.value);
-                  updateCalculator(calculatorPaid, e.target.value);
+                  const value = e.target.value;
+                  // Allow only numbers and decimal point
+                  if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                    setCalculatorTotal(value);
+                    updateCalculator(calculatorPaid, value);
+                  }
                 }}
-                className="w-24 px-3 py-2 bg-background border border-border rounded fluent-body-small text-foreground text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                placeholder="0"
+                className="w-24 px-3 py-2 bg-background border border-border rounded fluent-body-small text-foreground text-center focus:border-primary focus:outline-none"
+                placeholder="0.00"
               />
             </div>
             <div className="flex flex-col items-center">
