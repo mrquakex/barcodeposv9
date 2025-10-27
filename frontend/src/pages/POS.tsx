@@ -465,63 +465,108 @@ const POS: React.FC = () => {
     <div className="h-full flex flex-col gap-4 p-4 overflow-auto">
       {/* 💠 ENTERPRISE: Multi-Channel Tabs & Customer Selection */}
       <FluentCard depth="depth-4" className="p-2 shrink-0 space-y-2">
-        {/* Channel Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto">
-          {channels.map((channel) => (
-            <button
-              key={channel.id}
-              onClick={() => setActiveChannelId(channel.id)}
-              className={cn(
-                'px-4 py-2 rounded transition-all fluent-motion-fast relative shrink-0',
-                channel.id === activeChannelId
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'bg-background-alt text-foreground-secondary hover:bg-background-tertiary'
-              )}
-            >
-              {channel.name}
-              {channel.cart.length > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-warning text-white text-xs rounded-full flex items-center justify-center">
-                  {channel.cart.length}
-                </span>
-              )}
-            </button>
-          ))}
-          
-          {/* 💠 Unified Add/Remove Buttons */}
-          <div className="flex items-center gap-1 shrink-0 ml-2 border-l border-border pl-2">
-            <button
-              onClick={() => {
-                if (channels.length === 1) {
-                  toast.error('En az bir kanal açık olmalı!');
-                  return;
-                }
-                // Close last channel
-                const lastChannel = channels[channels.length - 1];
-                if (lastChannel.cart.length > 0) {
-                  if (!confirm('Son kanalda ürünler var. Kapatmak istediğinize emin misiniz?')) {
+        {/* Channel Tabs with Calculator */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2 overflow-x-auto flex-1">
+            {channels.map((channel) => (
+              <button
+                key={channel.id}
+                onClick={() => setActiveChannelId(channel.id)}
+                className={cn(
+                  'px-4 py-2 rounded transition-all fluent-motion-fast relative shrink-0',
+                  channel.id === activeChannelId
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'bg-background-alt text-foreground-secondary hover:bg-background-tertiary'
+                )}
+              >
+                {channel.name}
+                {channel.cart.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-warning text-white text-xs rounded-full flex items-center justify-center">
+                    {channel.cart.length}
+                  </span>
+                )}
+              </button>
+            ))}
+            
+            {/* 💠 Unified Add/Remove Buttons */}
+            <div className="flex items-center gap-1 shrink-0 ml-2 border-l border-border pl-2">
+              <button
+                onClick={() => {
+                  if (channels.length === 1) {
+                    toast.error('En az bir kanal açık olmalı!');
                     return;
                   }
-                }
-                const newChannels = channels.slice(0, -1);
-                setChannels(newChannels);
-                if (activeChannelId === lastChannel.id) {
-                  setActiveChannelId(newChannels[newChannels.length - 1].id);
-                }
-                toast.success('Kanal kapatıldı');
-              }}
-              className="w-8 h-8 flex items-center justify-center bg-destructive/10 text-destructive hover:bg-destructive/20 rounded transition-colors"
-              title="Kanal Azalt"
-            >
-              <X className="w-4 h-4" />
-            </button>
-            
-            <button
-              onClick={addNewChannel}
-              className="w-8 h-8 flex items-center justify-center bg-success/10 text-success hover:bg-success/20 rounded transition-colors"
-              title="Kanal Ekle"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
+                  // Close last channel
+                  const lastChannel = channels[channels.length - 1];
+                  if (lastChannel.cart.length > 0) {
+                    if (!confirm('Son kanalda ürünler var. Kapatmak istediğinize emin misiniz?')) {
+                      return;
+                    }
+                  }
+                  const newChannels = channels.slice(0, -1);
+                  setChannels(newChannels);
+                  if (activeChannelId === lastChannel.id) {
+                    setActiveChannelId(newChannels[newChannels.length - 1].id);
+                  }
+                  toast.success('Kanal kapatıldı');
+                }}
+                className="w-8 h-8 flex items-center justify-center bg-destructive/10 text-destructive hover:bg-destructive/20 rounded transition-colors"
+                title="Kanal Azalt"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              
+              <button
+                onClick={addNewChannel}
+                className="w-8 h-8 flex items-center justify-center bg-success/10 text-success hover:bg-success/20 rounded transition-colors"
+                title="Kanal Ekle"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* 💠 ENTERPRISE: Quick Calculator Widget */}
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-col items-center">
+              <span className="fluent-caption text-foreground-secondary mb-0.5">Ödenen</span>
+              <input
+                type="number"
+                step="0.01"
+                value={calculatorPaid}
+                onChange={(e) => {
+                  setCalculatorPaid(e.target.value);
+                  updateCalculator(e.target.value, calculatorTotal);
+                }}
+                className="w-16 px-2 py-1 bg-background border border-border rounded fluent-caption text-foreground text-center"
+                placeholder="0"
+              />
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="fluent-caption text-foreground-secondary mb-0.5">Tutar</span>
+              <input
+                type="number"
+                step="0.01"
+                value={calculatorTotal}
+                onChange={(e) => {
+                  setCalculatorTotal(e.target.value);
+                  updateCalculator(calculatorPaid, e.target.value);
+                }}
+                className="w-16 px-2 py-1 bg-background border border-border rounded fluent-caption text-foreground text-center"
+                placeholder="0"
+              />
+            </div>
+            <div className="flex flex-col items-center">
+              <span className="fluent-caption text-foreground-secondary mb-0.5">Para Üstü</span>
+              <div className={cn(
+                "w-20 px-2 py-1 border-2 rounded fluent-caption font-bold text-center",
+                calculatorChange > 0 ? "border-success bg-success/10 text-success" : 
+                calculatorChange < 0 ? "border-destructive bg-destructive/10 text-destructive" : 
+                "border-border bg-background text-foreground-secondary"
+              )}>
+                {calculatorChange.toFixed(2)}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -712,53 +757,6 @@ const POS: React.FC = () => {
                   <span>Toplam</span>
                   <span>₺{total.toFixed(2)}</span>
                 </div>
-
-                {/* 💠 ENTERPRISE: Quick Calculator */}
-                <div className="mt-3 p-3 bg-background-alt rounded border border-border space-y-2">
-                  <p className="fluent-caption font-medium text-foreground-secondary mb-2">Hızlı Hesaplama</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <label className="fluent-caption text-foreground-secondary block mb-1">Ödenen</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculatorPaid}
-                        onChange={(e) => {
-                          setCalculatorPaid(e.target.value);
-                          updateCalculator(e.target.value, calculatorTotal);
-                        }}
-                        className="w-full px-2 py-1.5 bg-card border border-border rounded fluent-body-small text-foreground text-center"
-                        placeholder="0"
-                      />
-                    </div>
-                    <div>
-                      <label className="fluent-caption text-foreground-secondary block mb-1">Tutar</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={calculatorTotal}
-                        onChange={(e) => {
-                          setCalculatorTotal(e.target.value);
-                          updateCalculator(calculatorPaid, e.target.value);
-                        }}
-                        className="w-full px-2 py-1.5 bg-card border border-border rounded fluent-body-small text-foreground text-center"
-                        placeholder="0"
-                      />
-                    </div>
-                    <div>
-                      <label className="fluent-caption text-foreground-secondary block mb-1">Para Üstü</label>
-                      <div className={cn(
-                        "w-full px-2 py-1.5 bg-card border-2 rounded fluent-body-small font-semibold text-center",
-                        calculatorChange > 0 ? "border-success text-success" : 
-                        calculatorChange < 0 ? "border-destructive text-destructive" : 
-                        "border-border text-foreground-secondary"
-                      )}>
-                        {calculatorChange.toFixed(2)}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 <FluentButton
                   appearance="primary"
                   size="large"
