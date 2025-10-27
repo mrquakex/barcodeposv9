@@ -545,7 +545,7 @@ const POS: React.FC = () => {
       {/* 💠 ENTERPRISE: Multi-Channel Tabs & Customer Selection */}
       <FluentCard depth="depth-4" className="p-2 shrink-0 space-y-2">
         {/* Channel Tabs with Calculator */}
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-4">
           <div className="flex items-center gap-2 overflow-x-auto flex-1">
             {channels.map((channel) => (
               <button
