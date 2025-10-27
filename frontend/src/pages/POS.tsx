@@ -76,6 +76,9 @@ const POS: React.FC = () => {
   const [calculatorPaid, setCalculatorPaid] = useState<string>('');
   const [calculatorChange, setCalculatorChange] = useState<number>(0);
   
+  // 💠 ENTERPRISE: Live Clock
+  const [currentTime, setCurrentTime] = useState(new Date());
+  
   // 💠 ENTERPRISE: Payment States
   const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'CARD' | 'CREDIT' | 'SPLIT'>('CASH');
   const [splitPayment, setSplitPayment] = useState<SplitPayment>({ cash: 0, card: 0 });
@@ -113,6 +116,15 @@ const POS: React.FC = () => {
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // 💠 ENTERPRISE: Live Clock - Update every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
   }, []);
 
   const fetchCustomers = async () => {
@@ -510,6 +522,24 @@ const POS: React.FC = () => {
   );
   const total = subtotal;
 
+  // 💠 ENTERPRISE: Format Live Clock
+  const formatTime = (date: Date) => {
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    const seconds = date.getSeconds().toString().padStart(2, '0');
+    return `${hours}:${minutes}:${seconds}`;
+  };
+
+  const formatDate = (date: Date) => {
+    const options: Intl.DateTimeFormatOptions = { 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric',
+      weekday: 'long'
+    };
+    return date.toLocaleDateString('tr-TR', options);
+  };
+
   return (
     <div className="h-full flex flex-col gap-4 p-4 overflow-auto">
       {/* 💠 ENTERPRISE: Multi-Channel Tabs & Customer Selection */}
@@ -611,6 +641,20 @@ const POS: React.FC = () => {
               )}>
                 {calculatorChange.toFixed(2)}
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 💠 ENTERPRISE: Live Clock */}
+        <div className="flex items-center justify-center gap-2 px-4 py-2 bg-background-alt/50 rounded border border-border/50">
+          <div className="flex items-center gap-3">
+            <div className="text-center">
+              <p className="fluent-title-2 font-bold text-primary tabular-nums">
+                {formatTime(currentTime)}
+              </p>
+              <p className="fluent-caption text-foreground-secondary">
+                {formatDate(currentTime)}
+              </p>
             </div>
           </div>
         </div>
