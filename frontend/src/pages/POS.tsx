@@ -445,6 +445,57 @@ const POS: React.FC = () => {
     }
   };
 
+  // 💠 ENTERPRISE: Quick Cash Sale - Direct cash payment without modal
+  const handleQuickCashSale = async () => {
+    if (activeChannel.cart.length === 0) {
+      toast.error('Sepet boş!');
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      const subtotal = activeChannel.cart.reduce((sum, item) => sum + (item.total || 0), 0);
+      const taxAmount = activeChannel.cart.reduce(
+        (sum, item) => sum + ((item.total || 0) * (item.taxRate || 0)) / (100 + (item.taxRate || 0)),
+        0
+      );
+
+    const saleData = {
+        customerId: activeChannel.customer?.id,
+        items: activeChannel.cart.map((item) => ({
+          productId: item.id,
+        quantity: item.quantity,
+          unitPrice: item.sellPrice || 0,
+          taxRate: item.taxRate || 0,
+      })),
+      paymentMethod: 'CASH',
+        subtotal,
+        taxAmount,
+        total: subtotal,
+      };
+
+      const response = await api.post('/sales', saleData);
+
+      // Save receipt data
+      setLastReceipt({
+        ...saleData,
+        saleId: response.data.id,
+        date: new Date().toISOString(),
+        channelName: activeChannel.name,
+      });
+
+      toast.success('Nakit satış tamamlandı!');
+      updateChannel(activeChannelId, { cart: [], customer: null });
+      setCalculatorPaid(''); // Reset calculator
+      setShowReceiptDialog(true);
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Satış hatası!');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   // 💠 ENTERPRISE: Print Receipt
   const printReceipt = () => {
     window.print();
@@ -627,8 +678,8 @@ const POS: React.FC = () => {
                           </p>
                         </div>
                         {searchResults.map((product) => (
-                          <button
-                            key={product.id}
+                <button
+                  key={product.id}
                             onClick={() => selectProductFromSearch(product)}
                             className="w-full px-4 py-3 text-left hover:bg-background-alt transition-colors border-b border-border last:border-b-0 flex items-center justify-between gap-3"
                           >
@@ -645,8 +696,8 @@ const POS: React.FC = () => {
                                 ₺{(product.sellPrice || 0).toFixed(2)}
                               </p>
                             </div>
-                          </button>
-                        ))}
+                </button>
+              ))}
                       </>
                     )}
                   </div>
@@ -666,9 +717,9 @@ const POS: React.FC = () => {
               <div id="qr-reader" className="mt-4 rounded-lg overflow-hidden"></div>
             )}
           </FluentCard>
-        </div>
+      </div>
 
-        {/* Right: Cart */}
+      {/* Right: Cart */}
         <div className="w-full md:w-96 flex flex-col min-h-0">
           <FluentCard depth="depth-8" className="flex-1 flex flex-col min-h-0">
             {/* Cart Header */}
@@ -704,8 +755,8 @@ const POS: React.FC = () => {
                       <p className="fluent-caption text-foreground-secondary">
                         ₺{(item.sellPrice || 0).toFixed(2)} x {item.quantity}
                       </p>
-                    </div>
-            <div className="flex items-center gap-2">
+                  </div>
+                    <div className="flex items-center gap-2">
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity - 1)}
                         className="w-6 h-6 flex items-center justify-center bg-background hover:bg-border rounded text-foreground-secondary"
@@ -731,9 +782,9 @@ const POS: React.FC = () => {
                     <p className="fluent-body font-medium text-foreground w-20 text-right">
                       ₺{(item.total || 0).toFixed(2)}
                     </p>
-                  </div>
-                ))
-              )}
+                </div>
+              ))
+            )}
             </div>
 
             {/* Cart Footer */}
@@ -759,6 +810,18 @@ const POS: React.FC = () => {
                   icon={<Banknote className="w-5 h-5" />}
                 >
                   Ödeme Al
+                </FluentButton>
+                
+                {/* 💠 ENTERPRISE: Quick Cash Sale Button */}
+                <FluentButton
+                  appearance="primary"
+                  size="large"
+                  className="w-full mt-2 !bg-success hover:!bg-success/90 !border-success"
+                  onClick={handleQuickCashSale}
+                  disabled={isProcessing}
+                  icon={<Banknote className="w-5 h-5" />}
+                >
+                  {isProcessing ? 'İşleniyor...' : '💵 Nakit Satış'}
                 </FluentButton>
               </div>
             )}
@@ -906,7 +969,7 @@ const POS: React.FC = () => {
                 <span className="fluent-body font-medium">Parçalı</span>
                       </button>
                     </div>
-                  </div>
+            </div>
 
           {/* 💠 ENTERPRISE: Split Payment Details */}
           {paymentMethod === 'SPLIT' && (
@@ -916,12 +979,12 @@ const POS: React.FC = () => {
               <div>
                 <label className="fluent-caption text-foreground-secondary block mb-1">Nakit (₺)</label>
                 <FluentInput
-                  type="number"
-                  step="0.01"
+                type="number"
+                step="0.01"
                   value={splitPayment.cash}
                   onChange={(e) => setSplitPayment({ ...splitPayment, cash: parseFloat(e.target.value) || 0 })}
                   placeholder="0.00"
-                />
+              />
             </div>
 
               <div>
@@ -961,14 +1024,14 @@ const POS: React.FC = () => {
           <div className="flex gap-2 pt-4">
             <FluentButton
               appearance="subtle"
-              className="flex-1"
+                className="flex-1"
               onClick={() => setShowPaymentDialog(false)}
             >
               İptal
             </FluentButton>
             <FluentButton
               appearance="primary"
-              className="flex-1"
+                className="flex-1"
               onClick={handlePayment}
               disabled={isProcessing}
             >
