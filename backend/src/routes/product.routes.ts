@@ -24,8 +24,8 @@ router.use(authenticate);
 router.get('/', getAllProducts);
 router.get('/low-stock', getLowStockProducts);
 router.get('/favorites', getFavoriteProducts); // 🌟 Favoriler
+router.get('/barcode/:barcode', getProductByBarcode); // ⚠️ Specific routes before :id
 router.get('/:id', getProductById);
-router.get('/barcode/:barcode', getProductByBarcode);
 router.post('/', authorize('ADMIN', 'MANAGER'), createProduct);
 router.post('/bulk-delete', authorize('ADMIN', 'MANAGER'), bulkDeleteProducts);
 router.post('/bulk-upsert', authorize('ADMIN', 'MANAGER'), bulkUpsertProducts);
