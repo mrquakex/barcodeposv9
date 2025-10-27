@@ -109,7 +109,6 @@ export const updateCustomer = async (req: Request, res: Response) => {
         phone,
         address,
         debt: debt !== undefined ? parseFloat(debt) : undefined,
-        credit: credit !== undefined ? parseFloat(credit) : undefined,
         isActive,
       },
     });

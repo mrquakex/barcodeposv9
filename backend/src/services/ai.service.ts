@@ -25,7 +25,7 @@ class AIService {
           createdAt: { gte: thirtyDaysAgo },
         },
         select: {
-          totalAmount: true,
+          total: true,
           createdAt: true,
         },
         orderBy: {
@@ -105,7 +105,7 @@ class AIService {
           createdAt: { gte: thirtyDaysAgo },
         },
         select: {
-          totalAmount: true,
+          total: true,
           createdAt: true,
         },
       });
@@ -387,12 +387,12 @@ class AIService {
   /**
    * Satışları günlük bazda grupla
    */
-  private groupByDay(sales: Array<{ createdAt: Date; totalAmount: number }>): Record<string, number> {
+  private groupByDay(sales: Array<{ createdAt: Date; total: number }>): Record<string, number> {
     const grouped: Record<string, number> = {};
 
     sales.forEach((sale) => {
       const date = sale.createdAt.toISOString().split('T')[0];
-      grouped[date] = (grouped[date] || 0) + sale.totalAmount;
+      grouped[date] = (grouped[date] || 0) + sale.total;
     });
 
     return grouped;

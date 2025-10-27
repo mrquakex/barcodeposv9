@@ -6,7 +6,7 @@ export const getAllShifts = async (req: Request, res: Response) => {
     const shifts = await prisma.shift.findMany({
       include: {
         user: { select: { id: true, name: true } },
-        sales: { select: { id: true, totalAmount: true } },
+        sales: { select: { id: true, total: true } },
       },
       orderBy: { startTime: 'desc' },
     });

@@ -6,8 +6,6 @@ export const getAllReturns = async (req: Request, res: Response) => {
     const returns = await prisma.return.findMany({
       include: {
         sale: { select: { id: true, saleNumber: true } },
-        customer: { select: { id: true, name: true } },
-        user: { select: { id: true, name: true } },
         items: { include: { product: true } },
       },
       orderBy: { createdAt: 'desc' },
@@ -26,8 +24,6 @@ export const getReturnById = async (req: Request, res: Response) => {
       where: { id },
       include: {
         sale: { include: { items: { include: { product: true } } } },
-        customer: true,
-        user: { select: { id: true, name: true, email: true } },
         items: { include: { product: true } },
       },
     });

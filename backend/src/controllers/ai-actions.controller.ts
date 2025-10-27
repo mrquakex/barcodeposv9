@@ -87,7 +87,7 @@ export const bulkUpdateProductPrices = async (req: Request, res: Response) => {
     // Filtrele
     const products = await prisma.product.findMany({
       where: {
-        price: {
+        sellPrice: {
           ...(filter?.minPrice && { gte: filter.minPrice }),
           ...(filter?.maxPrice && { lte: filter.maxPrice }),
         },
@@ -107,17 +107,17 @@ export const bulkUpdateProductPrices = async (req: Request, res: Response) => {
 
     // Yeni fiyatları hesapla
     const updates = products.map(product => {
-      let newPrice = product.price;
+      let newPrice = product.sellPrice;
 
       switch (operation) {
         case 'increase':
-          newPrice = product.price + value;
+          newPrice = product.sellPrice + value;
           break;
         case 'decrease':
-          newPrice = Math.max(0, product.price - value);
+          newPrice = Math.max(0, product.sellPrice - value);
           break;
         case 'multiply':
-          newPrice = product.price * value;
+          newPrice = product.sellPrice * value;
           break;
         case 'set':
           newPrice = value;
@@ -126,7 +126,7 @@ export const bulkUpdateProductPrices = async (req: Request, res: Response) => {
 
       return prisma.product.update({
         where: { id: product.id },
-        data: { price: newPrice },
+        data: { sellPrice: newPrice },
       });
     });
 
@@ -234,7 +234,7 @@ export const generateChartData = async (req: Request, res: Response) => {
         },
         orderBy: { createdAt: 'asc' },
         select: {
-          totalAmount: true,
+          total: true,
           createdAt: true,
         },
       });
@@ -246,7 +246,7 @@ export const generateChartData = async (req: Request, res: Response) => {
         if (!salesByDate[date]) {
           salesByDate[date] = 0;
         }
-        salesByDate[date] += sale.totalAmount;
+        salesByDate[date] += sale.total;
       });
 
       chartData = {

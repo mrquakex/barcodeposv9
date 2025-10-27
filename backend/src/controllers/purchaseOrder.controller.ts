@@ -6,7 +6,6 @@ export const getAllPurchaseOrders = async (req: Request, res: Response) => {
     const orders = await prisma.purchaseOrder.findMany({
       include: {
         supplier: { select: { id: true, name: true } },
-        user: { select: { id: true, name: true } },
         items: { include: { product: true } },
       },
       orderBy: { createdAt: 'desc' },
@@ -25,7 +24,6 @@ export const getPurchaseOrderById = async (req: Request, res: Response) => {
       where: { id },
       include: {
         supplier: true,
-        user: { select: { id: true, name: true, email: true } },
         items: { include: { product: true } },
       },
     });

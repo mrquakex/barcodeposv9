@@ -15,7 +15,7 @@ export const getFinancialSummary = async (req: Request, res: Response) => {
     const sales = await prisma.sale.findMany({ where });
     const expenses = await prisma.expense.findMany({ where: startDate || endDate ? { expenseDate: where.createdAt } : {} });
     
-    const totalRevenue = sales.reduce((sum, s) => sum + s.netAmount, 0);
+    const totalRevenue = sales.reduce((sum, s) => sum + s.subtotal, 0);
     const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
     const netProfit = totalRevenue - totalExpenses;
 
@@ -42,7 +42,7 @@ export const getCashFlow = async (req: Request, res: Response) => {
 
       last30Days.push({
         date: date.toISOString().split('T')[0],
-        income: sales.reduce((sum, s) => sum + s.netAmount, 0),
+        income: sales.reduce((sum, s) => sum + s.subtotal, 0),
         expense: expenses.reduce((sum, e) => sum + e.amount, 0),
       });
     }
@@ -59,7 +59,7 @@ export const getProfitLoss = async (req: Request, res: Response) => {
     const sales = await prisma.sale.findMany();
     const expenses = await prisma.expense.findMany();
     
-    const revenue = sales.reduce((sum, s) => sum + s.netAmount, 0);
+    const revenue = sales.reduce((sum, s) => sum + s.subtotal, 0);
     const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
     const profit = revenue - totalExpenses;
     const profitMargin = revenue > 0 ? (profit / revenue) * 100 : 0;
@@ -90,7 +90,7 @@ export const getProfitLossChart = async (req: Request, res: Response) => {
         where: { expenseDate: { gte: date, lt: nextMonth } }
       });
 
-      const revenue = sales.reduce((sum, s) => sum + s.netAmount, 0);
+      const revenue = sales.reduce((sum, s) => sum + s.subtotal, 0);
       const expense = expenses.reduce((sum, e) => sum + e.amount, 0);
       const profit = revenue - expense;
 

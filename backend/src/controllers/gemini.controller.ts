@@ -24,7 +24,7 @@ export const chatWithAI = async (req: Request, res: Response) => {
           createdAt: { gte: thirtyDaysAgo },
         },
         include: {
-          saleItems: {
+          items: {
             include: {
               product: true,
             },
@@ -54,7 +54,7 @@ export const chatWithAI = async (req: Request, res: Response) => {
     ]);
 
     // Satış özeti oluştur
-    const totalRevenue = recentSales.reduce((sum, sale) => sum + sale.totalAmount, 0);
+    const totalRevenue = recentSales.reduce((sum, sale) => sum + sale.total, 0);
     const averageSale = recentSales.length > 0 ? totalRevenue / recentSales.length : 0;
     
     // En çok satan ürünlerin detaylarını al
@@ -114,10 +114,10 @@ export const chatWithAI = async (req: Request, res: Response) => {
           actionType,
           actionData,
           conversationSession: sessionId || null,
-          metadata: {
+          metadata: JSON.stringify({
             responseTime,
             contextSize: JSON.stringify(context).length,
-          },
+          }),
         },
       });
     }
@@ -185,7 +185,7 @@ export const getSuggestedProducts = async (req: Request, res: Response) => {
       customerHistory = await prisma.sale.findMany({
         where: { customerId: customerId as string },
         include: {
-          saleItems: {
+          items: {
             include: {
               product: true,
             },

@@ -26,12 +26,12 @@ import supplierRoutes from './routes/supplier.routes';
 import stockRoutes from './routes/stock.routes';
 import expenseRoutes from './routes/expense.routes';
 import financeRoutes from './routes/finance.routes';
-import campaignRoutes from './routes/campaign.routes';
+// import campaignRoutes from './routes/campaign.routes'; // Disabled: Campaign model removed from schema
 import branchRoutes from './routes/branch.routes';
 import activityRoutes from './routes/activity.routes';
 import aiRoutes from './routes/ai.routes';
 import geminiRoutes from './routes/gemini.routes';
-import priceMonitorRoutes from './routes/price-monitor.routes';
+// import priceMonitorRoutes from './routes/price-monitor.routes'; // Disabled: PriceChange/ScraperConfig models removed from schema
 import aiActionsRoutes from './routes/ai-actions.routes';
 import aiAdvancedRoutes from './routes/ai-advanced.routes';
 import invoiceRoutes from './routes/invoice.routes';
@@ -169,12 +169,12 @@ app.use('/api/suppliers', supplierRoutes);
 app.use('/api/stock', stockRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/finance', financeRoutes);
-app.use('/api/campaigns', campaignRoutes);
+// app.use('/api/campaigns', campaignRoutes); // Disabled: Campaign model removed from schema
 app.use('/api/branches', branchRoutes);
 app.use('/api/activity-logs', activityRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/gemini', geminiRoutes);
-app.use('/api/price-monitor', priceMonitorRoutes);
+// app.use('/api/price-monitor', priceMonitorRoutes); // Disabled: PriceChange/ScraperConfig models removed from schema
 app.use('/api/ai-actions', aiActionsRoutes);
 app.use('/api/ai-advanced', aiAdvancedRoutes);
 app.use('/api/invoices', invoiceRoutes);

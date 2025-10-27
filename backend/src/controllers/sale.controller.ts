@@ -56,8 +56,6 @@ export const getAllSales = async (req: Request, res: Response) => {
           barcode: item.product.barcode,
         },
       })),
-      // items'ı kaldır (gereksiz)
-      items: undefined,
     }));
 
     res.json({ sales: formattedSales });
@@ -106,7 +104,6 @@ export const getSaleById = async (req: Request, res: Response) => {
           barcode: item.product.barcode,
         },
       })),
-      items: undefined,
     };
 
     res.json({ sale: formattedSale });
@@ -142,7 +139,7 @@ export const createSale = async (req: AuthRequest, res: Response) => {
           throw new Error(`${product.name} için yeterli stok yok`);
         }
 
-        const itemTotal = product.price * item.quantity;
+        const itemTotal = product.sellPrice * item.quantity;
         const itemTax = (itemTotal * product.taxRate) / 100;
 
         totalAmount += itemTotal;
@@ -151,7 +148,7 @@ export const createSale = async (req: AuthRequest, res: Response) => {
         return {
           productId: product.id,
           quantity: item.quantity,
-          unitPrice: product.price,
+          unitPrice: product.sellPrice,
           taxRate: product.taxRate,
           total: itemTotal,
         };
@@ -171,10 +168,10 @@ export const createSale = async (req: AuthRequest, res: Response) => {
       const newSale = await tx.sale.create({
         data: {
           saleNumber,
-          totalAmount,
+          total: totalAmount,
           discountAmount: finalDiscountAmount,
           taxAmount,
-          netAmount,
+          subtotal: netAmount,
           paymentMethod: paymentMethod || 'CASH',
           userId: req.userId!,
           customerId,
@@ -239,7 +236,6 @@ export const createSale = async (req: AuthRequest, res: Response) => {
           barcode: item.product.barcode,
         },
       })),
-      items: undefined,
     };
 
     res.status(201).json({ message: 'Satış başarıyla oluşturuldu', sale: formattedSale });
