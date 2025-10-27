@@ -14,15 +14,15 @@
     --font-mono: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
     
     /* Fluent Color System - Light Mode */
-    --background: 0 0% 100%;           /* #FFFFFF - Canvas */
-    --background-alt: 0 0% 98%;        /* #FAFAFA */
+    --background: 0 0% 98%;            /* #FAFAFA - Canvas (Hafif Gri - Kartlar için kontrast) */
+    --background-alt: 0 0% 96%;        /* #F5F5F5 */
     --background-tertiary: 0 0% 95%;   /* #F3F2F1 */
     
     --foreground: 0 0% 13%;            /* #201F1E - Primary Text */
     --foreground-secondary: 0 0% 38%;  /* #605E5C - Secondary Text */
     --foreground-tertiary: 0 0% 54%;   /* #8A8886 - Tertiary Text */
     
-    --card: 0 0% 100%;                 /* #FFFFFF */
+    --card: 0 0% 100%;                 /* #FFFFFF - Kartlar Beyaz (Arka plandan ayrılıyor) */
     --card-foreground: 0 0% 13%;
     
     --popover: 0 0% 100%;
@@ -49,7 +49,7 @@
     --warning: 42 100% 50%;            /* #FFB900 - Yellow */
     --info: 207 83% 52%;               /* #0078D4 - Blue */
     
-    --border: 0 0% 88%;                /* #E1DFDD - Neutral Stroke */
+    --border: 0 0% 85%;                /* #D9D9D9 - Daha belirgin border */
     --border-strong: 0 0% 54%;         /* #8A8886 */
     --input: 0 0% 95%;                 /* #F3F2F1 */
     --ring: 210 100% 42%;
