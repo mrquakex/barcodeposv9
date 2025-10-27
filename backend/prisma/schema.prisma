@@ -86,7 +86,7 @@ model Product {
   sku         String?   @unique
   barcode     String    @unique
   name        String
-  description String?  
+  description String?
   buyPrice    Float     @default(0) // Maliyet
   sellPrice   Float     @default(0) // Satış fiyatı
   stock       Int       @default(0)
@@ -138,7 +138,7 @@ model Supplier {
   contactPerson   String?
   email           String?  @unique
   phone           String?
-  address         String? 
+  address         String?
   taxNumber       String?
   paymentTerms    String?  // "30 gün", "Peşin"
   balance         Float    @default(0)
@@ -260,7 +260,7 @@ model PurchaseOrder {
   orderDate       DateTime @default(now())
   expectedDate    DateTime?
   receivedDate    DateTime?
-  notes           String? 
+  notes           String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
@@ -514,7 +514,7 @@ model Expense {
   id              String   @id @default(uuid())
   categoryId      String
   amount          Float
-  description     String  
+  description     String
   paymentMethod   String   @default("CASH")
   receiptNumber   String?
   expenseDate     DateTime @default(now())
@@ -600,7 +600,7 @@ model ActivityLog {
   action          String   // CREATE, UPDATE, DELETE, LOGIN, LOGOUT
   module          String   // USER, PRODUCT, SALE, SHIFT, etc.
   entityId        String?
-  description     String  
+  description     String
   oldValue        String?
   newValue        String?
   ipAddress       String?
