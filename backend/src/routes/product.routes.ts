@@ -11,8 +11,10 @@ import {
   getLowStockProducts,
   toggleFavorite,
   getFavoriteProducts,
+  bulkImportProducts,
 } from '../controllers/product.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
+import { upload } from '../middleware/upload';
 
 const router = Router();
 
@@ -26,6 +28,7 @@ router.get('/barcode/:barcode', getProductByBarcode);
 router.post('/', authorize('ADMIN', 'MANAGER'), createProduct);
 router.post('/bulk-delete', authorize('ADMIN', 'MANAGER'), bulkDeleteProducts);
 router.post('/bulk-upsert', authorize('ADMIN', 'MANAGER'), bulkUpsertProducts);
+router.post('/bulk-import', authorize('ADMIN', 'MANAGER'), upload.single('file'), bulkImportProducts); // 📊 Excel Import
 router.put('/:id', authorize('ADMIN', 'MANAGER'), updateProduct);
 router.put('/:id/toggle-favorite', toggleFavorite); // 🌟 Favori toggle (herkes kullanabilir)
 router.delete('/:id', authorize('ADMIN', 'MANAGER'), deleteProduct);

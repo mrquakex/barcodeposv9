@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit, Trash2, Star, StarOff, Barcode, Package } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Star, StarOff, Barcode, Package, Upload } from 'lucide-react';
 import FluentButton from '../components/fluent/FluentButton';
 import FluentCard from '../components/fluent/FluentCard';
 import FluentInput from '../components/fluent/FluentInput';
 import FluentDialog from '../components/fluent/FluentDialog';
 import FluentBadge from '../components/fluent/FluentBadge';
+import { ExcelImport } from '../components/ExcelImport';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
@@ -35,6 +36,7 @@ const Products: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [showDialog, setShowDialog] = useState(false);
+  const [showExcelImport, setShowExcelImport] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({
@@ -171,13 +173,22 @@ const Products: React.FC = () => {
             {t('products.productsCount', { count: filteredProducts.length })}
           </p>
         </div>
-        <FluentButton
-          appearance="primary"
-          icon={<Plus className="w-4 h-4" />}
-          onClick={() => setShowDialog(true)}
-        >
-          {t('products.addProduct')}
-        </FluentButton>
+        <div className="flex gap-3">
+          <FluentButton
+            appearance="secondary"
+            icon={<Upload className="w-4 h-4" />}
+            onClick={() => setShowExcelImport(true)}
+          >
+            Excel İçe Aktar
+          </FluentButton>
+          <FluentButton
+            appearance="primary"
+            icon={<Plus className="w-4 h-4" />}
+            onClick={() => setShowDialog(true)}
+          >
+            {t('products.addProduct')}
+          </FluentButton>
+        </div>
       </div>
 
       {/* Search */}
@@ -371,6 +382,17 @@ const Products: React.FC = () => {
           </div>
         </form>
       </FluentDialog>
+
+      {/* Excel Import Modal */}
+      {showExcelImport && (
+        <ExcelImport
+          onSuccess={() => {
+            fetchProducts();
+            setShowExcelImport(false);
+          }}
+          onClose={() => setShowExcelImport(false)}
+        />
+      )}
     </div>
   );
 };

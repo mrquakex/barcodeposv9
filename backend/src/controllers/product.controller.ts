@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { generateEAN13 } from '../utils/barcode';
+import * as XLSX from 'xlsx';
 
 export const getAllProducts = async (req: Request, res: Response) => {
   try {
@@ -442,6 +443,128 @@ export const getFavoriteProducts = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Get favorite products error:', error);
     res.status(500).json({ error: 'Favori ürünler getirilemedi' });
+  }
+};
+
+// Excel/CSV ile Toplu Ürün İçe Aktarma
+export const bulkImportProducts = async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'Dosya yüklenmedi' });
+    }
+
+    // Excel dosyasını parse et
+    const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    
+    // JSON'a çevir
+    const rawData = XLSX.utils.sheet_to_json(worksheet);
+
+    if (rawData.length === 0) {
+      return res.status(400).json({ error: 'Excel dosyası boş' });
+    }
+
+    // Başarılı ve başarısız kayıtları takip et
+    const results = {
+      success: 0,
+      failed: 0,
+      errors: [] as string[],
+    };
+
+    // Her satırı işle
+    for (let i = 0; i < rawData.length; i++) {
+      const row: any = rawData[i];
+
+      try {
+        // Excel sütun isimleri (case-insensitive)
+        const barcode = row['Barkod'] || row['barkod'] || row['BARKOD'] || row['Barcode'] || '';
+        const name = row['Ürün Adı'] || row['ürün adı'] || row['ÜRÜN ADI'] || row['Name'] || row['name'] || '';
+        const categoryName = row['Kategori'] || row['kategori'] || row['KATEGORI'] || row['Category'] || '';
+        const buyPrice = parseFloat(row['Alış Fiyatı'] || row['alış fiyatı'] || row['ALIŞ FİYATI'] || row['Buy Price'] || row['Cost'] || '0');
+        const sellPrice = parseFloat(row['Satış Fiyatı'] || row['satış fiyatı'] || row['SATIŞ FİYATI'] || row['Sell Price'] || row['Price'] || '0');
+        const stock = parseInt(row['Stok'] || row['stok'] || row['STOK'] || row['Stock'] || row['Quantity'] || '0');
+        const taxRate = parseFloat(row['KDV'] || row['kdv'] || row['KDV Oranı'] || row['Tax'] || row['VAT'] || '18');
+
+        // Validasyon
+        if (!name || name.trim() === '') {
+          results.errors.push(`Satır ${i + 2}: Ürün adı boş olamaz`);
+          results.failed++;
+          continue;
+        }
+
+        if (sellPrice <= 0) {
+          results.errors.push(`Satır ${i + 2}: Satış fiyatı 0'dan büyük olmalı`);
+          results.failed++;
+          continue;
+        }
+
+        // Kategori var mı kontrol et, yoksa oluştur
+        let category;
+        if (categoryName && categoryName.trim() !== '') {
+          category = await prisma.category.findFirst({
+            where: { name: { equals: categoryName.trim(), mode: 'insensitive' } },
+          });
+
+          if (!category) {
+            category = await prisma.category.create({
+              data: { name: categoryName.trim() },
+            });
+          }
+        }
+
+        // Barkod yoksa otomatik oluştur
+        let finalBarcode = barcode && barcode.trim() !== '' ? barcode.trim() : generateEAN13();
+
+        // Barkod zaten var mı kontrol et
+        const existingProduct = await prisma.product.findUnique({
+          where: { barcode: finalBarcode },
+        });
+
+        if (existingProduct) {
+          // Varsa güncelle
+          await prisma.product.update({
+            where: { barcode: finalBarcode },
+            data: {
+              name: name.trim(),
+              categoryId: category?.id,
+              buyPrice,
+              sellPrice,
+              stock,
+              taxRate,
+            },
+          });
+        } else {
+          // Yoksa yeni oluştur
+          await prisma.product.create({
+            data: {
+              barcode: finalBarcode,
+              sku: `SKU-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              name: name.trim(),
+              categoryId: category?.id,
+              buyPrice,
+              sellPrice,
+              stock,
+              taxRate,
+              isActive: true,
+            },
+          });
+        }
+
+        results.success++;
+      } catch (error: any) {
+        results.errors.push(`Satır ${i + 2}: ${error.message}`);
+        results.failed++;
+      }
+    }
+
+    res.json({
+      message: 'Toplu aktarım tamamlandı',
+      results,
+    });
+  } catch (error: any) {
+    console.error('Bulk import error:', error);
+    res.status(500).json({ error: error.message || 'Toplu aktarım sırasında hata oluştu' });
   }
 };
 
