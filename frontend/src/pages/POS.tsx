@@ -274,11 +274,11 @@ const POS: React.FC = () => {
         0
       );
 
-      const saleData = {
+    const saleData = {
         customerId: activeChannel.customer?.id,
         items: activeChannel.cart.map((item) => ({
           productId: item.id,
-          quantity: item.quantity,
+        quantity: item.quantity,
           unitPrice: item.sellPrice || 0,
           taxRate: item.taxRate || 0,
         })),
@@ -326,10 +326,10 @@ const POS: React.FC = () => {
 
   return (
     <div className="h-full flex flex-col gap-4 p-4 overflow-auto">
-      {/* 💠 ENTERPRISE: Multi-Channel Tabs */}
-      <FluentCard depth="depth-4" className="p-2 shrink-0">
+      {/* 💠 ENTERPRISE: Multi-Channel Tabs & Customer Selection */}
+      <FluentCard depth="depth-4" className="p-2 shrink-0 space-y-2">
+        {/* Channel Tabs */}
         <div className="flex items-center gap-2 overflow-x-auto">
-          {/* Channel Tabs */}
           {channels.map((channel) => (
             <button
               key={channel.id}
@@ -387,6 +387,24 @@ const POS: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {/* 💠 Compact Customer Selection */}
+        <div className="flex items-center justify-between px-2 py-1.5 bg-background-alt rounded">
+          <div className="flex items-center gap-2">
+            <User className="w-4 h-4 text-foreground-secondary" />
+            <span className="fluent-body-small text-foreground">
+              {activeChannel.customer ? activeChannel.customer.name : 'Müşteri Seçilmedi'}
+            </span>
+          </div>
+          <FluentButton
+            appearance="subtle"
+            size="small"
+            onClick={() => setShowCustomerDialog(true)}
+            className="!h-7 !px-3"
+          >
+            {activeChannel.customer ? 'Değiştir' : 'Seç'}
+          </FluentButton>
+        </div>
       </FluentCard>
 
       <div className="flex-1 flex flex-col md:flex-row gap-4 min-h-0">
@@ -420,25 +438,6 @@ const POS: React.FC = () => {
             {isScanning && (
               <div id="qr-reader" className="mt-4 rounded-lg overflow-hidden"></div>
             )}
-          </FluentCard>
-
-          {/* Customer Selection */}
-          <FluentCard depth="depth-4" className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <User className="w-5 h-5 text-foreground-secondary" />
-                <span className="fluent-body text-foreground">
-                  {activeChannel.customer ? activeChannel.customer.name : 'Müşteri Seçilmedi'}
-                </span>
-              </div>
-              <FluentButton
-                appearance="subtle"
-                size="small"
-                onClick={() => setShowCustomerDialog(true)}
-              >
-                {activeChannel.customer ? 'Değiştir' : 'Seç'}
-              </FluentButton>
-            </div>
           </FluentCard>
         </div>
 
@@ -479,7 +478,7 @@ const POS: React.FC = () => {
                         ₺{(item.sellPrice || 0).toFixed(2)} x {item.quantity}
                       </p>
                     </div>
-                    <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity - 1)}
                         className="w-6 h-6 flex items-center justify-center bg-background hover:bg-border rounded text-foreground-secondary"
@@ -538,7 +537,7 @@ const POS: React.FC = () => {
             )}
           </FluentCard>
         </div>
-      </div>
+            </div>
 
       {/* Customer Selection Dialog */}
       <FluentDialog
@@ -549,7 +548,7 @@ const POS: React.FC = () => {
       >
         <div className="space-y-2 max-h-96 overflow-y-auto">
           {customers.map((customer) => (
-            <button
+                <button
               key={customer.id}
               onClick={() => selectCustomer(customer)}
               className="w-full p-3 text-left border border-border rounded hover:bg-background-alt transition-colors"
@@ -557,10 +556,10 @@ const POS: React.FC = () => {
               <p className="fluent-body font-medium text-foreground">{customer.name}</p>
               <p className="fluent-caption text-foreground-secondary">
                 Borç: ₺{(customer.debt || 0).toFixed(2)}
-              </p>
-            </button>
-          ))}
-        </div>
+                  </p>
+                </button>
+              ))}
+            </div>
       </FluentDialog>
 
       {/* Payment Dialog */}
@@ -574,7 +573,7 @@ const POS: React.FC = () => {
           <div className="flex justify-between fluent-title-3 text-foreground">
             <span>Toplam Tutar:</span>
             <span>₺{total.toFixed(2)}</span>
-          </div>
+      </div>
 
           {/* 💠 ENTERPRISE: Payment Method Selection */}
           <div>
@@ -595,7 +594,7 @@ const POS: React.FC = () => {
                 <span className="fluent-body font-medium">Nakit</span>
               </button>
 
-              <button
+                    <button
                 onClick={() => setPaymentMethod('CARD')}
                 className={cn(
                   'p-3 rounded border-2 transition-all flex items-center gap-2',
@@ -606,9 +605,9 @@ const POS: React.FC = () => {
               >
                 <CreditCard className="w-5 h-5" />
                 <span className="fluent-body font-medium">Kart</span>
-              </button>
+                    </button>
 
-              <button
+                      <button
                 onClick={() => setPaymentMethod('CREDIT')}
                 className={cn(
                   'p-3 rounded border-2 transition-all flex items-center gap-2',
@@ -619,9 +618,9 @@ const POS: React.FC = () => {
               >
                 <User className="w-5 h-5" />
                 <span className="fluent-body font-medium">Veresiye</span>
-              </button>
+                      </button>
 
-              <button
+                      <button
                 onClick={() => setPaymentMethod('SPLIT')}
                 className={cn(
                   'p-3 rounded border-2 transition-all flex items-center gap-2',
@@ -632,9 +631,9 @@ const POS: React.FC = () => {
               >
                 <Wallet className="w-5 h-5" />
                 <span className="fluent-body font-medium">Parçalı</span>
-              </button>
-            </div>
-          </div>
+                      </button>
+                    </div>
+                  </div>
 
           {/* 💠 ENTERPRISE: Split Payment Details */}
           {paymentMethod === 'SPLIT' && (
@@ -650,18 +649,18 @@ const POS: React.FC = () => {
                   onChange={(e) => setSplitPayment({ ...splitPayment, cash: parseFloat(e.target.value) || 0 })}
                   placeholder="0.00"
                 />
-              </div>
+            </div>
 
               <div>
                 <label className="fluent-caption text-foreground-secondary block mb-1">Kart (₺)</label>
                 <FluentInput
-                  type="number"
-                  step="0.01"
+                type="number"
+                step="0.01"
                   value={splitPayment.card}
                   onChange={(e) => setSplitPayment({ ...splitPayment, card: parseFloat(e.target.value) || 0 })}
                   placeholder="0.00"
-                />
-              </div>
+              />
+            </div>
 
               <div className="flex justify-between pt-2 border-t border-border">
                 <span className="fluent-body-small text-foreground-secondary">Toplam Ödeme:</span>
@@ -789,7 +788,7 @@ const POS: React.FC = () => {
               >
                 Fiş Yazdır
               </FluentButton>
-            </div>
+      </div>
           </div>
         )}
       </FluentDialog>

@@ -599,7 +599,7 @@ const Products: React.FC = () => {
             >
               <List className="w-4 h-4" />
             </button>
-          </div>
+      </div>
 
           {/* 💠 ENTERPRISE: Column Menu (Table View Only) */}
           {viewMode === 'list' && (
@@ -737,7 +737,7 @@ const Products: React.FC = () => {
       {selectedProducts.size > 0 && (
         <FluentCard depth="depth-8" className="p-4 bg-primary/5 border-primary/20">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4">
               <FluentBadge appearance="info" size="medium">
                 {selectedProducts.size} seçili
               </FluentBadge>
@@ -868,8 +868,8 @@ const Products: React.FC = () => {
                     <span className="text-sm text-foreground">{cat.name}</span>
                   </label>
                 ))}
-              </div>
             </div>
+          </div>
 
             {/* Stock Status Filter */}
         <div>
@@ -1165,7 +1165,7 @@ const Products: React.FC = () => {
                               <Barcode className="w-4 h-4 text-foreground-secondary" />
                               <span className="fluent-body-small font-mono text-foreground">
                                 {product.barcode}
-                              </span>
+                      </span>
                             </div>
                           </td>
                         )}
@@ -1228,16 +1228,16 @@ const Products: React.FC = () => {
                                 className="p-1.5 hover:bg-background rounded transition-colors text-foreground-secondary hover:text-primary"
                                 title="Düzenle"
                               >
-                                <Edit className="w-4 h-4" />
+                          <Edit className="w-4 h-4" />
                               </button>
                               <button
-                                onClick={() => handleDelete(product.id)}
+                          onClick={() => handleDelete(product.id)}
                                 className="p-1.5 hover:bg-destructive/10 rounded transition-colors text-foreground-secondary hover:text-destructive"
                                 title="Sil"
-                              >
+                        >
                                 <Trash2 className="w-4 h-4" />
                               </button>
-                            </div>
+                      </div>
                           </td>
                         )}
                       </tr>
