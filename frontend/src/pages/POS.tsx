@@ -325,9 +325,9 @@ const POS: React.FC = () => {
   const total = subtotal;
 
   return (
-    <div className="h-full flex flex-col gap-4 p-4">
+    <div className="h-full flex flex-col gap-4 p-4 overflow-auto">
       {/* 💠 ENTERPRISE: Multi-Channel Tabs */}
-      <FluentCard depth="depth-4" className="p-2">
+      <FluentCard depth="depth-4" className="p-2 shrink-0">
         <div className="flex items-center gap-2 overflow-x-auto">
           {channels.map((channel) => (
             <div key={channel.id} className="flex items-center gap-1 shrink-0">
