@@ -125,6 +125,7 @@ export const createSale = async (req: AuthRequest, res: Response) => {
       taxAmount,
       total,
       splitPayment,
+      discountAmount,
     } = req.body;
 
     if (!items || items.length === 0) {
@@ -151,6 +152,7 @@ export const createSale = async (req: AuthRequest, res: Response) => {
           customerId: customerId || null,
           userId: req.userId!,
           subtotal,
+          discountAmount: discountAmount || 0,
           taxAmount,
           total,
           paymentMethod: paymentMethod || 'CASH',

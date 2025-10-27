@@ -993,6 +993,7 @@ const POS: React.FC = () => {
         })),
         paymentMethod: paymentMethod === 'SPLIT' ? 'CASH' : paymentMethod,
         subtotal,
+        discountAmount,
         taxAmount,
         total: subtotal,
         splitPayment: paymentMethod === 'SPLIT' ? splitPayment : undefined,
@@ -1050,6 +1051,7 @@ const POS: React.FC = () => {
       })),
       paymentMethod: 'CASH',
         subtotal,
+        discountAmount,
         taxAmount,
         total: subtotal,
       };
@@ -1286,8 +1288,8 @@ const POS: React.FC = () => {
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {frequentProducts.map((product) => (
-                  <button
-                    key={product.id}
+                <button
+                  key={product.id}
                     onClick={() => addToCart(product)}
                     className="p-2 bg-background-alt hover:bg-primary/10 hover:border-primary border-2 border-transparent rounded transition-all text-left"
                   >
@@ -1296,10 +1298,10 @@ const POS: React.FC = () => {
                     </p>
                     <p className="fluent-caption text-primary font-bold">
                       ₺{product.sellPrice.toFixed(2)}
-                    </p>
-                  </button>
-                ))}
-              </div>
+                  </p>
+                </button>
+              ))}
+            </div>
             </FluentCard>
           )}
 
@@ -1519,7 +1521,7 @@ const POS: React.FC = () => {
                     <div className="flex items-center gap-1">
                       {/* 💠 ENTERPRISE: Price Override Button (Admin Only) */}
                       {(user?.role === 'ADMIN' || user?.role === 'MANAGER') && (
-                        <button
+                    <button
                           onClick={() => openPriceOverride(item)}
                           className="w-6 h-6 flex items-center justify-center text-warning hover:bg-warning/10 rounded"
                           title="Fiyat değiştir (Admin)"
