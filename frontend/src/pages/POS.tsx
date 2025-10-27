@@ -29,6 +29,8 @@ interface Customer {
   id: string;
   name: string;
   debt: number;
+  phone?: string;
+  email?: string;
 }
 
 // 💠 ENTERPRISE: Multi-Channel Tab Interface
@@ -66,6 +68,14 @@ const POS: React.FC = () => {
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  
+  // 💠 ENTERPRISE: Customer Search
+  const [customerSearchQuery, setCustomerSearchQuery] = useState('');
+  
+  // 💠 ENTERPRISE: Simple Calculator States
+  const [calculatorPaid, setCalculatorPaid] = useState<string>('');
+  const [calculatorTotal, setCalculatorTotal] = useState<string>('');
+  const [calculatorChange, setCalculatorChange] = useState<number>(0);
   
   // 💠 ENTERPRISE: Payment States
   const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'CARD' | 'CREDIT' | 'SPLIT'>('CASH');
@@ -322,7 +332,16 @@ const POS: React.FC = () => {
   const selectCustomer = (customer: Customer) => {
     updateChannel(activeChannelId, { customer });
     setShowCustomerDialog(false);
+    setCustomerSearchQuery('');
     toast.success(`Müşteri: ${customer.name}`);
+  };
+
+  // 💠 ENTERPRISE: Calculator
+  const updateCalculator = (paid: string, total: string) => {
+    const paidAmount = parseFloat(paid) || 0;
+    const totalAmount = parseFloat(total) || 0;
+    const change = paidAmount - totalAmount;
+    setCalculatorChange(change);
   };
 
   const startCamera = () => {
@@ -507,22 +526,15 @@ const POS: React.FC = () => {
         </div>
 
         {/* 💠 Compact Customer Selection */}
-        <div className="flex items-center justify-between px-2 py-1.5 bg-background-alt rounded">
-          <div className="flex items-center gap-2">
-            <User className="w-4 h-4 text-foreground-secondary" />
-            <span className="fluent-body-small text-foreground">
-              {activeChannel.customer ? activeChannel.customer.name : 'Müşteri Seçilmedi'}
-            </span>
-          </div>
-          <FluentButton
-            appearance="subtle"
-            size="small"
-            onClick={() => setShowCustomerDialog(true)}
-            className="!h-7 !px-3"
-          >
-            {activeChannel.customer ? 'Değiştir' : 'Seç'}
-          </FluentButton>
-        </div>
+        <button
+          onClick={() => setShowCustomerDialog(true)}
+          className="flex items-center gap-2 px-2 py-1.5 bg-background-alt hover:bg-background-tertiary rounded transition-colors w-full text-left"
+        >
+          <User className="w-4 h-4 text-primary" />
+          <span className="fluent-body-small text-foreground">
+            {activeChannel.customer ? activeChannel.customer.name : 'Müşteri Seçilmedi'}
+          </span>
+        </button>
       </FluentCard>
 
       <div className="flex-1 flex flex-col md:flex-row gap-4 min-h-0">
@@ -700,6 +712,53 @@ const POS: React.FC = () => {
                   <span>Toplam</span>
                   <span>₺{total.toFixed(2)}</span>
                 </div>
+
+                {/* 💠 ENTERPRISE: Quick Calculator */}
+                <div className="mt-3 p-3 bg-background-alt rounded border border-border space-y-2">
+                  <p className="fluent-caption font-medium text-foreground-secondary mb-2">Hızlı Hesaplama</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="fluent-caption text-foreground-secondary block mb-1">Ödenen</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={calculatorPaid}
+                        onChange={(e) => {
+                          setCalculatorPaid(e.target.value);
+                          updateCalculator(e.target.value, calculatorTotal);
+                        }}
+                        className="w-full px-2 py-1.5 bg-card border border-border rounded fluent-body-small text-foreground text-center"
+                        placeholder="0"
+                      />
+                    </div>
+                    <div>
+                      <label className="fluent-caption text-foreground-secondary block mb-1">Tutar</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={calculatorTotal}
+                        onChange={(e) => {
+                          setCalculatorTotal(e.target.value);
+                          updateCalculator(calculatorPaid, e.target.value);
+                        }}
+                        className="w-full px-2 py-1.5 bg-card border border-border rounded fluent-body-small text-foreground text-center"
+                        placeholder="0"
+                      />
+                    </div>
+                    <div>
+                      <label className="fluent-caption text-foreground-secondary block mb-1">Para Üstü</label>
+                      <div className={cn(
+                        "w-full px-2 py-1.5 bg-card border-2 rounded fluent-body-small font-semibold text-center",
+                        calculatorChange > 0 ? "border-success text-success" : 
+                        calculatorChange < 0 ? "border-destructive text-destructive" : 
+                        "border-border text-foreground-secondary"
+                      )}>
+                        {calculatorChange.toFixed(2)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <FluentButton
                   appearance="primary"
                   size="large"
@@ -715,27 +774,73 @@ const POS: React.FC = () => {
         </div>
             </div>
 
-      {/* Customer Selection Dialog */}
+      {/* 💠 ENTERPRISE: Customer Selection Dialog with Search */}
       <FluentDialog
         open={showCustomerDialog}
-        onClose={() => setShowCustomerDialog(false)}
+        onClose={() => {
+          setShowCustomerDialog(false);
+          setCustomerSearchQuery('');
+        }}
         title="Müşteri Seç"
         size="medium"
       >
-        <div className="space-y-2 max-h-96 overflow-y-auto">
-          {customers.map((customer) => (
+        <div className="space-y-3">
+          {/* Search Input */}
+          <FluentInput
+            value={customerSearchQuery}
+            onChange={(e) => setCustomerSearchQuery(e.target.value)}
+            placeholder="Müşteri ara... (isim, telefon)"
+            icon={<Search className="w-4 h-4" />}
+            className="w-full"
+          />
+
+          {/* Customer List */}
+          <div className="space-y-2 max-h-96 overflow-y-auto fluent-scrollbar">
+            {customers
+              .filter((customer) => {
+                if (!customerSearchQuery) return true;
+                const query = customerSearchQuery.toLowerCase();
+                return (
+                  customer.name.toLowerCase().includes(query) ||
+                  customer.phone?.toLowerCase().includes(query) ||
+                  customer.email?.toLowerCase().includes(query)
+                );
+              })
+              .map((customer) => (
                 <button
-              key={customer.id}
-              onClick={() => selectCustomer(customer)}
-              className="w-full p-3 text-left border border-border rounded hover:bg-background-alt transition-colors"
-            >
-              <p className="fluent-body font-medium text-foreground">{customer.name}</p>
-              <p className="fluent-caption text-foreground-secondary">
-                Borç: ₺{(customer.debt || 0).toFixed(2)}
-                  </p>
+                  key={customer.id}
+                  onClick={() => selectCustomer(customer)}
+                  className="w-full p-3 text-left border border-border rounded hover:bg-background-alt hover:border-primary transition-all"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="fluent-body font-medium text-foreground">{customer.name}</p>
+                      <p className="fluent-caption text-foreground-secondary">
+                        {customer.phone && `${customer.phone} • `}
+                        Borç: ₺{(customer.debt || 0).toFixed(2)}
+                      </p>
+                    </div>
+                    <User className="w-5 h-5 text-foreground-secondary" />
+                  </div>
                 </button>
               ))}
-            </div>
+            
+            {customers.filter((customer) => {
+              if (!customerSearchQuery) return true;
+              const query = customerSearchQuery.toLowerCase();
+              return (
+                customer.name.toLowerCase().includes(query) ||
+                customer.phone?.toLowerCase().includes(query) ||
+                customer.email?.toLowerCase().includes(query)
+              );
+            }).length === 0 && (
+              <div className="text-center py-8 text-foreground-secondary">
+                <User className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                <p className="fluent-body">Müşteri bulunamadı</p>
+              </div>
+            )}
+          </div>
+        </div>
       </FluentDialog>
 
       {/* Payment Dialog */}
