@@ -618,7 +618,7 @@ const POS: React.FC = () => {
         {/* 💠 Compact Customer Selection */}
         <button
           onClick={() => setShowCustomerDialog(true)}
-          className="flex items-center gap-2 px-2 py-1.5 bg-background-alt hover:bg-background-tertiary rounded transition-colors w-full text-left"
+          className="flex items-center gap-2 px-3 py-1.5 bg-background-alt hover:bg-background-tertiary rounded transition-colors"
         >
           <User className="w-4 h-4 text-primary" />
           <span className="fluent-body-small text-foreground">
