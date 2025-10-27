@@ -35,7 +35,7 @@ const BottomNav: React.FC = () => {
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-background-alt border-t border-border mobile-safe-bottom">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-background-alt border-t border-border mobile-safe-bottom fluent-depth-16">
       <div className="flex items-center justify-around h-16">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -46,23 +46,26 @@ const BottomNav: React.FC = () => {
               key={item.path}
               to={item.path}
               className={cn(
-                'flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors relative',
+                'flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all fluent-motion-fast relative',
                 isActive
                   ? 'text-primary'
-                  : 'text-foreground-secondary hover:text-foreground'
+                  : 'text-foreground-secondary hover:text-foreground active:bg-background-tertiary'
               )}
             >
-              {/* Active indicator */}
+              {/* 💠 Fluent Active Indicator (Top Accent) */}
               {isActive && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-primary rounded-b" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-12 h-1 bg-primary" />
               )}
 
-              <Icon className={cn('w-5 h-5', isActive && 'scale-110')} strokeWidth={2} />
+              <Icon 
+                className={cn('w-5 h-5 transition-transform fluent-motion-fast', isActive && 'scale-110')} 
+                strokeWidth={isActive ? 2.5 : 2} 
+              />
               <span className="fluent-caption font-medium">{item.label}</span>
 
-              {/* Badge */}
+              {/* 💠 Fluent Badge */}
               {item.badge !== undefined && item.badge > 0 && (
-                <div className="absolute top-1 right-1/4 w-4 h-4 bg-destructive text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                <div className="absolute top-1 right-1/4 min-w-[16px] h-4 px-1 bg-destructive text-white text-[10px] font-bold rounded flex items-center justify-center">
                   {item.badge > 9 ? '9+' : item.badge}
                 </div>
               )}
