@@ -16,7 +16,7 @@ import ZReportDialog from '../components/POS/ZReportDialog';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import Quagga from '@ericblade/quagga2';
+import { BrowserMultiFormatReader, NotFoundException, BarcodeFormat } from '@zxing/browser';
 import { cn } from '../lib/utils';
 import { useKeyboardShortcuts, POSShortcuts } from '../hooks/useKeyboardShortcuts';
 import { soundEffects } from '../lib/sound-effects';
@@ -146,8 +146,8 @@ const POS: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [lastReceipt, setLastReceipt] = useState<any>(null);
   
-  const videoContainerRef = useRef<HTMLDivElement | null>(null);
-  const isQuaggaInitialized = useRef(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const scannerRef = useRef<BrowserMultiFormatReader | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<number | null>(null);
@@ -965,137 +965,60 @@ const POS: React.FC = () => {
   // 🔥 QUAGGA BARCODE SCANNER - Best for EAN-13!
   const startCamera = async () => {
     try {
-      console.log('🎬 Starting Quagga scanner...');
+      console.log('🎬 Starting ZXing scanner (Google Barcode Library)...');
       console.log('📱 User Agent:', navigator.userAgent);
       console.log('🔒 HTTPS:', window.isSecureContext);
       
       setIsScanning(true);
       
-      const container = videoContainerRef.current;
+      const video = videoRef.current;
       
-      if (!container) {
-        throw new Error('Video container bulunamadı!');
+      if (!video) {
+        throw new Error('Video element bulunamadı!');
       }
 
-      // Stop if already initialized
-      if (isQuaggaInitialized.current) {
-        Quagga.stop();
-        isQuaggaInitialized.current = false;
-      }
+      // ⚡ ZXING SCANNER - Google's Official Barcode Library
+      const codeReader = new BrowserMultiFormatReader();
+      scannerRef.current = codeReader;
 
-      // 🎯 QUAGGA ULTRA SIMPLE CONFIG - Manual ROI for Mobile
-      Quagga.init(
-        {
-          inputStream: {
-            type: 'LiveStream',
-            target: container,
-            constraints: {
-              width: 640,  // Fixed resolution for consistency
-              height: 480,
-              facingMode: 'environment',
-            },
-            area: { // ⚡ ONLY SCAN CENTER AREA (matching the green box)
-              top: '25%',
-              right: '25%',
-              left: '25%',
-              bottom: '25%',
-            },
-          },
-          decoder: {
-            readers: ['ean_reader'], // ONLY EAN
-            debug: {
-              drawBoundingBox: true,
-              showFrequency: true,
-              drawScanline: true,
-              showPattern: true,
-            },
-          },
-          locate: false, // ⚡ DISABLE AUTO-LOCATE (manual ROI faster!)
-          numOfWorkers: 0,
-          frequency: 5, // ⚡ Even slower for mobile (5fps)
-        },
-        (err) => {
-          if (err) {
-            console.error('❌ Quagga init error:', err);
-            throw new Error('Kamera başlatılamadı: ' + err.message);
+      console.log('📱 ZXing initialized! Starting continuous scan...');
+      
+      // ⚡ CONTINUOUS SCAN with decodeFromVideoDevice
+      codeReader.decodeFromVideoDevice(
+        undefined, // undefined = use default camera (back camera on mobile)
+        video,
+        (result, error) => {
+          if (result) {
+            const barcode = result.getText();
+            console.log('📦 ✅ BARCODE SCANNED:', barcode);
+            
+            // Vibrate
+            if (navigator.vibrate) {
+              navigator.vibrate([200, 100, 200]);
+            }
+            
+            // Show toast
+            toast.success(`⚡ ${barcode}`, { duration: 2000 });
+            soundEffects.cashRegister();
+            
+            // Handle scan
+            handleCameraScan(barcode);
+            
+            // Stop after successful scan
+            stopCamera();
+            setShowCameraModal(false);
           }
           
-          console.log('✅ Quagga initialized successfully!');
-          
-          // 🎯 PROCESSED EVENT - Log every second (5 frames @ 5fps)
-          let processedCount = 0;
-          Quagga.onProcessed((result) => {
-            processedCount++;
-            if (processedCount % 5 === 0) { // Log every 5 frames (1 second @ 5fps)
-              console.log('📱 Processed', processedCount, 'frames (5fps, center ROI only)');
-            }
-            
-            // ALWAYS log if ANY box is detected
-            if (result && result.boxes && result.boxes.length > 0) {
-              console.log('🟢 BARCODE BOX DETECTED!', result.boxes.length, 'boxes');
-            }
-            
-            // Log line detection
-            if (result && result.line) {
-              console.log('📏 LINE DETECTED at angle:', result.line);
-            }
-          });
-          
-          // ⚡⚡⚡ INSTANT READ - Accept ANY barcode immediately
-          let lastAcceptedBarcode = '';
-          let lastAcceptedTime = 0;
-          
-          Quagga.onDetected((result) => {
-            if (result.codeResult && result.codeResult.code) {
-              const barcode = result.codeResult.code;
-              const now = Date.now();
-              
-              // ⚡ Prevent duplicate reads within 2 seconds
-              if (barcode === lastAcceptedBarcode && now - lastAcceptedTime < 2000) {
-                return;
-              }
-              
-              const confidence = result.codeResult.decodedCodes
-                .reduce((sum:number, code:any) => sum + (code.error || 0), 0) / result.codeResult.decodedCodes.length;
-              
-              console.log('📦 Barcode detected:', barcode, 'Confidence:', confidence.toFixed(3));
-              
-              // ⚡⚡⚡ INSTANT ACCEPT - NO THRESHOLD!
-              // Accept ANY barcode that Quagga can read
-              console.log('✅ INSTANT ACCEPTED:', barcode, 'Confidence:', confidence.toFixed(3));
-              
-              lastAcceptedBarcode = barcode;
-              lastAcceptedTime = now;
-              
-              // Vibrate
-              if (navigator.vibrate) {
-                navigator.vibrate([200, 100, 200]);
-              }
-              
-              // Show toast
-              toast.success(`⚡ ${barcode}`, { duration: 2000 });
-              
-              // Handle scan
-              handleCameraScan(barcode);
-              
-              // Stop after successful scan
-              setTimeout(() => {
-                stopCamera();
-                setShowCameraModal(false);
-              }, 500);
-            }
-          });
-          
-          // Start scanning
-          Quagga.start();
-          isQuaggaInitialized.current = true;
-          
-          console.log('📱 ULTRA SIMPLE MODE - 5fps, Center ROI only, NO auto-locate');
-          console.log('💡 TIP: Barkodu yeşil karenin ORTASINA getirin!');
-          console.log('💡 Okumazsa "Manuel Barkod Gir" butonunu kullanın!');
-          soundEffects.beep();
+          // Silent error handling (normal during continuous scan)
+          if (error && !(error instanceof NotFoundException)) {
+            console.error('ZXing scan error:', error);
+          }
         }
       );
+      
+      console.log('⚡ ZXing SCANNING! Point at barcode...');
+      soundEffects.beep();
+      
     } catch (error: any) {
       console.error('🔴 Camera error:', error);
       console.error('📋 Error details:', {
@@ -1142,9 +1065,6 @@ const POS: React.FC = () => {
         }, 500);
       }
       
-      // 📱 MOBILE DEBUG: Show full error on screen
-      alert(`❌ KAMERA HATASI:\n\n${errorMsg}\n\n${errorDetail}\n\nDetay:\nHata: ${error.name}\nMesaj: ${error.message}\nHTTPS: ${window.isSecureContext ? 'Evet' : 'Hayır'}`);
-      
       soundEffects.error();
       setIsScanning(false);
       setShowCameraModal(false);
@@ -1153,14 +1073,12 @@ const POS: React.FC = () => {
 
   const stopCamera = async () => {
     try {
-      console.log('🛑 Stopping Quagga scanner...');
+      console.log('🛑 Stopping ZXing scanner...');
       
-      // Stop Quagga
-      if (isQuaggaInitialized.current) {
-        Quagga.offProcessed(); // Remove processed event listener
-        Quagga.offDetected();  // Remove detected event listener
-        Quagga.stop();
-        isQuaggaInitialized.current = false;
+      // Stop ZXing
+      if (scannerRef.current) {
+        scannerRef.current.reset();
+        scannerRef.current = null;
       }
       
       setIsScanning(false);
@@ -2286,11 +2204,13 @@ const POS: React.FC = () => {
           <X className="w-7 h-7 text-white" />
         </button>
 
-        {/* Quagga Video Container */}
-        <div
-          ref={videoContainerRef}
-          id="quagga-video-container"
-          className="w-full h-full flex items-center justify-center"
+        {/* ZXing Video Element */}
+        <video
+          ref={videoRef}
+          className="w-full h-full object-cover"
+          autoPlay
+          playsInline
+          muted
         />
         
         {/* Clean Target Frame */}
