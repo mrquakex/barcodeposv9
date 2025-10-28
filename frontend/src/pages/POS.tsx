@@ -149,6 +149,8 @@ const POS: React.FC = () => {
   
   const scannerRef = useRef<BrowserMultiFormatReader | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<number | null>(null);
@@ -958,59 +960,44 @@ const POS: React.FC = () => {
     setCalculatorChange(change);
   };
 
-  // 🚀 ULTRA POWER MODE - Maximum Performance Barcode Scanner
+  // 🚀 EXTREME POWER MODE - Canvas-Based Aggressive Scanning
   const startCamera = async () => {
     try {
-      // Set scanning state first to render video element
       setIsScanning(true);
-      
-      // Wait for video element to be in DOM
       await new Promise(resolve => setTimeout(resolve, 150));
       
-      // 🎯 ULTRA HINTS - Maximum detection power
+      const videoElement = videoRef.current;
+      const canvasElement = canvasRef.current;
+      
+      if (!videoElement || !canvasElement) {
+        throw new Error('📷 Video/Canvas element bulunamadı!');
+      }
+
+      // 🎯 Create ZXing reader with EXTREME hints
       const hints = new Map();
-      
-      // 💪 TRY_HARDER: Maximum effort for difficult barcodes
       hints.set(DecodeHintType.TRY_HARDER, true);
-      
-      // 📐 ALL FORMATS: Support every barcode type
       hints.set(DecodeHintType.POSSIBLE_FORMATS, [
-        BarcodeFormat.EAN_13,
-        BarcodeFormat.EAN_8,
-        BarcodeFormat.UPC_A,
-        BarcodeFormat.UPC_E,
-        BarcodeFormat.CODE_128,
-        BarcodeFormat.CODE_39,
-        BarcodeFormat.CODE_93,
-        BarcodeFormat.ITF,
-        BarcodeFormat.CODABAR,
-        BarcodeFormat.QR_CODE,
-        BarcodeFormat.DATA_MATRIX,
-        BarcodeFormat.AZTEC,
+        BarcodeFormat.EAN_13, BarcodeFormat.EAN_8, BarcodeFormat.UPC_A, BarcodeFormat.UPC_E,
+        BarcodeFormat.CODE_128, BarcodeFormat.CODE_39, BarcodeFormat.CODE_93,
+        BarcodeFormat.ITF, BarcodeFormat.CODABAR, BarcodeFormat.QR_CODE,
+        BarcodeFormat.DATA_MATRIX, BarcodeFormat.AZTEC,
       ]);
-      
-      // 🔍 Character set
       hints.set(DecodeHintType.CHARACTER_SET, 'UTF-8');
       
       const codeReader = new BrowserMultiFormatReader(hints);
       scannerRef.current = codeReader;
 
-      // Get video element
-      const videoElement = videoRef.current;
-      if (!videoElement) {
-        throw new Error('📷 Video element bulunamadı!');
-      }
-
-      // 📹 Get video devices
-      const videoInputDevices = await BrowserMultiFormatReader.listVideoInputDevices();
+      // 📹 Get cameras
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(device => device.kind === 'videoinput');
       
-      if (!videoInputDevices || videoInputDevices.length === 0) {
+      if (videoDevices.length === 0) {
         throw new Error('📷 Kamera bulunamadı!');
       }
 
-      // 🎥 Select back camera (environment)
-      let selectedDeviceId = videoInputDevices[0].deviceId;
-      const backCamera = videoInputDevices.find(device => 
+      // 🎥 Select back camera
+      let selectedDeviceId = videoDevices[0].deviceId;
+      const backCamera = videoDevices.find(device => 
         device.label.toLowerCase().includes('back') ||
         device.label.toLowerCase().includes('rear') ||
         device.label.toLowerCase().includes('environment') ||
@@ -1020,56 +1007,117 @@ const POS: React.FC = () => {
         selectedDeviceId = backCamera.deviceId;
       }
 
-      // 🎬 HIGH QUALITY video constraints for ZXing
-      const constraints = {
+      // 🎬 OPTIMIZED constraints for clear video + fast scanning
+      const constraints: MediaStreamConstraints = {
         video: {
-          deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined,
-          width: { ideal: 1920 },      // Full HD width
-          height: { ideal: 1080 },     // Full HD height
-          frameRate: { ideal: 60, min: 30 },    // 60 FPS for fast capture
-          focusMode: 'continuous-video',  // Auto-focus
+          deviceId: { exact: selectedDeviceId },
+          width: { ideal: 1280, min: 640 },
+          height: { ideal: 720, min: 480 },
+          frameRate: { ideal: 30 },
+          facingMode: { ideal: 'environment' },
         }
       };
 
-      // ⚡ Start ZXing scanning with high quality constraints
-      await codeReader.decodeFromVideoDevice(
-        selectedDeviceId,
-        videoElement,
-        async (result, error) => {
+      // Start video stream
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      videoElement.srcObject = stream;
+      
+      await new Promise((resolve) => {
+        videoElement.onloadedmetadata = () => {
+          videoElement.play();
+          resolve(true);
+        };
+      });
+
+      // Setup canvas
+      const ctx = canvasElement.getContext('2d', { willReadFrequently: true });
+      if (!ctx) {
+        throw new Error('Canvas context bulunamadı!');
+      }
+
+      // 💡 Try auto-torch
+      const track = stream.getVideoTracks()[0];
+      const capabilities = track.getCapabilities() as any;
+      if (capabilities.torch) {
+        try {
+          await track.applyConstraints({ advanced: [{ torch: true } as any] });
+        } catch (e) {
+          console.log('Torch unavailable');
+        }
+      }
+
+      let isScanning = false;
+      let lastScanTime = 0;
+
+      // ⚡ AGGRESSIVE SCANNING LOOP - 20 times per second
+      const scanFrame = async () => {
+        if (!scannerRef.current || !videoRef.current) {
+          return;
+        }
+
+        const now = Date.now();
+        if (isScanning || (now - lastScanTime < 50)) {
+          animationFrameRef.current = requestAnimationFrame(scanFrame);
+          return;
+        }
+
+        try {
+          isScanning = true;
+          lastScanTime = now;
+
+          // Draw video frame to canvas with sharpening
+          canvasElement.width = videoElement.videoWidth;
+          canvasElement.height = videoElement.videoHeight;
+          
+          ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+          
+          // 🔍 Get image data and enhance
+          const imageData = ctx.getImageData(0, 0, canvasElement.width, canvasElement.height);
+          
+          // Sharpen & increase contrast
+          const data = imageData.data;
+          for (let i = 0; i < data.length; i += 4) {
+            // Increase contrast
+            const factor = 1.3;
+            data[i] = Math.min(255, (data[i] - 128) * factor + 128);     // R
+            data[i + 1] = Math.min(255, (data[i + 1] - 128) * factor + 128); // G
+            data[i + 2] = Math.min(255, (data[i + 2] - 128) * factor + 128); // B
+          }
+          
+          ctx.putImageData(imageData, 0, 0);
+
+          // Decode from enhanced canvas
+          const result = await codeReader.decodeFromCanvas(canvasElement);
+          
           if (result) {
             const barcode = result.getText();
-            console.log('🎯 Barkod okundu:', barcode);
+            console.log('🎯 BARKOD BULUNDU:', barcode);
             
-            // 📳 Strong vibration
+            // Stop scanning loop
+            if (animationFrameRef.current) {
+              cancelAnimationFrame(animationFrameRef.current);
+            }
+            
+            // 📳 ULTRA vibration
             if (navigator.vibrate) {
-              navigator.vibrate([100, 50, 100, 50, 100]);
+              navigator.vibrate([200, 100, 200, 100, 200]);
             }
             
             await handleCameraScan(barcode);
+            return;
           }
-          // Continue scanning on error - library handles retry automatically
+        } catch (error) {
+          // Continue scanning
+        } finally {
+          isScanning = false;
         }
-      );
 
-      // 💡 Try to enable torch in dark environments (after stream starts)
-      setTimeout(async () => {
-        if (videoElement.srcObject) {
-          const stream = videoElement.srcObject as MediaStream;
-          const track = stream.getVideoTracks()[0];
-          const capabilities = track.getCapabilities() as any;
-          
-          if (capabilities.torch) {
-            try {
-              await track.applyConstraints({
-                advanced: [{ torch: true } as any]
-              });
-            } catch (e) {
-              console.log('Torch not available');
-            }
-          }
-        }
-      }, 500);
+        animationFrameRef.current = requestAnimationFrame(scanFrame);
+      };
 
+      // Start the scanning loop
+      animationFrameRef.current = requestAnimationFrame(scanFrame);
+      
       soundEffects.beep();
     } catch (error: any) {
       console.error('Camera error:', error);
@@ -1095,14 +1143,20 @@ const POS: React.FC = () => {
 
   const stopCamera = async () => {
     try {
-      // Stop video stream first
+      // Stop animation loop
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+
+      // Stop video stream
       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
         videoRef.current.srcObject = null;
       }
       
-      // Clear scanner reference
+      // Clear scanner
       if (scannerRef.current) {
         scannerRef.current = null;
       }
@@ -2220,7 +2274,7 @@ const POS: React.FC = () => {
       {/* 📸 FULLSCREEN CAMERA MODAL */}
       {showCameraModal && (
         <div className="fixed inset-0 z-[9999] bg-black">
-          {/* Close Button Only - Top Right */}
+          {/* Close Button */}
           <button
             onClick={async () => {
               await stopCamera();
@@ -2231,32 +2285,40 @@ const POS: React.FC = () => {
             <X className="w-7 h-7 text-white" />
           </button>
 
-          {/* Full Screen Video */}
+          {/* Video - SHARP & CLEAR */}
           <video
             ref={videoRef}
-            id="zxing-video-fullscreen"
-            className="w-full h-full object-cover"
+            id="zxing-video-extreme"
+            className="w-full h-full object-contain"
+            style={{
+              imageRendering: 'crisp-edges',
+              filter: 'brightness(1.1) contrast(1.2)',
+            }}
             autoPlay
             playsInline
             muted
           />
+
+          {/* Hidden Canvas for Processing */}
+          <canvas
+            ref={canvasRef}
+            className="hidden"
+          />
           
-          {/* Minimal Visual Target - No Text */}
+          {/* Clean Target Frame */}
           <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-            {/* Semi-dark overlay */}
-            <div className="absolute inset-0 bg-black/40"></div>
+            <div className="absolute inset-0 bg-black/35"></div>
             
-            {/* Target Frame - Clean & Modern */}
             <div className="relative w-80 h-80 border-[5px] border-white/90 rounded-[2rem] shadow-2xl">
-              {/* Corner Highlights */}
-              <div className="absolute -top-3 -left-3 w-20 h-20 border-t-[7px] border-l-[7px] border-primary rounded-tl-[2rem] shadow-lg shadow-primary/30"></div>
-              <div className="absolute -top-3 -right-3 w-20 h-20 border-t-[7px] border-r-[7px] border-primary rounded-tr-[2rem] shadow-lg shadow-primary/30"></div>
-              <div className="absolute -bottom-3 -left-3 w-20 h-20 border-b-[7px] border-l-[7px] border-primary rounded-bl-[2rem] shadow-lg shadow-primary/30"></div>
-              <div className="absolute -bottom-3 -right-3 w-20 h-20 border-b-[7px] border-r-[7px] border-primary rounded-br-[2rem] shadow-lg shadow-primary/30"></div>
+              {/* Corners */}
+              <div className="absolute -top-3 -left-3 w-20 h-20 border-t-[7px] border-l-[7px] border-green-400 rounded-tl-[2rem] shadow-lg shadow-green-400/40"></div>
+              <div className="absolute -top-3 -right-3 w-20 h-20 border-t-[7px] border-r-[7px] border-green-400 rounded-tr-[2rem] shadow-lg shadow-green-400/40"></div>
+              <div className="absolute -bottom-3 -left-3 w-20 h-20 border-b-[7px] border-l-[7px] border-green-400 rounded-bl-[2rem] shadow-lg shadow-green-400/40"></div>
+              <div className="absolute -bottom-3 -right-3 w-20 h-20 border-b-[7px] border-r-[7px] border-green-400 rounded-br-[2rem] shadow-lg shadow-green-400/40"></div>
               
-              {/* Animated Scan Line */}
+              {/* Scan Line */}
               <div className="absolute inset-0 overflow-hidden rounded-[2rem]">
-                <div className="absolute w-full h-2 bg-gradient-to-r from-transparent via-primary to-transparent shadow-xl shadow-primary/60 animate-scan"></div>
+                <div className="absolute w-full h-2 bg-gradient-to-r from-transparent via-green-400 to-transparent shadow-xl shadow-green-400/70 animate-scan"></div>
               </div>
             </div>
           </div>
