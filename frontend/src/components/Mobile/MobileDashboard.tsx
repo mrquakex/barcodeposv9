@@ -4,18 +4,29 @@ import {
   ShoppingCart, Package, PlusCircle, Users, Building2, FileText,
   BarChart3, TrendingUp, PackageSearch, ClipboardList, DollarSign, 
   Receipt, UserCog, Grid3x3, Store, Coins, Bell, User, Sun, Moon,
-  ArrowUpCircle, ArrowDownCircle
+  ArrowUpCircle, ArrowDownCircle, Activity
 } from 'lucide-react';
 import { useThemeStore } from '../../store/themeStore';
 import { useAuthStore } from '../../store/authStore';
 import { soundEffects } from '../../lib/sound-effects';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { Capacitor } from '@capacitor/core';
+import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
+import { api } from '../../lib/api';
+import toast from 'react-hot-toast';
 
 interface MenuButton {
   icon: React.ElementType;
   title: string;
   path: string;
+  badge?: string;
+}
+
+interface DashboardStats {
+  todaySales: number;
+  todayTransactions: number;
+  totalProducts: number;
+  lowStockCount: number;
 }
 
 const MobileDashboard: React.FC = () => {
@@ -23,13 +34,101 @@ const MobileDashboard: React.FC = () => {
   const { theme, toggleTheme } = useThemeStore();
   const { user } = useAuthStore();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [stats, setStats] = useState<DashboardStats>({
+    todaySales: 0,
+    todayTransactions: 0,
+    totalProducts: 0,
+    lowStockCount: 0
+  });
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
 
+  // ⏰ Clock Timer
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
     return () => clearInterval(timer);
   }, []);
+
+  // 📸 Request Camera Permission on App Start (Native Only)
+  useEffect(() => {
+    const requestCameraPermission = async () => {
+      if (!Capacitor.isNativePlatform()) return;
+
+      try {
+        console.log('🔍 Checking camera permissions...');
+        const permissionStatus = await BarcodeScanner.checkPermissions();
+        console.log('📋 Permission status:', permissionStatus);
+
+        if (permissionStatus.camera !== 'granted') {
+          console.log('❓ Requesting camera permission...');
+          const result = await BarcodeScanner.requestPermissions();
+          console.log('✅ Permission result:', result);
+
+          if (result.camera === 'granted') {
+            toast.success('📸 Kamera izni verildi!', { duration: 2000 });
+          } else {
+            toast('⚠️ Kamera izni reddedildi. Barkod okutma çalışmayacak.', { 
+              icon: '⚠️',
+              duration: 3000 
+            });
+          }
+        } else {
+          console.log('✅ Camera permission already granted');
+        }
+      } catch (error) {
+        console.error('❌ Permission request error:', error);
+      }
+    };
+
+    requestCameraPermission();
+  }, []);
+
+  // 📊 Load Dashboard Stats
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    try {
+      setIsLoadingStats(true);
+      
+      // Load products count
+      const productsRes = await api.get('/products');
+      const products = productsRes.data.products || [];
+      const lowStock = products.filter((p: any) => p.stock < (p.minStock || 10));
+      
+      // Load today's sales
+      const today = new Date().toISOString().split('T')[0];
+      let todaySales = 0;
+      let todayTransactions = 0;
+      
+      try {
+        const salesRes = await api.get(`/sales?date=${today}`);
+        const sales = salesRes.data.sales || [];
+        todaySales = sales.reduce((sum: number, sale: any) => sum + (sale.total || 0), 0);
+        todayTransactions = sales.length;
+      } catch (error) {
+        console.log('Sales data not available');
+      }
+
+      setStats({
+        todaySales,
+        todayTransactions,
+        totalProducts: products.length,
+        lowStockCount: lowStock.length
+      });
+    } catch (error) {
+      console.error('Failed to load stats:', error);
+      // Use cached data if available
+      const cached = localStorage.getItem('cached_stats');
+      if (cached) {
+        setStats(JSON.parse(cached));
+      }
+    } finally {
+      setIsLoadingStats(false);
+    }
+  };
 
   const getGreeting = () => {
     const hour = currentTime.getHours();
@@ -49,7 +148,7 @@ const MobileDashboard: React.FC = () => {
   // 🎨 18 CLEAN BUTTONS - Minimalist Design
   const menuButtons: MenuButton[] = [
     { icon: ShoppingCart, title: 'Satış Yap', path: '/pos' },
-    { icon: Package, title: 'Ürünler', path: '/products' },
+    { icon: Package, title: 'Ürünler', path: '/products', badge: stats.totalProducts > 0 ? stats.totalProducts.toString() : undefined },
     { icon: PlusCircle, title: 'Ürün Ekle', path: '/products/add' },
     { icon: Users, title: 'Müşteriler', path: '/customers' },
     { icon: Building2, title: 'Firmalar', path: '/suppliers' },
@@ -64,7 +163,7 @@ const MobileDashboard: React.FC = () => {
     { icon: Grid3x3, title: 'Ürün Grupları', path: '/categories' },
     { icon: Store, title: 'Şubeler', path: '/branches' },
     { icon: Coins, title: 'Döviz Kurları', path: '/exchange-rates' },
-    { icon: Bell, title: 'Bildirimler', path: '/notifications' },
+    { icon: Bell, title: 'Bildirimler', path: '/notifications', badge: stats.lowStockCount > 0 ? stats.lowStockCount.toString() : undefined },
     { icon: User, title: 'Profil', path: '/profile' },
   ];
 
@@ -105,27 +204,44 @@ const MobileDashboard: React.FC = () => {
           })}
         </div>
 
-        {/* Stats */}
-        <div className="stats-clean">
-          <div className="stat-item-clean">
-            <DollarSign className="w-4 h-4" />
-            <div>
-              <p className="stat-value-clean">₺24,850</p>
+        {/* Stats - Enhanced */}
+        <div className="stats-clean-enhanced">
+          <div className="stat-card-clean">
+            <div className="stat-icon-clean sales">
+              <DollarSign className="w-5 h-5" />
+            </div>
+            <div className="stat-content-clean">
               <p className="stat-label-clean">Bugün</p>
+              <p className="stat-value-clean">
+                {isLoadingStats ? '...' : `₺${stats.todaySales.toFixed(2)}`}
+              </p>
+              <p className="stat-detail-clean">{stats.todayTransactions} işlem</p>
             </div>
           </div>
-          <div className="stat-item-clean">
-            <ShoppingCart className="w-4 h-4" />
-            <div>
-              <p className="stat-value-clean">127</p>
-              <p className="stat-label-clean">Satış</p>
+
+          <div className="stat-card-clean">
+            <div className="stat-icon-clean products">
+              <Package className="w-5 h-5" />
             </div>
-          </div>
-          <div className="stat-item-clean">
-            <Package className="w-4 h-4" />
-            <div>
-              <p className="stat-value-clean">1,245</p>
+            <div className="stat-content-clean">
               <p className="stat-label-clean">Ürün</p>
+              <p className="stat-value-clean">
+                {isLoadingStats ? '...' : stats.totalProducts}
+              </p>
+              {stats.lowStockCount > 0 && (
+                <p className="stat-detail-clean warning">{stats.lowStockCount} düşük stok</p>
+              )}
+            </div>
+          </div>
+
+          <div className="stat-card-clean">
+            <div className="stat-icon-clean activity">
+              <Activity className="w-5 h-5" />
+            </div>
+            <div className="stat-content-clean">
+              <p className="stat-label-clean">Durum</p>
+              <p className="stat-value-clean">Aktif</p>
+              <p className="stat-detail-clean">Online</p>
             </div>
           </div>
         </div>
@@ -141,6 +257,9 @@ const MobileDashboard: React.FC = () => {
           >
             <button.icon className="w-6 h-6" />
             <p className="card-title-clean">{button.title}</p>
+            {button.badge && (
+              <span className="menu-badge-clean">{button.badge}</span>
+            )}
           </button>
         ))}
       </div>
@@ -149,3 +268,4 @@ const MobileDashboard: React.FC = () => {
 };
 
 export default MobileDashboard;
+

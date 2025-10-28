@@ -1,14 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  ArrowLeft, User, Mail, Shield, Moon, Sun, LogOut, 
-  Key, Bell, Info, HelpCircle
+  User, Mail, Phone, MapPin, Building2, Calendar,
+  Settings, LogOut, Sun, Moon, ChevronRight, Shield
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { useThemeStore } from '../../store/themeStore';
 import { soundEffects } from '../../lib/sound-effects';
-import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { Capacitor } from '@capacitor/core';
 import toast from 'react-hot-toast';
 
 const MobileProfile: React.FC = () => {
@@ -16,207 +16,137 @@ const MobileProfile: React.FC = () => {
   const { user, logout } = useAuthStore();
   const { theme, toggleTheme } = useThemeStore();
 
+  const hapticFeedback = async (style: ImpactStyle = ImpactStyle.Light) => {
+    if (Capacitor.isNativePlatform()) {
+      await Haptics.impact({ style });
+    }
+  };
+
   const handleLogout = async () => {
     if (confirm('Çıkış yapmak istediğinize emin misiniz?')) {
       soundEffects.tap();
-      await logout();
+      hapticFeedback(ImpactStyle.Medium);
+      logout();
+      toast.success('Çıkış yapıldı');
       navigate('/login');
     }
   };
 
   const menuItems = [
-    { icon: Key, label: 'Şifre Değiştir', action: () => toast('Çok yakında!', { icon: '🔑' }) },
-    { icon: Bell, label: 'Bildirim Ayarları', action: () => navigate('/notifications') },
-    { icon: Info, label: 'Hakkında', action: () => toast('BarcodePOS v2.1.0', { icon: '📱' }) },
-    { icon: HelpCircle, label: 'Yardım', action: () => toast('Destek ekibi ile iletişime geçin', { icon: '💬' }) },
+    { icon: Settings, label: 'Ayarlar', path: '/settings', badge: null },
+    { icon: Shield, label: 'Güvenlik', path: '/security', badge: null },
   ];
 
   return (
-    <div className="mobile-app-wrapper">
-      {/* Header */}
-      <div style={{
-        background: 'linear-gradient(135deg, #64748B 0%, #94A3B8 100%)',
-        padding: '16px',
-        paddingTop: 'calc(16px + env(safe-area-inset-top))',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-      }}>
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="p-2 rounded-lg bg-white/20"
-        >
-          <ArrowLeft className="w-6 h-6 text-white" />
-        </button>
-        <h1 className="text-xl font-bold text-white">Profil</h1>
+    <div className="mobile-profile-pro">
+      {/* Profile Header */}
+      <div className="profile-header-pro">
+        <div className="profile-avatar-pro">
+          <User className="avatar-icon-pro" />
+        </div>
+        <h2 className="profile-name-pro">{user?.name || 'Kullanıcı'}</h2>
+        <p className="profile-role-pro">{user?.role === 'ADMIN' ? 'Yönetici' : 'Kullanıcı'}</p>
       </div>
 
-      <div className="p-4 space-y-4">
-        {/* User Card */}
-        <div style={{
-          background: 'linear-gradient(135deg, #3F8EFC 0%, #74C0FC 100%)',
-          borderRadius: '20px',
-          padding: '24px',
-          textAlign: 'center',
-          color: 'white',
-        }}>
-          <div style={{
-            width: '80px',
-            height: '80px',
-            borderRadius: '50%',
-            background: 'rgba(255, 255, 255, 0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 16px',
-          }}>
-            <User className="w-10 h-10" />
-          </div>
-          <h2 className="text-2xl font-bold mb-1">{user?.name || 'Kullanıcı'}</h2>
-          <p className="text-sm opacity-90 mb-1">
-            <Mail className="w-4 h-4 inline mr-1" />
-            {user?.email || 'email@example.com'}
-          </p>
-          <div style={{
-            display: 'inline-block',
-            padding: '6px 12px',
-            borderRadius: '20px',
-            background: 'rgba(255, 255, 255, 0.2)',
-            fontSize: '12px',
-            fontWeight: '600',
-            marginTop: '8px',
-          }}>
-            <Shield className="w-3 h-3 inline mr-1" />
-            {user?.role === 'ADMIN' ? 'Yönetici' : user?.role === 'MANAGER' ? 'Müdür' : 'Kasiyer'}
+      {/* Profile Info Cards */}
+      <div className="profile-info-section">
+        <div className="info-card-pro">
+          <Mail className="info-icon-pro" />
+          <div className="info-content-pro">
+            <p className="info-label-pro">E-posta</p>
+            <p className="info-value-pro">{user?.email || 'Belirtilmemiş'}</p>
           </div>
         </div>
 
-        {/* Theme Toggle Card */}
-        <div style={{
-          background: theme === 'dark' ? 'rgba(44, 44, 46, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-          backdropFilter: 'blur(20px)',
-          borderRadius: '16px',
-          padding: '16px',
-          border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.06)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}>
-          <div className="flex items-center gap-3">
-            {theme === 'dark' ? (
-              <Moon className="w-5 h-5 text-blue-500" />
-            ) : (
-              <Sun className="w-5 h-5 text-orange-500" />
-            )}
-            <span className="font-medium text-foreground">
-              {theme === 'dark' ? 'Koyu Tema' : 'Açık Tema'}
-            </span>
+        <div className="info-card-pro">
+          <Phone className="info-icon-pro" />
+          <div className="info-content-pro">
+            <p className="info-label-pro">Telefon</p>
+            <p className="info-value-pro">+90 555 123 45 67</p>
           </div>
-          <button
-            onClick={() => {
-              toggleTheme();
-              soundEffects.tap();
-              if (Capacitor.isNativePlatform()) {
-                Haptics.impact({ style: ImpactStyle.Light });
-              }
-            }}
-            style={{
-              width: '52px',
-              height: '32px',
-              borderRadius: '16px',
-              background: theme === 'dark' ? '#3F8EFC' : '#E5E7EB',
-              position: 'relative',
-              transition: 'all 0.3s',
-            }}
-          >
-            <div style={{
-              width: '26px',
-              height: '26px',
-              borderRadius: '50%',
-              background: 'white',
-              position: 'absolute',
-              top: '3px',
-              left: theme === 'dark' ? '23px' : '3px',
-              transition: 'all 0.3s',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-            }} />
-          </button>
         </div>
 
-        {/* Menu Items */}
-        <div className="space-y-2">
-          {menuItems.map((item, index) => (
-            <button
-              key={index}
-              onClick={() => {
-                soundEffects.tap();
-                item.action();
-              }}
-              style={{
-                width: '100%',
-                background: theme === 'dark' ? 'rgba(44, 44, 46, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                backdropFilter: 'blur(20px)',
-                borderRadius: '12px',
-                padding: '16px',
-                border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.06)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                cursor: 'pointer',
-                transition: 'all 0.3s',
-              }}
-            >
-              <div style={{
-                width: '40px',
-                height: '40px',
-                borderRadius: '10px',
-                background: 'linear-gradient(135deg, #3F8EFC 0%, #74C0FC 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-              }}>
-                <item.icon className="w-5 h-5" />
-              </div>
-              <span className="flex-1 text-left font-medium text-foreground">{item.label}</span>
-              <span className="text-foreground-secondary">›</span>
-            </button>
-          ))}
+        <div className="info-card-pro">
+          <Building2 className="info-icon-pro" />
+          <div className="info-content-pro">
+            <p className="info-label-pro">Şube</p>
+            <p className="info-value-pro">Merkez Şube</p>
+          </div>
         </div>
 
-        {/* Logout Button */}
+        <div className="info-card-pro">
+          <Calendar className="info-icon-pro" />
+          <div className="info-content-pro">
+            <p className="info-label-pro">Kayıt Tarihi</p>
+            <p className="info-value-pro">15 Ocak 2025</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Theme Toggle */}
+      <div className="profile-section-pro">
+        <h3 className="section-title-pro">Görünüm</h3>
         <button
-          onClick={handleLogout}
-          style={{
-            width: '100%',
-            padding: '16px',
-            borderRadius: '12px',
-            background: 'linear-gradient(135deg, #EF4444 0%, #F87171 100%)',
-            color: 'white',
-            fontWeight: '600',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            border: 'none',
-            cursor: 'pointer',
-            marginTop: '24px',
+          onClick={() => {
+            toggleTheme();
+            soundEffects.tap();
+            hapticFeedback();
+            toast.success(theme === 'dark' ? '☀️ Açık Tema' : '🌙 Koyu Tema');
           }}
+          className="theme-toggle-card-pro"
         >
-          <LogOut className="w-5 h-5" />
-          Çıkış Yap
+          <div className="toggle-left-pro">
+            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            <div>
+              <p className="toggle-title-pro">
+                {theme === 'dark' ? 'Açık Tema' : 'Koyu Tema'}
+              </p>
+              <p className="toggle-subtitle-pro">
+                {theme === 'dark' ? 'Aydınlık moda geç' : 'Karanlık moda geç'}
+              </p>
+            </div>
+          </div>
+          <ChevronRight className="w-5 h-5 text-gray-400" />
         </button>
+      </div>
 
-        {/* App Info */}
-        <div className="text-center text-sm text-foreground-secondary py-4">
-          <p>BarcodePOS Mobile</p>
-          <p>Versiyon 2.1.0</p>
-          <p className="text-xs mt-2">© 2025 Tüm hakları saklıdır</p>
-        </div>
+      {/* Menu Items */}
+      <div className="profile-section-pro">
+        <h3 className="section-title-pro">Diğer</h3>
+        {menuItems.map((item, index) => (
+          <button
+            key={index}
+            onClick={() => {
+              soundEffects.tap();
+              hapticFeedback();
+              navigate(item.path);
+            }}
+            className="menu-item-card-pro"
+          >
+            <div className="toggle-left-pro">
+              <item.icon className="w-5 h-5" />
+              <span className="menu-item-label-pro">{item.label}</span>
+            </div>
+            <ChevronRight className="w-5 h-5 text-gray-400" />
+          </button>
+        ))}
+      </div>
+
+      {/* Logout Button */}
+      <div className="profile-section-pro">
+        <button onClick={handleLogout} className="logout-btn-pro">
+          <LogOut className="w-5 h-5" />
+          <span>Çıkış Yap</span>
+        </button>
+      </div>
+
+      {/* App Version */}
+      <div className="app-version-pro">
+        <p>BarcodePOS PRO</p>
+        <p>Versiyon 2.9.0</p>
       </div>
     </div>
   );
 };
 
 export default MobileProfile;
-

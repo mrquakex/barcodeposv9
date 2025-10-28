@@ -1,13 +1,15 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, Package, DollarSign, Users, Settings, ShoppingCart } from 'lucide-react';
+import { Home, ShoppingCart, Package, Bell, User } from 'lucide-react';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
-import { cn } from '../../lib/utils';
+import { Capacitor } from '@capacitor/core';
+import { soundEffects } from '../../lib/sound-effects';
 
 interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   path: string;
+  badge?: number;
 }
 
 const BottomNavigation: React.FC = () => {
@@ -16,39 +18,43 @@ const BottomNavigation: React.FC = () => {
 
   const navItems: NavItem[] = [
     { icon: Home, label: 'Ana Sayfa', path: '/dashboard' },
-    { icon: ShoppingCart, label: 'POS', path: '/pos' },
+    { icon: ShoppingCart, label: 'Satış', path: '/pos' },
     { icon: Package, label: 'Ürünler', path: '/products' },
-    { icon: Users, label: 'Müşteriler', path: '/customers' },
-    { icon: Settings, label: 'Ayarlar', path: '/settings' },
+    { icon: Bell, label: 'Bildirimler', path: '/notifications' },
+    { icon: User, label: 'Profil', path: '/profile' },
   ];
 
   const handleNavigation = async (path: string) => {
-    // Haptic feedback
-    try {
+    if (location.pathname === path) return;
+
+    soundEffects.tap();
+    if (Capacitor.isNativePlatform()) {
       await Haptics.impact({ style: ImpactStyle.Light });
-    } catch (error) {
-      // Haptics might not be available on web
     }
     navigate(path);
   };
 
   return (
-    <nav className="bottom-navigation">
+    <nav className="bottom-nav-pro">
       {navItems.map((item) => {
         const Icon = item.icon;
-        const isActive = location.pathname === item.path;
+        const isActive = location.pathname === item.path || 
+                        (item.path === '/dashboard' && location.pathname === '/');
 
         return (
           <button
             key={item.path}
             onClick={() => handleNavigation(item.path)}
-            className={cn(
-              'bottom-nav-item',
-              isActive && 'active'
-            )}
+            className={`nav-item-pro ${isActive ? 'active' : ''}`}
           >
-            <Icon className="w-6 h-6" />
-            <span className="bottom-nav-label">{item.label}</span>
+            <div className="nav-icon-wrapper">
+              <Icon className="nav-icon" />
+              {item.badge && item.badge > 0 && (
+                <span className="nav-badge">{item.badge}</span>
+              )}
+              {isActive && <div className="active-indicator" />}
+            </div>
+            <span className="nav-label">{item.label}</span>
           </button>
         );
       })}
@@ -57,4 +63,3 @@ const BottomNavigation: React.FC = () => {
 };
 
 export default BottomNavigation;
-

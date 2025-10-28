@@ -7,6 +7,7 @@ import { useThemeStore } from './store/themeStore';
 import MainLayout from './components/Layout/MainLayout';
 import MobileLayout from './components/Mobile/MobileLayout';
 import MobileDashboard from './components/Mobile/MobileDashboard';
+import MobileLogin from './components/Mobile/MobileLogin';
 import MobileProducts from './components/Mobile/MobileProducts';
 import MobileProductAdd from './components/Mobile/MobileProductAdd';
 import MobileNotifications from './components/Mobile/MobileNotifications';
@@ -87,7 +88,7 @@ const App: React.FC = () => {
       }}
     >
       <Routes>
-        <Route path="/login" element={token ? <Navigate to="/dashboard" /> : <Login />} />
+        <Route path="/login" element={token ? <Navigate to="/dashboard" /> : (isNativeApp ? <MobileLogin /> : <Login />)} />
         
         {/* Mobile-only routes WITHOUT layout (full screen pages) */}
         {isNativeApp && token && (

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, ArrowLeft, Save, Upload, Package } from 'lucide-react';
-import { Capacitor } from '@capacitor/core';
-import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
+import { ArrowLeft, Camera, Save, Package } from 'lucide-react';
 import { api } from '../../lib/api';
 import { soundEffects } from '../../lib/sound-effects';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { Capacitor } from '@capacitor/core';
+import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import toast from 'react-hot-toast';
 
 interface Category {
@@ -14,15 +15,24 @@ interface Category {
 
 const MobileProductAdd: React.FC = () => {
   const navigate = useNavigate();
-  const [barcode, setBarcode] = useState('');
-  const [name, setName] = useState('');
-  const [sellPrice, setSellPrice] = useState('');
-  const [buyPrice, setBuyPrice] = useState('');
-  const [stock, setStock] = useState('');
-  const [tax, setTax] = useState('18');
-  const [categoryId, setCategoryId] = useState('');
-  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  
+  const [formData, setFormData] = useState({
+    barcode: '',
+    name: '',
+    buyPrice: '',
+    sellPrice: '',
+    stock: '',
+    categoryId: '',
+    minStock: '5',
+  });
+
+  const hapticFeedback = async (style: ImpactStyle = ImpactStyle.Light) => {
+    if (Capacitor.isNativePlatform()) {
+      await Haptics.impact({ style });
+    }
+  };
 
   useEffect(() => {
     loadCategories();
@@ -31,255 +41,244 @@ const MobileProductAdd: React.FC = () => {
   const loadCategories = async () => {
     try {
       const response = await api.get('/categories');
-      setCategories(response.data || []);
+      setCategories(response.data.categories || []);
     } catch (error) {
       console.error('Failed to load categories:', error);
+      toast.error('Kategoriler yüklenemedi');
     }
   };
 
   const scanBarcode = async () => {
     try {
       soundEffects.beep();
-      console.log('🚀 ProductAdd: Starting barcode scan...');
-
-      const permissionResult = await BarcodeScanner.checkPermissions();
-      console.log('ProductAdd: Permission status:', permissionResult);
+      hapticFeedback(ImpactStyle.Light);
       
+      console.log('📸 Starting barcode scan for product add...');
+      
+      const permissionResult = await BarcodeScanner.checkPermissions();
       if (permissionResult.camera !== 'granted') {
-        console.log('ProductAdd: Requesting permission...');
         const result = await BarcodeScanner.requestPermissions();
-        console.log('ProductAdd: Permission result:', result);
-        
         if (result.camera !== 'granted') {
-          toast.error('❌ Kamera izni gerekli!');
+          toast.error('Kamera izni gerekli');
           return;
         }
       }
 
-      console.log('ProductAdd: Opening scanner...');
-      toast('📸 Kamera açılıyor...', { duration: 1000 });
-      
       const scanResult = await BarcodeScanner.scan();
-      console.log('ProductAdd: Scan result:', scanResult);
-      
+      console.log('📦 Scan result:', scanResult);
+
       if (scanResult.barcodes && scanResult.barcodes.length > 0) {
-        const scannedBarcode = scanResult.barcodes[0].displayValue || scanResult.barcodes[0].rawValue;
-        console.log('ProductAdd: Barcode scanned:', scannedBarcode);
+        const barcode = scanResult.barcodes[0].displayValue || scanResult.barcodes[0].rawValue;
+        console.log('✅ Barcode:', barcode);
         
-        if (scannedBarcode) {
-          setBarcode(scannedBarcode);
+        if (barcode) {
+          setFormData(prev => ({ ...prev, barcode }));
+          toast.success(`Barkod: ${barcode}`);
           soundEffects.cashRegister();
-          toast.success(`✅ Barkod: ${scannedBarcode}`);
+          hapticFeedback(ImpactStyle.Medium);
         }
-      } else {
-        toast('Barkod bulunamadı', { icon: '🔍' });
       }
     } catch (error: any) {
-      console.error('ProductAdd: Scan error:', error);
-      console.error('ProductAdd: Error details:', {
-        message: error.message,
-        code: error.code
-      });
-      
+      console.error('❌ Scan error:', error);
       if (error.message && !error.message.toLowerCase().includes('cancel')) {
-        toast.error(`❌ Hata: ${error.message || 'Barkod tarama başarısız'}`);
+        toast.error('Barkod tarama hatası');
       }
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!barcode || !name || !sellPrice) {
-      toast.error('Lütfen zorunlu alanları doldurun!');
+    
+    if (!formData.barcode || !formData.name || !formData.sellPrice) {
+      toast.error('Lütfen zorunlu alanları doldurun');
       return;
     }
 
     try {
       setIsLoading(true);
-      soundEffects.click();
+      soundEffects.tap();
+      hapticFeedback(ImpactStyle.Medium);
 
-      await api.post('/products', {
-        barcode,
-        name,
-        sellPrice: parseFloat(sellPrice),
-        buyPrice: buyPrice ? parseFloat(buyPrice) : 0,
-        stock: stock ? parseInt(stock) : 0,
-        tax: parseInt(tax),
-        categoryId: categoryId || undefined,
-        isActive: true,
-      });
+      const productData = {
+        barcode: formData.barcode,
+        name: formData.name,
+        buyPrice: parseFloat(formData.buyPrice) || 0,
+        sellPrice: parseFloat(formData.sellPrice),
+        stock: parseInt(formData.stock) || 0,
+        categoryId: formData.categoryId || null,
+        minStock: parseInt(formData.minStock) || 5,
+      };
 
+      await api.post('/products', productData);
+      
+      toast.success('✅ Ürün eklendi!');
       soundEffects.cashRegister();
-      toast.success('✅ Ürün başarıyla eklendi!');
-      navigate('/products');
+      hapticFeedback(ImpactStyle.Heavy);
+      
+      setTimeout(() => navigate('/products'), 500);
     } catch (error: any) {
+      console.error('Failed to add product:', error);
+      const message = error.response?.data?.message || 'Ürün eklenemedi';
+      toast.error(message);
       soundEffects.error();
-      toast.error(error.response?.data?.error || 'Ürün eklenemedi!');
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFormData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
+
   return (
-    <div className="mobile-app-wrapper">
-      {/* Header */}
-      <div className="mobile-header" style={{ 
-        background: 'linear-gradient(135deg, #3F8EFC 0%, #74C0FC 100%)',
-        padding: '16px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '12px',
-      }}>
-        <button
-          onClick={() => navigate('/products')}
-          className="p-2 rounded-lg bg-white/20"
-        >
-          <ArrowLeft className="w-6 h-6 text-white" />
+    <div className="mobile-product-add-clean">
+      {/* Clean Header */}
+      <div className="add-header-clean">
+        <button onClick={() => navigate(-1)} className="back-btn-clean">
+          <ArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="text-xl font-bold text-white">Ürün Ekle</h1>
+        <h1 className="page-title-clean">Yeni Ürün</h1>
+        <div className="w-10"></div>
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="p-4 space-y-4">
-        {/* Barkod */}
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
-            Barkod *
+      <form onSubmit={handleSubmit} className="add-form-clean">
+        {/* Barcode */}
+        <div className="form-group-clean">
+          <label className="form-label-clean">
+            Barkod <span className="required">*</span>
           </label>
-          <div className="flex gap-2">
+          <div className="input-with-button">
             <input
               type="text"
-              value={barcode}
-              onChange={(e) => setBarcode(e.target.value)}
-              placeholder="Barkod giriniz"
-              className="flex-1 px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-foreground"
+              name="barcode"
+              value={formData.barcode}
+              onChange={handleChange}
+              placeholder="Barkod numarası"
+              className="form-input-clean"
               required
             />
-            {Capacitor.isNativePlatform() && (
-              <button
-                type="button"
-                onClick={scanBarcode}
-                className="px-4 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-blue-400 text-white"
-              >
-                <Camera className="w-6 h-6" />
-              </button>
-            )}
+            <button 
+              type="button"
+              onClick={scanBarcode}
+              className="scan-btn-inline"
+            >
+              <Camera className="w-5 h-5" />
+            </button>
           </div>
         </div>
 
-        {/* Ürün Adı */}
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
-            Ürün Adı *
+        {/* Product Name */}
+        <div className="form-group-clean">
+          <label className="form-label-clean">
+            Ürün Adı <span className="required">*</span>
           </label>
           <input
             type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Ürün adı giriniz"
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-foreground"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            placeholder="Ürün adı"
+            className="form-input-clean"
             required
           />
         </div>
 
-        {/* Satış Fiyatı */}
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
-            Satış Fiyatı (₺) *
-          </label>
-          <input
-            type="number"
-            step="0.01"
-            value={sellPrice}
-            onChange={(e) => setSellPrice(e.target.value)}
-            placeholder="0.00"
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-foreground"
-            required
-          />
-        </div>
-
-        {/* Alış Fiyatı */}
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
-            Alış Fiyatı (₺)
-          </label>
-          <input
-            type="number"
-            step="0.01"
-            value={buyPrice}
-            onChange={(e) => setBuyPrice(e.target.value)}
-            placeholder="0.00"
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-foreground"
-          />
-        </div>
-
-        {/* Grid: KDV + Stok */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              KDV (%)
-            </label>
-            <select
-              value={tax}
-              onChange={(e) => setTax(e.target.value)}
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-foreground"
-            >
-              <option value="0">0%</option>
-              <option value="1">1%</option>
-              <option value="8">8%</option>
-              <option value="18">18%</option>
-              <option value="20">20%</option>
-            </select>
+        {/* Prices */}
+        <div className="form-row-clean">
+          <div className="form-group-clean">
+            <label className="form-label-clean">Alış Fiyatı</label>
+            <input
+              type="number"
+              name="buyPrice"
+              value={formData.buyPrice}
+              onChange={handleChange}
+              placeholder="0.00"
+              step="0.01"
+              className="form-input-clean"
+            />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">
-              Stok
+          <div className="form-group-clean">
+            <label className="form-label-clean">
+              Satış Fiyatı <span className="required">*</span>
             </label>
             <input
               type="number"
-              value={stock}
-              onChange={(e) => setStock(e.target.value)}
-              placeholder="0"
-              className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-foreground"
+              name="sellPrice"
+              value={formData.sellPrice}
+              onChange={handleChange}
+              placeholder="0.00"
+              step="0.01"
+              className="form-input-clean"
+              required
             />
           </div>
         </div>
 
-        {/* Kategori */}
-        <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
-            Kategori
-          </label>
+        {/* Stock */}
+        <div className="form-row-clean">
+          <div className="form-group-clean">
+            <label className="form-label-clean">Stok Adedi</label>
+            <input
+              type="number"
+              name="stock"
+              value={formData.stock}
+              onChange={handleChange}
+              placeholder="0"
+              className="form-input-clean"
+            />
+          </div>
+          <div className="form-group-clean">
+            <label className="form-label-clean">Min. Stok</label>
+            <input
+              type="number"
+              name="minStock"
+              value={formData.minStock}
+              onChange={handleChange}
+              placeholder="5"
+              className="form-input-clean"
+            />
+          </div>
+        </div>
+
+        {/* Category */}
+        <div className="form-group-clean">
+          <label className="form-label-clean">Kategori</label>
           <select
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-foreground"
+            name="categoryId"
+            value={formData.categoryId}
+            onChange={handleChange}
+            className="form-select-clean"
           >
-            <option value="">Kategori seçiniz</option>
-            {categories.map(cat => (
-              <option key={cat.id} value={cat.id}>{cat.name}</option>
+            <option value="">Kategori seçin</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
             ))}
           </select>
         </div>
 
+        {/* Info Box */}
+        <div className="info-box-clean">
+          <Package className="w-5 h-5" />
+          <div>
+            <p className="info-title-clean">Hızlı Ekleme</p>
+            <p className="info-text-clean">Kamera ile barkod okutarak hızlıca ürün ekleyin</p>
+          </div>
+        </div>
+
         {/* Submit Button */}
-        <button
-          type="submit"
+        <button 
+          type="submit" 
           disabled={isLoading}
-          className="w-full py-4 rounded-lg bg-gradient-to-r from-blue-500 to-blue-400 text-white font-semibold text-lg flex items-center justify-center gap-2 disabled:opacity-50"
-          style={{
-            background: 'linear-gradient(135deg, #3F8EFC 0%, #74C0FC 100%)',
-          }}
+          className="submit-btn-clean"
         >
-          {isLoading ? (
-            'Kaydediliyor...'
-          ) : (
-            <>
-              <Save className="w-5 h-5" />
-              Kaydet
-            </>
-          )}
+          <Save className="w-5 h-5" />
+          <span>{isLoading ? 'Kaydediliyor...' : 'Ürünü Kaydet'}</span>
         </button>
       </form>
     </div>
@@ -287,4 +286,3 @@ const MobileProductAdd: React.FC = () => {
 };
 
 export default MobileProductAdd;
-
