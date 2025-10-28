@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import { Capacitor } from '@capacitor/core';
@@ -59,6 +59,12 @@ const MobilePOS: React.FC = () => {
   // Receipt sharing
   const [showReceiptShare, setShowReceiptShare] = useState(false);
 
+  // Gesture handling
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number; time: number } | null>(null);
+  const [lastTap, setLastTap] = useState<number>(0);
+  const [actionHistory, setActionHistory] = useState<Array<{ type: string; data: any }>>([]);
+
   const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const change = receivedAmount ? parseFloat(receivedAmount) - total : 0;
 
@@ -78,6 +84,123 @@ const MobilePOS: React.FC = () => {
       window.removeEventListener('offline', checkConnection);
     };
   }, []);
+
+  // Gesture handlers
+  const undoLastAction = () => {
+    if (actionHistory.length === 0) return;
+    const lastAction = actionHistory[actionHistory.length - 1];
+    
+    if (lastAction.type === 'add_item') {
+      removeItem(lastAction.data.barcode);
+    } else if (lastAction.type === 'remove_item') {
+      addToCart(lastAction.data);
+    }
+    
+    setActionHistory(prev => prev.slice(0, -1));
+    toast.success('Geri alındı!', { duration: 1500 });
+    hapticFeedback(ImpactStyle.Medium);
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    setTouchStart({
+      x: touch.clientX,
+      y: touch.clientY,
+      time: Date.now()
+    });
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (!touchStart) return;
+
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - touchStart.x;
+    const deltaY = touch.clientY - touchStart.y;
+    const deltaTime = Date.now() - touchStart.time;
+
+    // Double tap detection
+    if (deltaTime < 300 && Math.abs(deltaX) < 10 && Math.abs(deltaY) < 10) {
+      if (Date.now() - lastTap < 500) {
+        handleDoubleTap();
+      }
+      setLastTap(Date.now());
+    }
+
+    // Swipe detection (min 50px, max 500ms)
+    if (deltaTime < 500) {
+      if (Math.abs(deltaX) > 50 && Math.abs(deltaY) < 50) {
+        if (deltaX > 0) {
+          handleSwipeRight();
+        } else {
+          handleSwipeLeft();
+        }
+      } else if (Math.abs(deltaY) > 50 && Math.abs(deltaX) < 50) {
+        if (deltaY > 0) {
+          handleSwipeDown();
+        } else {
+          handleSwipeUp();
+        }
+      }
+    }
+
+    setTouchStart(null);
+  };
+
+  const handleDoubleTap = () => {
+    if (cartItems.length > 0) {
+      setShowCartDetail(true);
+      hapticFeedback(ImpactStyle.Light);
+      soundEffects.tap();
+    }
+  };
+
+  const handleSwipeRight = () => {
+    if (cartItems.length > 0) {
+      undoLastAction();
+    }
+  };
+
+  const handleSwipeLeft = () => {
+    if (cartItems.length > 0) {
+      setShowCartDetail(true);
+      hapticFeedback(ImpactStyle.Light);
+    }
+  };
+
+  const handleSwipeUp = () => {
+    if (cartItems.length > 0) {
+      setShowCartDetail(true);
+      hapticFeedback(ImpactStyle.Light);
+    }
+  };
+
+  const handleSwipeDown = () => {
+    if (showCartDetail) {
+      setShowCartDetail(false);
+      hapticFeedback(ImpactStyle.Light);
+    }
+  };
+
+  // Shake detection
+  useEffect(() => {
+    let lastShake = 0;
+    const handleShake = (e: DeviceMotionEvent) => {
+      if (!e.acceleration) return;
+      
+      const { x, y, z } = e.acceleration;
+      const acceleration = Math.sqrt((x || 0) ** 2 + (y || 0) ** 2 + (z || 0) ** 2);
+      
+      if (acceleration > 15 && Date.now() - lastShake > 1000) {
+        lastShake = Date.now();
+        if (cartItems.length > 0) {
+          undoLastAction();
+        }
+      }
+    };
+
+    window.addEventListener('devicemotion', handleShake as any);
+    return () => window.removeEventListener('devicemotion', handleShake as any);
+  }, [cartItems, actionHistory]);
 
   // Load quick products
   useEffect(() => {
@@ -206,6 +329,9 @@ const MobilePOS: React.FC = () => {
       setCartItems(prev => [...prev, item]);
       toast.success(`✅ ${item.name} eklendi`, { duration: 2000 });
     }
+    
+    // Add to action history
+    setActionHistory(prev => [...prev, { type: 'add_item', data: item }]);
   };
 
   const updateQuantity = (barcode: string, delta: number) => {
@@ -226,6 +352,11 @@ const MobilePOS: React.FC = () => {
   };
 
   const removeItem = (barcode: string) => {
+    const item = cartItems.find(i => i.barcode === barcode);
+    if (item) {
+      setActionHistory(prev => [...prev, { type: 'remove_item', data: item }]);
+    }
+    
     setCartItems(prev => prev.filter(item => item.barcode !== barcode));
     toast.success('Ürün silindi', { duration: 1000 });
     soundEffects.tap();
@@ -587,7 +718,12 @@ Teşekkür ederiz! 🙏
 
   // Main POS Screen
   return (
-    <div className="mobile-pos-main">
+    <div 
+      className="mobile-pos-main"
+      ref={containerRef}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Header */}
       <div className="pos-header-main">
         <div className="header-left-main">
@@ -600,6 +736,14 @@ Teşekkür ederiz! 🙏
           )}
         </div>
         <div className="header-actions-main">
+          <button 
+            onClick={undoLastAction} 
+            className="icon-btn-main" 
+            disabled={actionHistory.length === 0}
+            title="Geri Al (Sağa Kaydır / Salla)"
+          >
+            <RotateCcw className="w-5 h-5" />
+          </button>
           <button onClick={clearCart} className="icon-btn-main" disabled={cartItems.length === 0}>
             <Trash2 className="w-5 h-5" />
           </button>
