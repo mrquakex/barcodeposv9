@@ -1,6 +1,7 @@
 /* ============================================
    BIOMETRIC AUTH SERVICE
    Face ID / Touch ID / Fingerprint
+   Simulated for now (plugin not available)
    ============================================ */
 
 import { Capacitor } from '@capacitor/core';
@@ -9,22 +10,9 @@ export class BiometricAuth {
   private isAvailable: boolean = false;
 
   async checkAvailability(): Promise<boolean> {
-    if (!Capacitor.isNativePlatform()) {
-      // Web: Simulated biometric
-      this.isAvailable = true;
-      return true;
-    }
-
-    try {
-      // Native: Check device capabilities
-      // In production, use @capacitor-community/native-biometric plugin
-      this.isAvailable = true;
-      return true;
-    } catch (error) {
-      console.error('Biometric check failed:', error);
-      this.isAvailable = false;
-      return false;
-    }
+    // Simulated - always available
+    this.isAvailable = true;
+    return true;
   }
 
   async authenticate(reason: string = 'Kimlik doğrulama gerekli'): Promise<boolean> {
@@ -32,31 +20,14 @@ export class BiometricAuth {
       return false;
     }
 
-    if (!Capacitor.isNativePlatform()) {
-      // Web: Simulated auth (always succeeds for now)
-      return new Promise((resolve) => {
-        setTimeout(() => resolve(true), 500);
-      });
-    }
+    // Simulated auth (always succeeds after delay)
+    return new Promise((resolve) => {
+      setTimeout(() => resolve(true), 800);
+    });
+  }
 
-    try {
-      // Native: Perform biometric auth
-      // In production, use plugin here
-      // const result = await NativeBiometric.verifyIdentity({
-      //   reason,
-      //   title: 'BarcodePOS',
-      //   subtitle: 'Giriş yapmak için dokunun',
-      // });
-      // return result.verified;
-
-      // For now, simulate success
-      return new Promise((resolve) => {
-        setTimeout(() => resolve(true), 800);
-      });
-    } catch (error) {
-      console.error('Biometric auth failed:', error);
-      return false;
-    }
+  getBiometryType(): string {
+    return 'Fingerprint (Simulated)';
   }
 
   async saveBiometricCredentials(username: string, password: string): Promise<void> {

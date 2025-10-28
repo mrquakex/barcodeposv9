@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, ShoppingCart, CreditCard, Search, Plus, X, Minus, Trash2, Sun, Moon } from 'lucide-react';
+import { Camera, ShoppingCart, CreditCard, Search, Plus, X, Minus, Trash2, Sun, Moon, PackageOpen, Inbox } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
 import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
@@ -7,6 +7,9 @@ import { api } from '../../lib/api';
 import toast from 'react-hot-toast';
 import { soundEffects } from '../../lib/sound-effects';
 import { useThemeStore } from '../../store/themeStore';
+import EmptyState from './EmptyState';
+import LoadingSkeleton from './LoadingSkeleton';
+import { offlineStorage } from '../../lib/offline-storage';
 
 /**
  * 📱 MOBILE POS - NATIVE APP UI
@@ -43,6 +46,7 @@ const MobilePOS: React.FC = () => {
   const [scannedItems, setScannedItems] = useState<CartItem[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   
   const searchInputRef = useRef<HTMLInputElement>(null);
   const scannerTouchStart = useRef<number>(0);
@@ -50,8 +54,8 @@ const MobilePOS: React.FC = () => {
   const scrollContainer = useRef<HTMLDivElement>(null);
 
   // 📱 APP VERSION (increment this with each APK release)
-  const CURRENT_VERSION: string = "1.0.3"; // This APK version
-  const LATEST_VERSION: string = "1.0.3"; // Server latest version (şu an en son versiyon)
+  const CURRENT_VERSION: string = "1.0.4"; // This APK version
+  const LATEST_VERSION: string = "1.0.4"; // Server latest version (şu an en son versiyon)
 
   // 🔄 Check for updates on app start
   useEffect(() => {
@@ -113,10 +117,33 @@ const MobilePOS: React.FC = () => {
 
   const loadFrequentProducts = async () => {
     try {
-      const response = await api.get('/products?limit=6');
-      setFrequentProducts(response.data.products || []);
+      setIsLoadingProducts(true);
+      
+      // Try online first
+      if (offlineStorage.isOnline()) {
+        const response = await api.get('/products?limit=6');
+        const products = response.data.products || [];
+        setFrequentProducts(products);
+        
+        // Cache products for offline use
+        offlineStorage.cacheProducts(products);
+      } else {
+        // Load from cache if offline
+        const cachedProducts = offlineStorage.getAllProducts().slice(0, 6);
+        setFrequentProducts(cachedProducts);
+        toast('📡 Çevrimdışı mod aktif', { duration: 2000 });
+      }
     } catch (error) {
       console.error('Failed to load products:', error);
+      
+      // Fallback to cached products
+      const cachedProducts = offlineStorage.getAllProducts().slice(0, 6);
+      if (cachedProducts.length > 0) {
+        setFrequentProducts(cachedProducts);
+        toast('📦 Önbellekten yüklendi', { duration: 2000 });
+      }
+    } finally {
+      setIsLoadingProducts(false);
     }
   };
 
@@ -518,25 +545,45 @@ const MobilePOS: React.FC = () => {
       {searchResults.length === 0 && (
         <div className="mobile-card">
           <h3 className="font-semibold text-foreground mb-3">⚡ Sık Satılanlar</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {frequentProducts.map(product => (
-              <button
-                key={product.id}
-                className="bg-background-alt p-4 rounded-lg border border-border active:scale-95 transition-transform"
-                onClick={() => addToCart(product)}
-              >
-                <p className="font-medium text-foreground text-sm mb-1 truncate">
-                  {product.name}
-                </p>
-                <p className="text-lg font-bold text-primary">
-                  ₺{product.sellPrice.toFixed(2)}
-                </p>
-                <p className="text-xs text-foreground-secondary">
-                  Stok: {product.stock}
-                </p>
-              </button>
-            ))}
-          </div>
+          
+          {/* Loading Skeletons */}
+          {isLoadingProducts && (
+            <div className="grid grid-cols-2 gap-3">
+              <LoadingSkeleton variant="product-card" count={6} />
+            </div>
+          )}
+
+          {/* Products Grid */}
+          {!isLoadingProducts && frequentProducts.length > 0 && (
+            <div className="grid grid-cols-2 gap-3">
+              {frequentProducts.map(product => (
+                <button
+                  key={product.id}
+                  className="bg-background-alt p-4 rounded-lg border border-border active:scale-95 transition-transform"
+                  onClick={() => addToCart(product)}
+                >
+                  <p className="font-medium text-foreground text-sm mb-1 truncate">
+                    {product.name}
+                  </p>
+                  <p className="text-lg font-bold text-primary">
+                    ₺{product.sellPrice.toFixed(2)}
+                  </p>
+                  <p className="text-xs text-foreground-secondary">
+                    Stok: {product.stock}
+                  </p>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!isLoadingProducts && frequentProducts.length === 0 && (
+            <EmptyState
+              icon={PackageOpen}
+              title="Henüz ürün yok"
+              description="Ürün kataloğu boş görünüyor. Yeni ürünler ekleyin."
+            />
+          )}
         </div>
       )}
 
@@ -594,40 +641,55 @@ const MobilePOS: React.FC = () => {
           </div>
 
           <div className="space-y-3 max-h-96 overflow-y-auto">
-            {cart.map(item => (
-              <div key={item.id} className="flex items-center gap-3 p-3 bg-background-alt rounded-lg">
-                <div className="flex-1">
-                  <p className="font-medium text-foreground">{item.name}</p>
-                  <p className="text-sm text-foreground-secondary">
-                    ₺{item.sellPrice.toFixed(2)} x {item.quantity}
+            {cart.length > 0 ? (
+              cart.map(item => (
+                <div key={item.id} className="flex items-center gap-3 p-3 bg-background-alt rounded-lg">
+                  <div className="flex-1">
+                    <p className="font-medium text-foreground">{item.name}</p>
+                    <p className="text-sm text-foreground-secondary">
+                      ₺{item.sellPrice.toFixed(2)} x {item.quantity}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      className="w-8 h-8 flex items-center justify-center bg-background border border-border rounded"
+                      onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                    >
+                      <Minus className="w-4 h-4" />
+                    </button>
+                    <span className="w-8 text-center font-medium">{item.quantity}</span>
+                    <button
+                      className="w-8 h-8 flex items-center justify-center bg-background border border-border rounded"
+                      onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                    <button
+                      className="w-8 h-8 flex items-center justify-center text-destructive"
+                      onClick={() => removeFromCart(item.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <p className="font-bold text-primary w-20 text-right">
+                    ₺{item.total.toFixed(2)}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    className="w-8 h-8 flex items-center justify-center bg-background border border-border rounded"
-                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                  >
-                    <Minus className="w-4 h-4" />
-                  </button>
-                  <span className="w-8 text-center font-medium">{item.quantity}</span>
-                  <button
-                    className="w-8 h-8 flex items-center justify-center bg-background border border-border rounded"
-                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                  <button
-                    className="w-8 h-8 flex items-center justify-center text-destructive"
-                    onClick={() => removeFromCart(item.id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-                <p className="font-bold text-primary w-20 text-right">
-                  ₺{item.total.toFixed(2)}
-                </p>
-              </div>
-            ))}
+              ))
+            ) : (
+              <EmptyState
+                icon={Inbox}
+                title="Sepet boş"
+                description="Satış yapmak için ürün ekleyin veya barkod tarayın."
+                action={{
+                  label: 'Barkod Tara',
+                  onClick: () => {
+                    setShowCart(false);
+                    startCameraScan();
+                  }
+                }}
+              />
+            )}
           </div>
 
           <div className="mt-4 pt-4 border-t border-border">
