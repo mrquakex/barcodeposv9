@@ -5070,7 +5070,7 @@ body.scanner-active .barcode-scanner-ui {
 /* FAB - Scan Button */
 .fab-scan-main {
   position: fixed;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
   right: 16px;
   background: black;
   color: white;
@@ -5082,7 +5082,7 @@ body.scanner-active .barcode-scanner-ui {
   gap: 8px;
   cursor: pointer;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-  z-index: 100;
+  z-index: 9999;
   font-size: 14px;
   font-weight: 700;
   transition: all 0.2s;
