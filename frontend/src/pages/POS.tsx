@@ -86,8 +86,6 @@ const POS: React.FC = () => {
   // Basic States
   const [isScanning, setIsScanning] = useState(false);
   const [showCameraModal, setShowCameraModal] = useState(false);
-  const [useFlash, setUseFlash] = useState(false);
-  const [useFrontCamera, setUseFrontCamera] = useState(false);
   const [lastScannedCode, setLastScannedCode] = useState<string>('');
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [showCustomerDialog, setShowCustomerDialog] = useState(false);
@@ -545,7 +543,7 @@ const POS: React.FC = () => {
     if (existing) {
       existing.quantity += 1;
       existing.total = existing.quantity * (existing.sellPrice || 0);
-      } else {
+    } else {
       newCart.push({
         ...product,
         quantity: 1,
@@ -960,7 +958,7 @@ const POS: React.FC = () => {
     setCalculatorChange(change);
   };
 
-  // 📸 ZXing - Modern & Fast Barcode Scanner with Multi-Angle Support
+  // 📸 ZXing - Simple & Powerful Barcode Scanner
   const startCamera = async () => {
     try {
       // Set scanning state first to render video element
@@ -969,90 +967,61 @@ const POS: React.FC = () => {
       // Wait for video element to be in DOM
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      // 🎯 Create ZXing reader with POWERFUL hints for multi-angle scanning
+      // 🎯 Create ZXing reader with optimized hints
       const hints = new Map();
-      
-      // 💪 TRY_HARDER: Spends more time to detect barcodes (rotated, damaged, etc.)
       hints.set(DecodeHintType.TRY_HARDER, true);
-      
-      // 📐 Support ALL barcode formats
       hints.set(DecodeHintType.POSSIBLE_FORMATS, [
-        BarcodeFormat.EAN_13,      // Supermarket barcodes
-        BarcodeFormat.EAN_8,       // Small barcodes
-        BarcodeFormat.UPC_A,       // US barcodes
-        BarcodeFormat.UPC_E,       // Small US barcodes
-        BarcodeFormat.CODE_128,    // Shipping/inventory
-        BarcodeFormat.CODE_39,     // Industrial
-        BarcodeFormat.CODE_93,     // Logistics
-        BarcodeFormat.ITF,         // Warehouse
-        BarcodeFormat.QR_CODE,     // QR codes
-        BarcodeFormat.DATA_MATRIX, // 2D codes
-        BarcodeFormat.CODABAR,     // Medical/logistics
-        BarcodeFormat.AZTEC,       // Transport tickets
+        BarcodeFormat.EAN_13,
+        BarcodeFormat.EAN_8,
+        BarcodeFormat.UPC_A,
+        BarcodeFormat.UPC_E,
+        BarcodeFormat.CODE_128,
+        BarcodeFormat.CODE_39,
+        BarcodeFormat.QR_CODE,
       ]);
-      
-      // 🔄 Enable rotation detection (reads upside-down & sideways)
-      hints.set(DecodeHintType.ASSUME_GS1, false);
       
       const codeReader = new BrowserMultiFormatReader(hints);
       scannerRef.current = codeReader;
 
-      // Get video devices (static method)
+      // Get video element
+      const videoElement = videoRef.current;
+      if (!videoElement) {
+        throw new Error('📷 Video element bulunamadı!');
+      }
+
+      // Get video devices and select back camera
       const videoInputDevices = await BrowserMultiFormatReader.listVideoInputDevices();
       
       if (!videoInputDevices || videoInputDevices.length === 0) {
         throw new Error('📷 Kamera bulunamadı!');
       }
 
-      // Select camera: prefer back camera (environment)
+      // Prefer back camera (environment)
       let selectedDeviceId = videoInputDevices[0].deviceId;
-      
-      if (!useFrontCamera) {
-        const backCamera = videoInputDevices.find(device => 
-          device.label.toLowerCase().includes('back') ||
-          device.label.toLowerCase().includes('rear') ||
-          device.label.toLowerCase().includes('environment') ||
-          device.label.toLowerCase().includes('arka')
-        );
-        if (backCamera) {
-          selectedDeviceId = backCamera.deviceId;
-        }
-      } else {
-        const frontCamera = videoInputDevices.find(device => 
-          device.label.toLowerCase().includes('front') ||
-          device.label.toLowerCase().includes('user') ||
-          device.label.toLowerCase().includes('ön')
-        );
-        if (frontCamera) {
-          selectedDeviceId = frontCamera.deviceId;
-        }
+      const backCamera = videoInputDevices.find(device => 
+        device.label.toLowerCase().includes('back') ||
+        device.label.toLowerCase().includes('rear') ||
+        device.label.toLowerCase().includes('environment') ||
+        device.label.toLowerCase().includes('arka')
+      );
+      if (backCamera) {
+        selectedDeviceId = backCamera.deviceId;
       }
 
-      // Get video element
-      const videoElement = videoRef.current;
-      if (!videoElement) {
-        throw new Error('📷 Video element bulunamadı! Lütfen sayfayı yenileyin.');
-      }
-
-      // ⚡ Start HIGH-PERFORMANCE scanning
+      // ⚡ Start scanning with continuous decode
       await codeReader.decodeFromVideoDevice(
         selectedDeviceId,
         videoElement,
         async (result, error) => {
           if (result) {
-            // 🎉 Barcode detected at ANY ANGLE!
             const barcode = result.getText();
+            console.log('Barkod okundu:', barcode);
             await handleCameraScan(barcode);
-          }
-          
-          if (error && !(error instanceof NotFoundException)) {
-            // Only log actual errors, not "barcode not found" errors
-            console.error('Scan error:', error);
           }
         }
       );
 
-      toast.success('🎯 Kamera aktif - Her açıdan okur!', { duration: 2000 });
+      toast.success('📸 Kamera aktif', { duration: 1500 });
       soundEffects.beep();
     } catch (error: any) {
       console.error('Camera error:', error);
@@ -1098,49 +1067,6 @@ const POS: React.FC = () => {
     }
   };
 
-  // 💡 Toggle Flash (using MediaStream API directly)
-  const toggleFlash = async () => {
-    const newFlashState = !useFlash;
-    setUseFlash(newFlashState);
-    
-    try {
-      const videoElement = videoRef.current;
-      
-      if (videoElement && videoElement.srcObject) {
-        const stream = videoElement.srcObject as MediaStream;
-        const track = stream.getVideoTracks()[0];
-        
-        if (track) {
-          const capabilities = track.getCapabilities() as any;
-          
-          if (capabilities && 'torch' in capabilities) {
-            await track.applyConstraints({
-              advanced: [{ torch: newFlashState } as any]
-            });
-            toast.success(newFlashState ? '💡 Flaş açık' : 'Flaş kapalı');
-    } else {
-            toast.error('Flaş desteklenmiyor');
-            setUseFlash(false);
-          }
-        }
-      }
-    } catch (error) {
-      console.log('Flash not supported', error);
-      toast.error('Flaş kullanılamıyor');
-      setUseFlash(false);
-    }
-  };
-
-  // 🔄 Toggle Camera
-  const toggleCamera = async () => {
-    if (isScanning) {
-      await stopCamera();
-      setUseFrontCamera(!useFrontCamera);
-      setTimeout(() => startCamera(), 500);
-    } else {
-      setUseFrontCamera(!useFrontCamera);
-    }
-  };
 
   // 💠 ENTERPRISE: Payment Validation
   const validatePayment = (): boolean => {
@@ -2297,54 +2223,24 @@ const POS: React.FC = () => {
             </div>
           </div>
 
-          {/* Bottom Controls */}
+          {/* Bottom Instructions */}
           <div className="absolute bottom-0 left-0 right-0 z-10 p-6 bg-gradient-to-t from-black/80 to-transparent">
-            {/* Instructions */}
-            <div className="mb-4 text-center">
-              <p className="text-white text-lg font-medium mb-1">
-                🎯 Barkodu kameraya gösterin
+            <div className="text-center">
+              <p className="text-white text-xl font-medium mb-2">
+                🎯 Barkodu beyaz kare içine getirin
               </p>
-              <p className="text-white/70 text-sm">
-                Her açıdan okur • Döndürmeniz gerekmez
+              <p className="text-white/80 text-base mb-4">
+                Otomatik okuma yapılacak
               </p>
-              <div className="mt-2 flex items-center justify-center gap-2">
-                <span className="text-white/50 text-xs">↻ Yan</span>
-                <span className="text-white/50 text-xs">⟲ Ters</span>
-                <span className="text-white/50 text-xs">⇅ Eğik</span>
-                <span className="text-white/50 text-xs">✓ Düz</span>
-              </div>
+              
+              {/* Status */}
+              {isScanning && (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                  <p className="text-green-400 font-medium text-lg">Tarama aktif...</p>
+                </div>
+              )}
             </div>
-
-            {/* Control Buttons */}
-            <div className="flex items-center justify-center gap-4">
-              {/* Flash Toggle */}
-              <button
-                onClick={toggleFlash}
-                className={`p-4 rounded-full transition-all ${
-                  useFlash 
-                    ? 'bg-yellow-500 text-white shadow-lg shadow-yellow-500/50' 
-                    : 'bg-white/20 text-white'
-                }`}
-              >
-                <span className="text-2xl">{useFlash ? '💡' : '🔦'}</span>
-              </button>
-
-              {/* Camera Switch */}
-              <button
-                onClick={toggleCamera}
-                className="p-4 rounded-full bg-white/20 text-white hover:bg-white/30 transition-all"
-              >
-                <span className="text-2xl">🔄</span>
-              </button>
-            </div>
-
-            {/* Status */}
-            {isScanning && (
-              <div className="mt-4 flex items-center justify-center gap-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                <p className="text-green-400 font-medium">Tarama aktif...</p>
-              </div>
-            )}
           </div>
         </div>
       )}
