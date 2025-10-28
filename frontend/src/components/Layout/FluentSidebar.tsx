@@ -4,7 +4,7 @@ import {
   LayoutDashboard, ShoppingCart, Package, Users, BarChart3, 
   Settings, ChevronRight, Search, Menu, X,
   FolderOpen, Building2, TrendingUp, ShoppingBag, FileText,
-  Banknote, Receipt, Wallet, UserCog, ClipboardList
+  Banknote, Receipt, Wallet, UserCog, ClipboardList, Smartphone
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { cn } from '../../lib/utils';
@@ -94,6 +94,7 @@ const FluentSidebar: React.FC<FluentSidebarProps> = ({ isMobileOpen = false, onM
         { icon: Building2, label: t('nav.branches'), path: '/branches' },
       ]
     },
+    { icon: Smartphone, label: '📱 Mobil Uygulama', path: '/indir.html', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
     { icon: Settings, label: t('nav.settings'), path: '/settings', roles: ['ADMIN', 'MANAGER'] },
   ];
 
