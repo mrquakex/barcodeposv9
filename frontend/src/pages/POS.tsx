@@ -17,7 +17,7 @@ import { api } from '../lib/api';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { BrowserMultiFormatReader, BarcodeFormat } from '@zxing/browser';
-import { NotFoundException } from '@zxing/library';
+import { NotFoundException, DecodeHintType } from '@zxing/library';
 import { cn } from '../lib/utils';
 import { useKeyboardShortcuts, POSShortcuts } from '../hooks/useKeyboardShortcuts';
 import { soundEffects } from '../lib/sound-effects';
@@ -979,10 +979,24 @@ const POS: React.FC = () => {
       }
 
       // ⚡ ZXING SCANNER - Google's Official Barcode Library
-      const codeReader = new BrowserMultiFormatReader();
+      const hints = new Map();
+      // 🔥 TRY_HARDER for better detection
+      hints.set(DecodeHintType.TRY_HARDER, true);
+      // 🔥 SPECIFY FORMATS for faster scanning
+      hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+        BarcodeFormat.EAN_13,
+        BarcodeFormat.EAN_8,
+        BarcodeFormat.CODE_128,
+        BarcodeFormat.CODE_39,
+        BarcodeFormat.UPC_A,
+        BarcodeFormat.UPC_E,
+        BarcodeFormat.QR_CODE,
+      ]);
+      
+      const codeReader = new BrowserMultiFormatReader(hints);
       scannerRef.current = codeReader;
 
-      console.log('📱 ZXing initialized! Starting continuous scan...');
+      console.log('📱 ZXing initialized with TRY_HARDER! Starting continuous scan...');
       
       // ⚡ CONTINUOUS SCAN with decodeFromVideoDevice
       codeReader.decodeFromVideoDevice(
@@ -1010,7 +1024,7 @@ const POS: React.FC = () => {
             setShowCameraModal(false);
           }
           
-          // Silent error handling (normal during continuous scan)
+          // Log ALL attempts (for debugging)
           if (error && !(error instanceof NotFoundException)) {
             console.error('ZXing scan error:', error);
           }
