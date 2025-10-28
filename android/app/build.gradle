@@ -30,10 +30,10 @@ android {
         }
     }
     
-    // Custom APK name
+    // Custom APK name - BarcodePOS PRO 💎
     applicationVariants.configureEach { variant ->
         variant.outputs.configureEach {
-            outputFileName = "barcodeposv9.apk"
+            outputFileName = "BarcodePOS_PRO.apk"
         }
     }
 }
