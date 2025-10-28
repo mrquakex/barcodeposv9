@@ -35,6 +35,7 @@ const MobilePOS: React.FC = () => {
   const [isScanning, setIsScanning] = useState(false);
   const [frequentProducts, setFrequentProducts] = useState<Product[]>([]);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
+  const [isTorchOn, setIsTorchOn] = useState(false);
   
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -93,38 +94,68 @@ const MobilePOS: React.FC = () => {
     }
   };
 
+  // 📳 Advanced Haptic Patterns
+  const hapticFeedback = {
+    light: () => navigator.vibrate && navigator.vibrate(30),
+    medium: () => navigator.vibrate && navigator.vibrate(50),
+    heavy: () => navigator.vibrate && navigator.vibrate(100),
+    success: () => navigator.vibrate && navigator.vibrate([100, 50, 100]),
+    error: () => navigator.vibrate && navigator.vibrate([200, 100, 200, 100, 200]),
+    scanning: () => navigator.vibrate && navigator.vibrate([50, 100, 50]),
+  };
+
+  const toggleTorch = async () => {
+    try {
+      if (isTorchOn) {
+        await BarcodeScanner.disableTorch();
+        setIsTorchOn(false);
+        hapticFeedback.light();
+      } else {
+        await BarcodeScanner.enableTorch();
+        setIsTorchOn(true);
+        hapticFeedback.medium();
+      }
+    } catch (error) {
+      console.error('Torch toggle failed:', error);
+    }
+  };
+
   const startCameraScan = async () => {
     try {
       setIsScanning(true);
+      setIsTorchOn(false);
       
-      // Haptic feedback
-      if (navigator.vibrate) {
-        navigator.vibrate(50);
-      }
+      // 📳 Haptic: Scan started
+      hapticFeedback.light();
 
       const status = await BarcodeScanner.checkPermission({ force: true });
       
       if (status.granted) {
         soundEffects.beep();
+        
+        // 📳 Haptic: Scanning...
+        hapticFeedback.scanning();
+        
         const result = await BarcodeScanner.startScan();
         
         if (result.hasContent && result.content) {
-          // Vibrate on success
-          if (navigator.vibrate) {
-            navigator.vibrate([200, 100, 200]);
-          }
+          // 📳 Haptic: Success!
+          hapticFeedback.success();
           
           soundEffects.cashRegister();
           await addProductByBarcode(result.content);
         }
       } else {
         toast.error('Kamera izni gerekli!');
+        hapticFeedback.error();
       }
     } catch (error: any) {
       toast.error('Kamera hatası!');
       soundEffects.error();
+      hapticFeedback.error();
     } finally {
       setIsScanning(false);
+      setIsTorchOn(false);
       BarcodeScanner.stopScan();
     }
   };
@@ -504,6 +535,56 @@ const MobilePOS: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* 📸 PROFESSIONAL BARCODE SCANNER OVERLAY */}
+      {isScanning && (
+        <div className="scanner-overlay">
+          {/* Header with Close & Torch */}
+          <div className="scanner-header">
+            <h2 className="scanner-title">📸 Barkod Tarama</h2>
+            <div className="flex items-center gap-3">
+              {/* Flash/Torch Toggle */}
+              <button
+                className={`torch-button ${isTorchOn ? 'active' : ''}`}
+                onClick={toggleTorch}
+              >
+                {isTorchOn ? '🔦' : '💡'}
+              </button>
+              {/* Close Button */}
+              <button
+                className="scanner-close"
+                onClick={() => {
+                  setIsScanning(false);
+                  setIsTorchOn(false);
+                  BarcodeScanner.stopScan();
+                  hapticFeedback.light();
+                }}
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+
+          {/* Scanning Frame with Laser */}
+          <div className="scanning-frame">
+            {/* Bottom corners */}
+            <div className="corner-bl" />
+            <div className="corner-br" />
+            
+            {/* 🔴 Laser Line Animation */}
+            <div className="laser-line" />
+          </div>
+
+          {/* Instructions & Status */}
+          <div className="scanner-instructions">
+            <p>Barkodu beyaz çerçeveye hizalayın</p>
+            <div className="scanning-status">
+              <div className="scanning-pulse" />
+              <span>Taranıyor...</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 🔄 UPDATE DIALOG - iOS 17 Style */}
       {showUpdateDialog && (
