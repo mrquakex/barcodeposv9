@@ -1,6 +1,6 @@
 {
   "appId": "com.barcodepos.app",
-  "appName": "BarcodePOS",
+  "appName": "BarcodePOS PRO",
   "webDir": "frontend/dist",
   "server": {
     "androidScheme": "https"
@@ -8,8 +8,11 @@
   "plugins": {
     "SplashScreen": {
       "launchShowDuration": 2000,
-      "backgroundColor": "#0078D4",
+      "backgroundColor": "#000000",
       "showSpinner": false
+    },
+    "BarcodeScanner": {
+      "enabled": true
     }
   }
 }
