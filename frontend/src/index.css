@@ -9,81 +9,92 @@
 
 @layer base {
 :root {
-    /* Fluent Font Stack (Segoe UI) */
-    --font-fluent: 'Segoe UI', 'Segoe UI Web (West European)', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
+    /* 🎨 Fluent 2 Font Stack (Windows 11) */
+    --font-fluent: 'Segoe UI Variable', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', sans-serif;
     --font-mono: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
     
-    /* Fluent Color System - Light Mode */
-    --background: 0 0% 98%;            /* #FAFAFA - Canvas (Hafif Gri - Kartlar için kontrast) */
-    --background-alt: 0 0% 96%;        /* #F5F5F5 */
-    --background-tertiary: 0 0% 95%;   /* #F3F2F1 */
+    /* 🎨 FLUENT 2 COLOR SYSTEM - Light Mode (Windows 11) */
+    --background: 0 0% 99%;            /* #FCFCFC - Softer white background */
+    --background-alt: 0 0% 97%;        /* #F7F7F7 - Subtle alt */
+    --background-tertiary: 0 0% 96%;   /* #F5F5F5 */
     
-    --foreground: 0 0% 13%;            /* #201F1E - Primary Text */
-    --foreground-secondary: 0 0% 38%;  /* #605E5C - Secondary Text */
-    --foreground-tertiary: 0 0% 54%;   /* #8A8886 - Tertiary Text */
+    --foreground: 0 0% 11%;            /* #1C1C1C - Darker, better contrast */
+    --foreground-secondary: 0 0% 36%;  /* #5C5C5C - Softer secondary */
+    --foreground-tertiary: 0 0% 52%;   /* #858585 */
     
-    --card: 0 0% 100%;                 /* #FFFFFF - Kartlar Beyaz (Arka plandan ayrılıyor) */
-    --card-foreground: 0 0% 13%;
+    --card: 0 0% 100%;                 /* #FFFFFF - Pure white cards */
+    --card-foreground: 0 0% 11%;
     
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 13%;
+    --popover-foreground: 0 0% 11%;
     
-    --primary: 210 100% 42%;           /* #0078D4 - Microsoft Blue */
+    /* 🔵 Modern Blue Gradient */
+    --primary: 210 100% 48%;           /* #0078D4 → Brighter blue */
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 210 100% 38%;     /* #106EBE */
-    --primary-pressed: 210 100% 30%;   /* #005A9E */
+    --primary-hover: 210 100% 44%;     /* #1084D8 */
+    --primary-pressed: 210 100% 36%;   /* #005FB7 */
+    --primary-gradient-from: 210 100% 48%;
+    --primary-gradient-to: 210 100% 36%;
     
-    --secondary: 0 0% 95%;             /* #F3F2F1 */
-    --secondary-foreground: 0 0% 13%;
+    --secondary: 0 0% 96%;             /* #F5F5F5 */
+    --secondary-foreground: 0 0% 11%;
     
-    --muted: 0 0% 95%;                 /* #F3F2F1 */
-    --muted-foreground: 0 0% 54%;      /* #8A8886 */
+    --muted: 0 0% 96%;                 
+    --muted-foreground: 0 0% 52%;
     
-    --accent: 210 100% 42%;            /* #0078D4 */
+    --accent: 210 100% 48%;            
     --accent-foreground: 0 0% 100%;
     
-    --destructive: 0 83% 58%;          /* #E81123 - Red */
+    --destructive: 0 85% 60%;          /* #F1707B - Softer red */
     --destructive-foreground: 0 0% 100%;
     
-    --success: 122 39% 36%;            /* #107C10 - Green */
-    --warning: 42 100% 50%;            /* #FFB900 - Yellow */
-    --info: 207 83% 52%;               /* #0078D4 - Blue */
+    --success: 122 42% 40%;            /* #2F9E44 - Vibrant green */
+    --warning: 42 96% 56%;             /* #FFB900 */
+    --info: 207 90% 54%;               /* #0078D4 */
     
-    --border: 0 0% 85%;                /* #D9D9D9 - Daha belirgin border */
-    --border-strong: 0 0% 54%;         /* #8A8886 */
-    --input: 0 0% 95%;                 /* #F3F2F1 */
-    --ring: 210 100% 42%;
+    --border: 0 0% 90%;                /* #E6E6E6 - Lighter border */
+    --border-strong: 0 0% 52%;         /* #858585 */
+    --input: 0 0% 97%;                 /* #F7F7F7 */
+    --ring: 210 100% 48%;
     
-    /* Fluent Spacing (4px Grid) */
+    /* 📏 Fluent 2 Spacing (8px Grid for better alignment) */
     --spacing-xs: 0.25rem;    /* 4px */
     --spacing-sm: 0.5rem;     /* 8px */
-    --spacing-md: 0.75rem;    /* 12px */
-    --spacing-lg: 1rem;       /* 16px */
-    --spacing-xl: 1.25rem;    /* 20px */
-    --spacing-2xl: 1.5rem;    /* 24px */
-    --spacing-3xl: 2rem;      /* 32px */
-    --spacing-4xl: 2.5rem;    /* 40px */
+    --spacing-md: 1rem;       /* 16px */
+    --spacing-lg: 1.5rem;     /* 24px */
+    --spacing-xl: 2rem;       /* 32px */
+    --spacing-2xl: 2.5rem;    /* 40px */
+    --spacing-3xl: 3rem;      /* 48px */
+    --spacing-4xl: 4rem;      /* 64px */
     
-    /* Fluent Border Radius */
-    --radius-sm: 0.125rem;    /* 2px */
-    --radius: 0.25rem;        /* 4px - Default */
-    --radius-md: 0.5rem;      /* 8px */
-    --radius-lg: 0.75rem;     /* 12px */
-    --radius-xl: 1rem;        /* 16px */
+    /* 🔘 Fluent 2 Border Radius (More rounded - Windows 11 style) */
+    --radius-sm: 0.25rem;     /* 4px */
+    --radius: 0.5rem;         /* 8px - Default */
+    --radius-md: 0.75rem;     /* 12px */
+    --radius-lg: 1rem;        /* 16px - Windows 11 standard */
+    --radius-xl: 1.25rem;     /* 20px */
     --radius-full: 9999px;    /* Pill */
     
-    /* Fluent Depth Shadows */
-    --depth-4: 0 1.6px 3.6px 0 rgba(0, 0, 0, 0.132), 0 0.3px 0.9px 0 rgba(0, 0, 0, 0.108);
-    --depth-8: 0 3.2px 7.2px 0 rgba(0, 0, 0, 0.132), 0 0.6px 1.8px 0 rgba(0, 0, 0, 0.108);
-    --depth-16: 0 6.4px 14.4px 0 rgba(0, 0, 0, 0.132), 0 1.2px 3.6px 0 rgba(0, 0, 0, 0.108);
-    --depth-64: 0 25.6px 57.6px 0 rgba(0, 0, 0, 0.22), 0 4.8px 14.4px 0 rgba(0, 0, 0, 0.18);
+    /* ✨ Fluent 2 Layered Shadows (Modern elevation) */
+    --depth-2: 0 0 0 1px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.04);
+    --depth-4: 0 0 0 1px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.05), 0 4px 8px rgba(0,0,0,0.04);
+    --depth-8: 0 0 0 1px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.05), 0 8px 16px rgba(0,0,0,0.06);
+    --depth-16: 0 0 0 1px rgba(0,0,0,0.05), 0 4px 8px rgba(0,0,0,0.05), 0 12px 24px rgba(0,0,0,0.08);
+    --depth-64: 0 0 0 1px rgba(0,0,0,0.05), 0 8px 16px rgba(0,0,0,0.08), 0 24px 48px rgba(0,0,0,0.12);
     
-    /* Fluent Motion (Animations) */
-    --motion-fast: 100ms cubic-bezier(0.8, 0, 0.2, 1);
-    --motion-normal: 200ms cubic-bezier(0.8, 0, 0.2, 1);
-    --motion-slow: 400ms cubic-bezier(0.8, 0, 0.2, 1);
-    --motion-decelerate: 300ms cubic-bezier(0, 0, 0, 1);
-    --motion-accelerate: 200ms cubic-bezier(1, 0, 1, 1);
+    /* 🎭 Acrylic Background Effect (Windows 11) */
+    --acrylic-bg: rgba(255, 255, 255, 0.7);
+    --acrylic-border: rgba(255, 255, 255, 0.9);
+    --acrylic-blur: 40px;
+    --acrylic-saturate: 180%;
+    
+    /* 🌊 Fluent 2 Motion (Smoother, more natural) */
+    --motion-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --motion-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --motion-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+    --motion-decelerate: 350ms cubic-bezier(0, 0, 0.2, 1);
+    --motion-accelerate: 250ms cubic-bezier(0.4, 0, 1, 1);
+    --motion-spring: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   .dark {
@@ -235,23 +246,64 @@
     transition-timing-function: cubic-bezier(0.8, 0, 0.2, 1);
   }
 
-  /* Acrylic Effect (Fluent translucent material) */
+  /* 🎭 Fluent 2 Acrylic Effect (Windows 11 Style) */
   .fluent-acrylic {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(30px) saturate(180%);
+    background: var(--acrylic-bg);
+    backdrop-filter: blur(var(--acrylic-blur)) saturate(var(--acrylic-saturate));
+    border: 1px solid var(--acrylic-border);
   }
 
   .dark .fluent-acrylic {
     background: rgba(31, 31, 31, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-  /* Fluent Card */
+  /* 🎨 Mica Effect (Windows 11 Background) */
+  .fluent-mica {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .fluent-mica::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(250,250,250,0.02) 100%);
+    pointer-events: none;
+  }
+
+  /* ✨ Gradient Button */
+  .fluent-gradient-btn {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-pressed)) 100%);
+    transition: transform var(--motion-fast), box-shadow var(--motion-fast);
+  }
+
+  .fluent-gradient-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px hsl(var(--primary) / 0.3);
+  }
+
+  .fluent-gradient-btn:active {
+    transform: translateY(0);
+  }
+
+  /* 💎 Fluent 2 Card (Modern elevation) */
   .fluent-card {
-    @apply bg-card border border-border rounded-md fluent-depth-4;
+    @apply bg-card border border-border rounded-lg fluent-depth-4;
+    transition: transform var(--motion-normal), box-shadow var(--motion-normal);
   }
 
   .fluent-card-hover {
-    @apply fluent-card hover:fluent-depth-8 hover:border-border-strong transition-all fluent-motion-normal;
+    @apply fluent-card hover:fluent-depth-8 hover:border-border-strong;
+  }
+
+  .fluent-card-hover:hover {
+    transform: translateY(-2px);
+  }
+
+  /* 🎨 Acrylic Card (Glassmorphism) */
+  .fluent-card-acrylic {
+    @apply fluent-acrylic rounded-lg fluent-depth-8;
   }
 }
 

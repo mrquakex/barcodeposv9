@@ -2,8 +2,8 @@ import React from 'react';
 import { cn } from '../../lib/utils';
 
 /* ============================================
-   FLUENT BUTTON COMPONENT
-   Microsoft Fluent Design System
+   FLUENT 2 BUTTON COMPONENT
+   Windows 11 Modern Design - Gradient & Acrylic
    ============================================ */
 
 export type FluentButtonAppearance = 'primary' | 'default' | 'subtle' | 'transparent' | 'destructive';
@@ -36,26 +36,29 @@ const FluentButton = React.forwardRef<HTMLButtonElement, FluentButtonProps>(
   ) => {
     const baseStyles = cn(
       'inline-flex items-center justify-center gap-2',
-      'font-medium transition-all',
-      'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-inset',
+      'font-semibold transition-all duration-200',
+      'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2',
       'disabled:opacity-50 disabled:cursor-not-allowed',
-      'fluent-motion-fast'
+      'active:scale-[0.98]'
     );
 
     const appearanceStyles = {
       primary: cn(
-        'bg-primary text-primary-foreground',
-        'hover:bg-primary-hover active:bg-primary-pressed',
+        // 🎨 Gradient Background (Windows 11 style)
+        'bg-gradient-to-br from-primary to-primary-pressed text-primary-foreground',
+        'hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5',
+        'active:translate-y-0',
         'fluent-depth-4'
       ),
       default: cn(
-        'bg-background text-foreground border border-border',
-        'hover:bg-background-alt hover:border-border-strong',
-        'active:bg-background-tertiary'
+        'bg-card text-foreground border border-border',
+        'hover:bg-background-alt hover:border-border-strong hover:shadow-md',
+        'active:bg-background-tertiary',
+        'fluent-depth-2'
       ),
       subtle: cn(
         'bg-transparent text-foreground',
-        'hover:bg-background-alt',
+        'hover:bg-background-alt hover:shadow-sm',
         'active:bg-background-tertiary'
       ),
       transparent: cn(
@@ -64,16 +67,17 @@ const FluentButton = React.forwardRef<HTMLButtonElement, FluentButtonProps>(
         'active:bg-background-tertiary/50'
       ),
       destructive: cn(
-        'bg-destructive text-destructive-foreground',
-        'hover:opacity-90 active:opacity-80',
+        'bg-gradient-to-br from-destructive to-red-600 text-destructive-foreground',
+        'hover:shadow-lg hover:shadow-destructive/30 hover:-translate-y-0.5',
+        'active:translate-y-0',
         'fluent-depth-4'
       ),
     };
 
     const sizeStyles = {
-      small: 'h-7 px-3 text-xs rounded',
-      medium: 'h-8 px-4 text-sm rounded',
-      large: 'h-10 px-6 text-base rounded-md',
+      small: 'h-8 px-3 text-xs rounded-lg',
+      medium: 'h-10 px-5 text-sm rounded-lg',
+      large: 'h-12 px-7 text-base rounded-xl',
     };
 
     return (

@@ -123,36 +123,45 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="fluent-title text-foreground">{t('dashboard.title')}</h1>
-        <p className="fluent-body text-foreground-secondary mt-1">
+    <div className="p-4 md:p-8 space-y-8 fluent-mica">
+      {/* 🎨 Modern Header */}
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold text-foreground tracking-tight">
+          {t('dashboard.title')}
+        </h1>
+        <p className="text-base text-foreground-secondary">
           {t('dashboard.recentActivity')}
         </p>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* 💎 Modern KPI Cards (Gradient Icons) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {kpiCards.map((card, index) => {
           const Icon = card.icon;
           return (
-            <FluentCard key={index} depth="depth-4" hoverable className="p-4">
+            <FluentCard 
+              key={index} 
+              depth="depth-4" 
+              hoverable 
+              className="p-6 group"
+            >
               <div className="flex items-start justify-between">
-                <div>
-                  <p className="fluent-body-small text-foreground-secondary mb-1">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-foreground-secondary mb-2">
                     {card.title}
                   </p>
-                  <h3 className="fluent-subtitle text-foreground mb-2">{card.value}</h3>
+                  <h3 className="text-2xl font-bold text-foreground mb-3 tracking-tight">
+                    {card.value}
+                  </h3>
                   {card.change !== undefined && (
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1.5">
                       {card.change >= 0 ? (
-                        <ArrowUp className="w-3 h-3 text-success" />
+                        <ArrowUp className="w-4 h-4 text-success" />
                       ) : (
-                        <ArrowDown className="w-3 h-3 text-destructive" />
+                        <ArrowDown className="w-4 h-4 text-destructive" />
                       )}
                       <span
-                        className={`fluent-caption ${
+                        className={`text-sm font-semibold ${
                           card.change >= 0 ? 'text-success' : 'text-destructive'
                         }`}
                       >
@@ -166,8 +175,9 @@ const Dashboard: React.FC = () => {
                     </FluentBadge>
                   )}
                 </div>
-                <div className={`p-2 rounded bg-background-alt ${card.color}`}>
-                  <Icon className="w-5 h-5" />
+                {/* Gradient Icon Background */}
+                <div className="p-3 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary/20 group-hover:to-primary/10 transition-all">
+                  <Icon className="w-7 h-7 text-primary" />
                 </div>
               </div>
             </FluentCard>
@@ -175,11 +185,19 @@ const Dashboard: React.FC = () => {
         })}
       </div>
 
-      {/* Chart */}
-      <FluentCard depth="depth-4" className="p-6">
-        <h3 className="fluent-heading text-foreground mb-4">{t('dashboard.salesChart')}</h3>
+      {/* 📊 Modern Chart Card */}
+      <FluentCard depth="depth-4" className="p-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-xl font-semibold text-foreground">{t('dashboard.salesChart')}</h3>
+            <p className="text-sm text-foreground-secondary mt-1">Son 7 günlük satış performansı</p>
+          </div>
+          <div className="px-4 py-2 bg-primary/10 rounded-lg">
+            <span className="text-sm font-semibold text-primary">7 Gün</span>
+          </div>
+        </div>
         {chartData && (
-          <div className="h-64">
+          <div className="h-72">
             <Line
               data={chartData}
               options={{
@@ -188,16 +206,25 @@ const Dashboard: React.FC = () => {
                 plugins: {
                   legend: { display: false },
                   tooltip: {
-                    backgroundColor: 'hsl(var(--fluent-color-card-bg))',
-                    titleColor: 'hsl(var(--fluent-color-text-primary))',
-                    bodyColor: 'hsl(var(--fluent-color-text-secondary))',
-                    borderColor: 'hsl(var(--fluent-color-border-default))',
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    titleColor: '#1C1C1C',
+                    bodyColor: '#5C5C5C',
+                    borderColor: '#E6E6E6',
                     borderWidth: 1,
+                    padding: 12,
+                    cornerRadius: 8,
+                    displayColors: false,
                   },
                 },
                 scales: {
-                  x: { grid: { display: false } },
-                  y: { grid: { color: 'hsl(var(--fluent-color-border-subtle))' } },
+                  x: { 
+                    grid: { display: false },
+                    ticks: { color: '#858585', font: { size: 12 } }
+                  },
+                  y: { 
+                    grid: { color: 'rgba(0,0,0,0.05)' },
+                    ticks: { color: '#858585', font: { size: 12 } }
+                  },
                 },
               }}
             />
