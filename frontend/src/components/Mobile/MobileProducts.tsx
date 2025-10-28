@@ -37,10 +37,28 @@ const MobileProducts: React.FC = () => {
     try {
       setIsLoading(true);
       const response = await api.get('/products');
-      setProducts(response.data.products || []);
+      const fetchedProducts = response.data.products || [];
+      setProducts(fetchedProducts);
+      // Cache products for offline use
+      if (typeof localStorage !== 'undefined') {
+        localStorage.setItem('cached_products', JSON.stringify({
+          products: fetchedProducts,
+          timestamp: Date.now(),
+        }));
+      }
     } catch (error) {
       console.error('Failed to load products:', error);
-      toast.error('Ürünler yüklenemedi');
+      // Try to load from cache
+      if (typeof localStorage !== 'undefined') {
+        const cached = localStorage.getItem('cached_products');
+        if (cached) {
+          const { products: cachedProducts } = JSON.parse(cached);
+          setProducts(cachedProducts);
+          toast('📡 Çevrimdışı mod - önbellekten yüklendi', { duration: 2000 });
+        } else {
+          toast.error('Ürünler yüklenemedi');
+        }
+      }
     } finally {
       setIsLoading(false);
     }

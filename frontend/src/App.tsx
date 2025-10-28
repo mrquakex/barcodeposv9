@@ -10,6 +10,8 @@ import MobileDashboard from './components/Mobile/MobileDashboard';
 import MobileProducts from './components/Mobile/MobileProducts';
 import MobileProductAdd from './components/Mobile/MobileProductAdd';
 import MobileNotifications from './components/Mobile/MobileNotifications';
+import MobileProfile from './components/Mobile/MobileProfile';
+import MobileStockCount from './components/Mobile/MobileStockCount';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import POS from './pages/POS';
@@ -93,6 +95,8 @@ const App: React.FC = () => {
           <Route path="/products" element={isNativeApp ? <MobileProducts /> : <Products />} />
           <Route path="/products/add" element={isNativeApp ? <MobileProductAdd /> : <Products />} />
           <Route path="/notifications" element={isNativeApp ? <MobileNotifications /> : <Dashboard />} />
+          <Route path="/profile" element={isNativeApp ? <MobileProfile /> : <Profile />} />
+          <Route path="/stock-count" element={isNativeApp ? <MobileStockCount /> : <StockCount />} />
           <Route path="/customers" element={<Customers />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/suppliers" element={<Suppliers />} />
