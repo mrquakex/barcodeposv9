@@ -146,7 +146,7 @@ const POS: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [lastReceipt, setLastReceipt] = useState<any>(null);
   
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const videoContainerRef = useRef<HTMLDivElement | null>(null);
   const isQuaggaInitialized = useRef(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
@@ -971,10 +971,10 @@ const POS: React.FC = () => {
       
       setIsScanning(true);
       
-      const videoElement = videoRef.current;
+      const container = videoContainerRef.current;
       
-      if (!videoElement) {
-        throw new Error('Video element bulunamadı!');
+      if (!container) {
+        throw new Error('Video container bulunamadı!');
       }
 
       // Stop if already initialized
@@ -989,7 +989,7 @@ const POS: React.FC = () => {
           inputStream: {
             name: 'Live',
             type: 'LiveStream',
-            target: videoElement,
+            target: container, // Quagga will create video element inside this div
             constraints: {
               width: { ideal: 1280 },
               height: { ideal: 720 },
@@ -2257,18 +2257,11 @@ const POS: React.FC = () => {
           <X className="w-7 h-7 text-white" />
         </button>
 
-        {/* Video - SHARP & CLEAR */}
-        <video
-          ref={videoRef}
-          id="zxing-video-extreme"
-          className="w-full h-full object-contain"
-          style={{
-            imageRendering: 'crisp-edges',
-            filter: 'brightness(1.1) contrast(1.2)',
-          }}
-          autoPlay
-          playsInline
-          muted
+        {/* Quagga Video Container */}
+        <div
+          ref={videoContainerRef}
+          id="quagga-video-container"
+          className="w-full h-full flex items-center justify-center"
         />
         
         {/* Clean Target Frame */}

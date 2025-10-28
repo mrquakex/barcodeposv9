@@ -470,3 +470,17 @@
     line-height: 1.75rem;
   }
 }
+
+/* ============================================
+   📦 QUAGGA BARCODE SCANNER STYLES
+   ============================================ */
+#quagga-video-container video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  filter: brightness(1.1) contrast(1.2);
+}
+
+#quagga-video-container canvas {
+  display: none !important; /* Hide debug canvas */
+}
