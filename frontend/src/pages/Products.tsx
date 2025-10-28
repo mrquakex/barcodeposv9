@@ -564,26 +564,35 @@ const Products: React.FC = () => {
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
-      {/* 💠 ENTERPRISE: Header with View Mode Toggle */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="fluent-title text-foreground">{t('products.title')}</h1>
-          <p className="fluent-body text-foreground-secondary mt-1">
-            {filteredProducts.length} ürün
-            {selectedProducts.size > 0 && ` • ${selectedProducts.size} seçili`}
-          </p>
+    <div className="p-4 md:p-8 space-y-8 fluent-mica">
+      {/* 🎨 Modern Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">{t('products.title')}</h1>
+          <div className="flex items-center gap-3 text-sm">
+            <span className="text-foreground-secondary">
+              {filteredProducts.length} ürün
+            </span>
+            {selectedProducts.size > 0 && (
+              <>
+                <span className="text-foreground-tertiary">•</span>
+                <span className="font-semibold text-primary">
+                  {selectedProducts.size} seçili
+                </span>
+              </>
+            )}
+          </div>
         </div>
-        <div className="flex gap-2">
-          {/* View Mode Toggle */}
-          <div className="flex gap-1 bg-background-alt border border-border rounded p-1">
+        <div className="flex gap-3">
+          {/* 💎 Modern View Mode Toggle */}
+          <div className="flex gap-1 bg-background-alt border border-border rounded-lg p-1.5">
             <button
               onClick={() => setViewMode('grid')}
               className={cn(
-                'px-3 py-1.5 rounded text-sm font-medium transition-all fluent-motion-fast',
+                'px-4 py-2 rounded-md text-sm font-semibold transition-all duration-200',
                 viewMode === 'grid'
-                  ? 'bg-background text-primary shadow-sm'
-                  : 'text-foreground-secondary hover:text-foreground'
+                  ? 'bg-gradient-to-br from-primary to-primary-pressed text-white shadow-md'
+                  : 'text-foreground-secondary hover:text-foreground hover:bg-background/50'
               )}
             >
               <Grid3x3 className="w-4 h-4" />
@@ -591,10 +600,10 @@ const Products: React.FC = () => {
             <button
               onClick={() => setViewMode('list')}
               className={cn(
-                'px-3 py-1.5 rounded text-sm font-medium transition-all fluent-motion-fast',
+                'px-4 py-2 rounded-md text-sm font-semibold transition-all duration-200',
                 viewMode === 'list'
-                  ? 'bg-background text-primary shadow-sm'
-                  : 'text-foreground-secondary hover:text-foreground'
+                  ? 'bg-gradient-to-br from-primary to-primary-pressed text-white shadow-md'
+                  : 'text-foreground-secondary hover:text-foreground hover:bg-background/50'
               )}
             >
               <List className="w-4 h-4" />
@@ -678,56 +687,56 @@ const Products: React.FC = () => {
         </div>
       </div>
 
-      {/* 💠 ENTERPRISE: Statistics Widget */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <FluentCard depth="depth-4" className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-primary/10 rounded flex items-center justify-center">
-              <Package className="w-6 h-6 text-primary" />
+      {/* 💎 Modern Statistics Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <FluentCard depth="depth-4" hoverable className="p-6 group">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-gradient-to-br from-primary/10 to-primary/5 rounded-xl group-hover:from-primary/20 group-hover:to-primary/10 transition-all">
+              <Package className="w-7 h-7 text-primary" />
             </div>
             <div>
-              <p className="fluent-caption text-foreground-secondary">Toplam Ürün</p>
-              <p className="fluent-title-3 font-bold text-foreground">{products.length}</p>
+              <p className="text-sm font-medium text-foreground-secondary">Toplam Ürün</p>
+              <p className="text-2xl font-bold text-foreground mt-1">{products.length}</p>
             </div>
           </div>
         </FluentCard>
 
-        <FluentCard depth="depth-4" className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-success/10 rounded flex items-center justify-center">
-              <Package className="w-6 h-6 text-success" />
+        <FluentCard depth="depth-4" hoverable className="p-6 group">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-gradient-to-br from-success/10 to-success/5 rounded-xl group-hover:from-success/20 group-hover:to-success/10 transition-all">
+              <Package className="w-7 h-7 text-success" />
             </div>
             <div>
-              <p className="fluent-caption text-foreground-secondary">Toplam Değer</p>
-              <p className="fluent-title-3 font-bold text-foreground">
+              <p className="text-sm font-medium text-foreground-secondary">Toplam Değer</p>
+              <p className="text-2xl font-bold text-foreground mt-1">
                 ₺{products.reduce((sum, p) => sum + (p.sellPrice * p.stock), 0).toFixed(2)}
               </p>
             </div>
           </div>
         </FluentCard>
 
-        <FluentCard depth="depth-4" className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-warning/10 rounded flex items-center justify-center">
-              <AlertCircle className="w-6 h-6 text-warning" />
+        <FluentCard depth="depth-4" hoverable className="p-6 group">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-gradient-to-br from-warning/10 to-warning/5 rounded-xl group-hover:from-warning/20 group-hover:to-warning/10 transition-all">
+              <AlertCircle className="w-7 h-7 text-warning" />
             </div>
             <div>
-              <p className="fluent-caption text-foreground-secondary">Kritik Stok</p>
-              <p className="fluent-title-3 font-bold text-foreground">
+              <p className="text-sm font-medium text-foreground-secondary">Kritik Stok</p>
+              <p className="text-2xl font-bold text-foreground mt-1">
                 {products.filter(p => p.stock <= p.minStock).length}
               </p>
             </div>
           </div>
         </FluentCard>
 
-        <FluentCard depth="depth-4" className="p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-info/10 rounded flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-info" />
+        <FluentCard depth="depth-4" hoverable className="p-6 group">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-gradient-to-br from-info/10 to-info/5 rounded-xl group-hover:from-info/20 group-hover:to-info/10 transition-all">
+              <TrendingUp className="w-7 h-7 text-info" />
             </div>
             <div>
-              <p className="fluent-caption text-foreground-secondary">Kategoriler</p>
-              <p className="fluent-title-3 font-bold text-foreground">{categories.length}</p>
+              <p className="text-sm font-medium text-foreground-secondary">Kategoriler</p>
+              <p className="text-2xl font-bold text-foreground mt-1">{categories.length}</p>
             </div>
           </div>
         </FluentCard>
