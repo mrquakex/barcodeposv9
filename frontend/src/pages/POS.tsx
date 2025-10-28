@@ -18,6 +18,8 @@ import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { BrowserMultiFormatReader, BarcodeFormat } from '@zxing/browser';
 import { NotFoundException, DecodeHintType } from '@zxing/library';
+import { Capacitor } from '@capacitor/core';
+import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 import { cn } from '../lib/utils';
 import { useKeyboardShortcuts, POSShortcuts } from '../hooks/useKeyboardShortcuts';
 import { soundEffects } from '../lib/sound-effects';
@@ -966,46 +968,37 @@ const POS: React.FC = () => {
   // 🔥 QUAGGA BARCODE SCANNER - Best for EAN-13!
   const startCamera = async () => {
     try {
-      console.log('🎬 Starting ZXing scanner (Google Barcode Library)...');
-      console.log('📱 User Agent:', navigator.userAgent);
-      console.log('🔒 HTTPS:', window.isSecureContext);
+      console.log('🎬 Starting camera scanner...');
+      console.log('📱 Platform:', Capacitor.getPlatform());
+      console.log('🔒 Native:', Capacitor.isNativePlatform());
       
       setIsScanning(true);
       
-      const video = videoRef.current;
-      
-      if (!video) {
-        throw new Error('Video element bulunamadı!');
-      }
-
-      // ⚡ ZXING SCANNER - Google's Official Barcode Library
-      const hints = new Map();
-      // 🔥 TRY_HARDER for better detection
-      hints.set(DecodeHintType.TRY_HARDER, true);
-      // 🔥 SPECIFY FORMATS for faster scanning
-      hints.set(DecodeHintType.POSSIBLE_FORMATS, [
-        BarcodeFormat.EAN_13,
-        BarcodeFormat.EAN_8,
-        BarcodeFormat.CODE_128,
-        BarcodeFormat.CODE_39,
-        BarcodeFormat.UPC_A,
-        BarcodeFormat.UPC_E,
-        BarcodeFormat.QR_CODE,
-      ]);
-      
-      const codeReader = new BrowserMultiFormatReader(hints);
-      scannerRef.current = codeReader;
-
-      console.log('📱 ZXing initialized with TRY_HARDER! Starting continuous scan...');
-      
-      // ⚡ CONTINUOUS SCAN with decodeFromVideoDevice
-      codeReader.decodeFromVideoDevice(
-        undefined, // undefined = use default camera (back camera on mobile)
-        video,
-        (result, error) => {
-          if (result) {
-            const barcode = result.getText();
-            console.log('📦 ✅ BARCODE SCANNED:', barcode);
+      // 📱 NATIVE PLATFORM - Use Capacitor Barcode Scanner
+      if (Capacitor.isNativePlatform()) {
+        console.log('⚡ Using NATIVE Barcode Scanner (Capacitor)');
+        
+        // Check camera permission
+        const status = await BarcodeScanner.checkPermission({ force: true });
+        
+        if (status.granted) {
+          // Hide background
+          document.body.classList.add('scanner-active');
+          
+          // Make modal transparent for camera
+          setShowCameraModal(true);
+          
+          soundEffects.beep();
+          
+          // Start scanning
+          const result = await BarcodeScanner.startScan();
+          
+          // Scan completed
+          document.body.classList.remove('scanner-active');
+          
+          if (result.hasContent) {
+            const barcode = result.content || '';
+            console.log('📦 ✅ NATIVE BARCODE SCANNED:', barcode);
             
             // Vibrate
             if (navigator.vibrate) {
@@ -1019,20 +1012,93 @@ const POS: React.FC = () => {
             // Handle scan
             handleCameraScan(barcode);
             
-            // Stop after successful scan
-            stopCamera();
+            // Stop and close
+            BarcodeScanner.stopScan();
             setShowCameraModal(false);
+            setIsScanning(false);
+          } else {
+            console.log('❌ No barcode found');
+            setIsScanning(false);
           }
-          
-          // Log ALL attempts (for debugging)
-          if (error && !(error instanceof NotFoundException)) {
-            console.error('ZXing scan error:', error);
-          }
+        } else if (status.denied) {
+          toast.error('Kamera izni reddedildi! Ayarlardan kamera iznini verin.', { duration: 5000 });
+          soundEffects.error();
+          setIsScanning(false);
+          setShowCameraModal(false);
+        } else {
+          // Ask for permission
+          toast.error('Kamera izni gerekiyor!', { duration: 3000 });
+          soundEffects.error();
+          setIsScanning(false);
+          setShowCameraModal(false);
         }
-      );
-      
-      console.log('⚡ ZXing SCANNING! Point at barcode...');
-      soundEffects.beep();
+      } 
+      // 🌐 WEB PLATFORM - Use ZXing
+      else {
+        console.log('🌐 Using WEB Scanner (ZXing)');
+        
+        const video = videoRef.current;
+        
+        if (!video) {
+          throw new Error('Video element bulunamadı!');
+        }
+
+        // ⚡ ZXING SCANNER - Google's Official Barcode Library
+        const hints = new Map();
+        // 🔥 TRY_HARDER for better detection
+        hints.set(DecodeHintType.TRY_HARDER, true);
+        // 🔥 SPECIFY FORMATS for faster scanning
+        hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+          BarcodeFormat.EAN_13,
+          BarcodeFormat.EAN_8,
+          BarcodeFormat.CODE_128,
+          BarcodeFormat.CODE_39,
+          BarcodeFormat.UPC_A,
+          BarcodeFormat.UPC_E,
+          BarcodeFormat.QR_CODE,
+        ]);
+        
+        const codeReader = new BrowserMultiFormatReader(hints);
+        scannerRef.current = codeReader;
+
+        console.log('📱 ZXing initialized with TRY_HARDER! Starting continuous scan...');
+        
+        // ⚡ CONTINUOUS SCAN with decodeFromVideoDevice
+        codeReader.decodeFromVideoDevice(
+          undefined, // undefined = use default camera (back camera on mobile)
+          video,
+          (result, error) => {
+            if (result) {
+              const barcode = result.getText();
+              console.log('📦 ✅ BARCODE SCANNED:', barcode);
+              
+              // Vibrate
+              if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200]);
+              }
+              
+              // Show toast
+              toast.success(`⚡ ${barcode}`, { duration: 2000 });
+              soundEffects.cashRegister();
+              
+              // Handle scan
+              handleCameraScan(barcode);
+              
+              // Stop after successful scan
+              stopCamera();
+              setShowCameraModal(false);
+            }
+            
+            // Log ALL attempts (for debugging)
+            if (error && !(error instanceof NotFoundException)) {
+              console.error('ZXing scan error:', error);
+            }
+          }
+        );
+        
+        console.log('⚡ ZXing SCANNING! Point at barcode...');
+        soundEffects.beep();
+      }
       
     } catch (error: any) {
       console.error('🔴 Camera error:', error);
@@ -1042,6 +1108,12 @@ const POS: React.FC = () => {
         isSecureContext: window.isSecureContext,
         protocol: window.location.protocol,
       });
+      
+      // Clean up native scanner if error
+      if (Capacitor.isNativePlatform()) {
+        document.body.classList.remove('scanner-active');
+        BarcodeScanner.stopScan();
+      }
       
       // 🎯 User-friendly error messages
       let errorMsg = 'Kamera başlatılamadı!';
@@ -1088,19 +1160,30 @@ const POS: React.FC = () => {
 
   const stopCamera = async () => {
     try {
-      console.log('🛑 Stopping ZXing scanner...');
+      console.log('🛑 Stopping camera scanner...');
       
-      // Stop ZXing - No reset() method, just set to null
-      if (scannerRef.current) {
-        // ZXing automatically stops when component unmounts
-        scannerRef.current = null;
-      }
-      
-      // Stop video stream manually
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
-        videoRef.current.srcObject = null;
+      // Stop NATIVE scanner
+      if (Capacitor.isNativePlatform()) {
+        console.log('🛑 Stopping NATIVE scanner...');
+        document.body.classList.remove('scanner-active');
+        BarcodeScanner.stopScan();
+      } 
+      // Stop WEB scanner (ZXing)
+      else {
+        console.log('🛑 Stopping ZXing scanner...');
+        
+        // Stop ZXing - No reset() method, just set to null
+        if (scannerRef.current) {
+          // ZXing automatically stops when component unmounts
+          scannerRef.current = null;
+        }
+        
+        // Stop video stream manually
+        if (videoRef.current && videoRef.current.srcObject) {
+          const stream = videoRef.current.srcObject as MediaStream;
+          stream.getTracks().forEach(track => track.stop());
+          videoRef.current.srcObject = null;
+        }
       }
       
       setIsScanning(false);

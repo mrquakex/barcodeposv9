@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">BarcodePOS</string>
+    <string name="title_activity_main">BarcodePOS</string>
+    <string name="package_name">com.barcodepos.app</string>
+    <string name="custom_url_scheme">com.barcodepos.app</string>
+</resources>

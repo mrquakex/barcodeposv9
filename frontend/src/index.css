@@ -477,3 +477,21 @@
 video {
   object-fit: cover;
 }
+
+/* ============================================
+   📱 CAPACITOR NATIVE BARCODE SCANNER
+   ============================================ */
+body.scanner-active {
+  /* Hide all content to show native camera */
+  background: transparent !important;
+}
+
+body.scanner-active * {
+  /* Make everything transparent except scanner UI */
+  visibility: hidden;
+}
+
+body.scanner-active .barcode-scanner-ui {
+  /* Show scanner UI overlay */
+  visibility: visible !important;
+}

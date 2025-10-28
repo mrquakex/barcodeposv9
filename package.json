@@ -7,10 +7,17 @@
     "check-translations": "node scripts/find-english-text.js"
   },
   "description": "BarcodePOS - Professional Point of Sale System",
-  "keywords": ["pos", "barcode", "sales", "inventory"],
-  "author": "BarcodePOS Team"
+  "keywords": [
+    "pos",
+    "barcode",
+    "sales",
+    "inventory"
+  ],
+  "author": "BarcodePOS Team",
+  "dependencies": {
+    "@capacitor-community/barcode-scanner": "^4.0.1",
+    "@capacitor/android": "^7.4.4",
+    "@capacitor/cli": "^7.4.4",
+    "@capacitor/core": "^7.4.4"
+  }
 }
-
-
-
-
