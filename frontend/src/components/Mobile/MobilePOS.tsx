@@ -40,8 +40,8 @@ const MobilePOS: React.FC = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // 📱 APP VERSION (increment this with each APK release)
-  const CURRENT_VERSION: string = "1.0.0";
-  const LATEST_VERSION: string = "1.0.1"; // Update this when new APK is ready
+  const CURRENT_VERSION: string = "1.0.1"; // This APK version
+  const LATEST_VERSION: string = "1.0.2"; // Server latest version (for future updates)
 
   // 🔄 Check for updates on app start
   useEffect(() => {
