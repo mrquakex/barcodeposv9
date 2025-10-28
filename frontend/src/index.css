@@ -1034,6 +1034,11 @@ body.scanner-active .barcode-scanner-ui {
   -webkit-overflow-scrolling: touch;
 }
 
+/* Dark Mode for Dashboard */
+.dark .mobile-dashboard {
+  background: linear-gradient(135deg, #1C1C1E 0%, #2C2C2E 50%, #1C1C1E 100%);
+}
+
 .dashboard-header {
   padding: 24px 20px 16px;
   background: rgba(255, 255, 255, 0.88);
@@ -1044,6 +1049,12 @@ body.scanner-active .barcode-scanner-ui {
   position: sticky;
   top: 0;
   z-index: 10;
+}
+
+.dark .dashboard-header {
+  background: rgba(28, 28, 30, 0.88);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
 }
 
 .dashboard-greeting {
@@ -1060,6 +1071,13 @@ body.scanner-active .barcode-scanner-ui {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   margin-bottom: 4px;
+}
+
+.dark .greeting-title {
+  background: linear-gradient(135deg, #FFFFFF 0%, #B0B0B0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .greeting-subtitle {
@@ -1082,9 +1100,17 @@ body.scanner-active .barcode-scanner-ui {
   transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+.dark .theme-toggle-btn {
+  background: rgba(255, 255, 255, 0.1);
+}
+
 .theme-toggle-btn:active {
   transform: scale(0.9);
   background: rgba(0, 0, 0, 0.08);
+}
+
+.dark .theme-toggle-btn:active {
+  background: rgba(255, 255, 255, 0.15);
 }
 
 /* Quick Stats */
@@ -1107,6 +1133,14 @@ body.scanner-active .barcode-scanner-ui {
   box-shadow: 
     0 4px 16px rgba(0, 0, 0, 0.04),
     0 1px 4px rgba(0, 0, 0, 0.02);
+}
+
+.dark .stat-card {
+  background: rgba(44, 44, 46, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
 .stat-icon {
@@ -1167,6 +1201,14 @@ body.scanner-active .barcode-scanner-ui {
   box-shadow: 
     0 4px 20px rgba(0, 0, 0, 0.05),
     0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.dark .dashboard-card {
+  background: rgba(44, 44, 46, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .dashboard-card:active {
@@ -1239,6 +1281,120 @@ body.scanner-active .barcode-scanner-ui {
   box-shadow: 
     0 4px 16px rgba(0, 120, 212, 0.3),
     0 2px 8px rgba(0, 120, 212, 0.2);
+}
+
+/* ============================================
+   📦 MOBILE PRODUCTS - Product Cards
+   ============================================ */
+
+.product-card-mobile {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(40px) saturate(180%);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.05),
+    0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.dark .product-card-mobile {
+  background: rgba(44, 44, 46, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.product-card-mobile:active {
+  transform: scale(0.97);
+}
+
+.product-icon-mobile {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #00A86B 0%, #008A5A 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.product-name-mobile {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--foreground);
+  line-height: 1.2;
+}
+
+.product-price-mobile {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0078D4;
+}
+
+.product-stock-mobile {
+  font-size: 12px;
+  color: var(--foreground-secondary);
+}
+
+.product-category-badge {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(0, 120, 212, 0.1);
+  color: #0078D4;
+  font-weight: 500;
+}
+
+/* Mobile Search Bar */
+.mobile-search-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 12px;
+  transition: all 0.3s;
+}
+
+.dark .mobile-search-bar {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.mobile-search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--foreground);
+  font-size: 16px;
+  outline: none;
+}
+
+.mobile-search-input::placeholder {
+  color: var(--foreground-secondary);
+}
+
+.mobile-search-clear {
+  padding: 4px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.1);
+  border: none;
+  cursor: pointer;
+  color: var(--foreground-secondary);
+  transition: all 0.3s;
+}
+
+.mobile-search-clear:active {
+  transform: scale(0.9);
 }
 
 /* ============================================
@@ -1473,11 +1629,11 @@ body.scanner-active .barcode-scanner-ui {
    Laser Animation + Scanning Frame + Glassmorphism
    ============================================ */
 
-/* Scanner Overlay Container - Transparent for native camera */
+/* Scanner Overlay Container - TAMAMEN TRANSPARENT! */
 .scanner-overlay {
   position: fixed;
   inset: 0;
-  background: transparent; /* Kamera görünsün diye transparent */
+  background: transparent !important; /* KAMERA GÖRÜNSÜN! */
   z-index: 9999;
   display: flex;
   flex-direction: column;
@@ -1486,30 +1642,23 @@ body.scanner-active .barcode-scanner-ui {
   pointer-events: none; /* UI elementleri dışında tıklanamaz */
 }
 
-/* Dimming effect around scanner frame */
-.scanner-overlay::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: -1;
-  pointer-events: none;
-}
+/* Dimming KALDIRILDI - Kamera için! */
 
 /* UI elements should be clickable */
 .scanner-overlay > * {
   pointer-events: auto;
 }
 
-/* Scanning Frame (White corners) */
+/* Scanning Frame (SADECE KÖŞELER) */
 .scanning-frame {
   position: relative;
   width: 280px;
   height: 280px;
-  border: 2px solid rgba(255, 255, 255, 0.5);
-  border-radius: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.8); /* Daha belirgin */
+  border-radius: 24px;
   overflow: visible; /* Köşe işaretleri görünsün */
-  background: transparent; /* Kamera feed görünsün */
+  background: transparent !important; /* KAMERA FEED GÖRÜNSÜN! */
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5); /* Dışarıyı karart, içi açık */
 }
 
 /* Corner indicators */

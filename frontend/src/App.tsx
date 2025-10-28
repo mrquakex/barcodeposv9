@@ -7,6 +7,7 @@ import { useThemeStore } from './store/themeStore';
 import MainLayout from './components/Layout/MainLayout';
 import MobileLayout from './components/Mobile/MobileLayout';
 import MobileDashboard from './components/Mobile/MobileDashboard';
+import MobileProducts from './components/Mobile/MobileProducts';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import POS from './pages/POS';
@@ -87,7 +88,7 @@ const App: React.FC = () => {
         <Route element={token ? <LayoutComponent /> : <Navigate to="/login" />}>
           <Route path="/dashboard" element={isNativeApp ? <MobileDashboard /> : <Dashboard />} />
           <Route path="/pos" element={<POS />} />
-          <Route path="/products" element={<Products />} />
+          <Route path="/products" element={isNativeApp ? <MobileProducts /> : <Products />} />
           <Route path="/customers" element={<Customers />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/suppliers" element={<Suppliers />} />
