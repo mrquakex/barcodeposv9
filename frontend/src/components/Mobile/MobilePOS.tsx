@@ -54,8 +54,8 @@ const MobilePOS: React.FC = () => {
   const scrollContainer = useRef<HTMLDivElement>(null);
 
   // 📱 APP VERSION (increment this with each APK release)
-  const CURRENT_VERSION: string = "1.0.6"; // This APK version
-  const LATEST_VERSION: string = "1.0.6"; // Server latest version (şu an en son versiyon)
+  const CURRENT_VERSION: string = "1.0.7"; // This APK version
+  const LATEST_VERSION: string = "1.0.7"; // Server latest version (şu an en son versiyon)
 
   // 🔄 Check for updates on app start
   useEffect(() => {
@@ -234,9 +234,18 @@ const MobilePOS: React.FC = () => {
     setMultiScanMode(false);
     BarcodeScanner.stopScan();
     
-    // Restore body background
+    // FULL FIX: Restore everything
     document.body.style.background = '';
+    document.body.style.backgroundColor = '';
     document.querySelector('html')?.style.removeProperty('background');
+    document.querySelector('html')?.style.removeProperty('background-color');
+    
+    // Show main app container again
+    const appRoot = document.getElementById('root');
+    if (appRoot) {
+      (appRoot as HTMLElement).style.opacity = '1';
+      (appRoot as HTMLElement).style.pointerEvents = 'auto';
+    }
     
     hapticFeedback.light();
   };
@@ -268,9 +277,18 @@ const MobilePOS: React.FC = () => {
       const status = await BarcodeScanner.checkPermission({ force: true });
       
       if (status.granted) {
-        // Make body transparent for native camera
+        // FULL FIX: Hide all app content, show only camera
         document.body.style.background = 'transparent';
+        document.body.style.backgroundColor = 'transparent';
         document.querySelector('html')?.style.setProperty('background', 'transparent');
+        document.querySelector('html')?.style.setProperty('background-color', 'transparent');
+        
+        // Hide main app container
+        const appRoot = document.getElementById('root');
+        if (appRoot) {
+          (appRoot as HTMLElement).style.opacity = '0';
+          (appRoot as HTMLElement).style.pointerEvents = 'none';
+        }
         
         soundEffects.beep();
         
