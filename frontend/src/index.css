@@ -1009,16 +1009,32 @@ body.scanner-active .barcode-scanner-ui {
    Laser Animation + Scanning Frame + Glassmorphism
    ============================================ */
 
-/* Scanner Overlay Container */
+/* Scanner Overlay Container - Transparent for native camera */
 .scanner-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.95);
+  background: transparent; /* Kamera görünsün diye transparent */
   z-index: 9999;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  pointer-events: none; /* UI elementleri dışında tıklanamaz */
+}
+
+/* Dimming effect around scanner frame */
+.scanner-overlay::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* UI elements should be clickable */
+.scanner-overlay > * {
+  pointer-events: auto;
 }
 
 /* Scanning Frame (White corners) */
@@ -1026,9 +1042,10 @@ body.scanner-active .barcode-scanner-ui {
   position: relative;
   width: 280px;
   height: 280px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.5);
   border-radius: 20px;
-  overflow: hidden;
+  overflow: visible; /* Köşe işaretleri görünsün */
+  background: transparent; /* Kamera feed görünsün */
 }
 
 /* Corner indicators */
