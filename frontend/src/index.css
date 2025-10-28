@@ -834,6 +834,23 @@ body.scanner-active .barcode-scanner-ui {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
+.mobile-icon-btn {
+  padding: 8px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.04);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-icon-btn:active {
+  transform: scale(0.9);
+  background: rgba(0, 0, 0, 0.08);
+}
+
 .mobile-header-title {
   font-size: 22px;
   font-weight: 700;
@@ -1005,6 +1022,126 @@ body.scanner-active .barcode-scanner-ui {
 }
 
 /* ============================================
+   ⏳ LOADING SKELETONS - iOS/Facebook Style
+   ============================================ */
+
+.skeleton {
+  background: linear-gradient(
+    90deg, 
+    rgba(200, 200, 200, 0.2) 25%, 
+    rgba(200, 200, 200, 0.3) 50%, 
+    rgba(200, 200, 200, 0.2) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+.skeleton-text {
+  height: 14px;
+  margin-bottom: 8px;
+}
+
+.skeleton-rect {
+  width: 100%;
+  height: 100px;
+}
+
+.skeleton-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+}
+
+.skeleton-product-card {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+@keyframes skeleton-pulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ============================================
+   📭 EMPTY STATES - Beautiful Placeholders
+   ============================================ */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px;
+}
+
+.empty-state-icon {
+  width: 96px;
+  height: 96px;
+  background: linear-gradient(135deg, rgba(0, 120, 212, 0.08) 0%, rgba(0, 95, 183, 0.12) 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 24px;
+  color: #0078D4;
+  animation: float 3s ease-in-out infinite;
+}
+
+.empty-state-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 8px;
+}
+
+.empty-state-description {
+  font-size: 14px;
+  color: var(--foreground-secondary);
+  max-width: 280px;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+/* ============================================
+   🔄 PULL-TO-REFRESH - iOS/Android Style
+   ============================================ */
+
+.pull-to-refresh-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  z-index: 100;
+  transition: transform 0.2s ease-out, opacity 0.2s;
+}
+
+.pull-spinner {
+  font-size: 24px;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.pull-spinner.spinning {
+  animation: spin-refresh 1s linear infinite;
+}
+
+@keyframes spin-refresh {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================
    📱 MOBILE LAYOUT - Full Screen Native Experience
    No Sidebar, Bottom Navigation Only
    ============================================ */
@@ -1016,6 +1153,8 @@ body.scanner-active .barcode-scanner-ui {
   height: 100vh;
   overflow: hidden;
   background: linear-gradient(135deg, #F0F4F8 0%, #E8EEF5 50%, #F5F7FA 100%);
+  /* Safe area insets for notch/home indicator */
+  padding-top: env(safe-area-inset-top);
 }
 
 /* Mobile Content Area (with bottom padding for nav) */
@@ -1023,7 +1162,7 @@ body.scanner-active .barcode-scanner-ui {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-bottom: 80px; /* Space for bottom nav */
+  padding-bottom: calc(80px + env(safe-area-inset-bottom)); /* Space for bottom nav + home indicator */
   -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
@@ -1038,7 +1177,7 @@ body.scanner-active .barcode-scanner-ui {
   bottom: 0;
   left: 0;
   right: 0;
-  height: 72px;
+  height: calc(72px + env(safe-area-inset-bottom));
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(40px) saturate(180%);
   -webkit-backdrop-filter: blur(40px) saturate(180%);
@@ -1046,7 +1185,7 @@ body.scanner-active .barcode-scanner-ui {
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 8px 12px 16px;
+  padding: 8px 12px calc(16px + env(safe-area-inset-bottom)) 12px;
   z-index: 1000;
   box-shadow: 
     0 -2px 16px rgba(0, 0, 0, 0.05),

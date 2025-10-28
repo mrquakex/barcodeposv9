@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, ShoppingCart, CreditCard, Search, Plus, X, Minus, Trash2 } from 'lucide-react';
+import { Camera, ShoppingCart, CreditCard, Search, Plus, X, Minus, Trash2, Sun, Moon } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
+import { App as CapApp } from '@capacitor/app';
 import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 import { api } from '../../lib/api';
 import toast from 'react-hot-toast';
 import { soundEffects } from '../../lib/sound-effects';
+import { useThemeStore } from '../../store/themeStore';
 
 /**
  * 📱 MOBILE POS - NATIVE APP UI
@@ -27,6 +29,7 @@ interface CartItem extends Product {
 }
 
 const MobilePOS: React.FC = () => {
+  const { theme, toggleTheme } = useThemeStore();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Product[]>([]);
@@ -36,18 +39,56 @@ const MobilePOS: React.FC = () => {
   const [frequentProducts, setFrequentProducts] = useState<Product[]>([]);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [isTorchOn, setIsTorchOn] = useState(false);
+  const [multiScanMode, setMultiScanMode] = useState(false);
+  const [scannedItems, setScannedItems] = useState<CartItem[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [pullDistance, setPullDistance] = useState(0);
   
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const scannerTouchStart = useRef<number>(0);
+  const pullStartY = useRef<number>(0);
+  const scrollContainer = useRef<HTMLDivElement>(null);
 
   // 📱 APP VERSION (increment this with each APK release)
-  const CURRENT_VERSION: string = "1.0.2"; // This APK version
-  const LATEST_VERSION: string = "1.0.2"; // Server latest version (şu an en son versiyon)
+  const CURRENT_VERSION: string = "1.0.3"; // This APK version
+  const LATEST_VERSION: string = "1.0.3"; // Server latest version (şu an en son versiyon)
 
   // 🔄 Check for updates on app start
   useEffect(() => {
     checkForUpdates();
     loadFrequentProducts();
   }, []);
+
+  // 📱 Android Back Button Handler
+  useEffect(() => {
+    let backButtonListener: any;
+
+    if (Capacitor.isNativePlatform()) {
+      backButtonListener = CapApp.addListener('backButton', ({ canGoBack }) => {
+        if (isScanning) {
+          // Close scanner if open
+          stopScanner();
+        } else if (showCart) {
+          // Close cart
+          setShowCart(false);
+        } else if (showPayment) {
+          // Close payment
+          setShowPayment(false);
+        } else if (canGoBack) {
+          window.history.back();
+        } else {
+          // Exit app confirmation
+          if (window.confirm('Uygulamadan çıkmak istiyor musunuz?')) {
+            CapApp.exitApp();
+          }
+        }
+      });
+    }
+
+    return () => {
+      backButtonListener?.remove();
+    };
+  }, [isScanning, showCart, showPayment]);
 
   const checkForUpdates = () => {
     const lastCheckedVersion = localStorage.getItem('lastCheckedVersion');
@@ -76,6 +117,45 @@ const MobilePOS: React.FC = () => {
       setFrequentProducts(response.data.products || []);
     } catch (error) {
       console.error('Failed to load products:', error);
+    }
+  };
+
+  // 🔄 Pull-to-Refresh Handlers
+  const handlePullStart = (e: React.TouchEvent) => {
+    const scrollTop = scrollContainer.current?.scrollTop || 0;
+    if (scrollTop === 0) {
+      pullStartY.current = e.touches[0].clientY;
+    }
+  };
+
+  const handlePullMove = (e: React.TouchEvent) => {
+    const scrollTop = scrollContainer.current?.scrollTop || 0;
+    if (scrollTop === 0 && pullStartY.current > 0) {
+      const currentY = e.touches[0].clientY;
+      const distance = Math.min(Math.max(currentY - pullStartY.current, 0), 100);
+      setPullDistance(distance);
+    }
+  };
+
+  const handlePullEnd = async () => {
+    if (pullDistance > 60 && !isRefreshing) {
+      setIsRefreshing(true);
+      soundEffects.refresh();
+      hapticFeedback.medium();
+      
+      // Refresh data
+      await loadFrequentProducts();
+      
+      setTimeout(() => {
+        setIsRefreshing(false);
+        setPullDistance(0);
+        pullStartY.current = 0;
+        soundEffects.success();
+        toast.success('Yenilendi! ✨', { duration: 1500 });
+      }, 800);
+    } else {
+      setPullDistance(0);
+      pullStartY.current = 0;
     }
   };
 
@@ -117,6 +197,31 @@ const MobilePOS: React.FC = () => {
       }
     } catch (error) {
       console.error('Torch toggle failed:', error);
+    }
+  };
+
+  // 🛑 Stop Scanner (Back button / Close button / Swipe down)
+  const stopScanner = () => {
+    setIsScanning(false);
+    setIsTorchOn(false);
+    setMultiScanMode(false);
+    BarcodeScanner.stopScan();
+    hapticFeedback.light();
+  };
+
+  // 👆 Swipe Down Gesture Handlers
+  const handleScannerTouchStart = (e: React.TouchEvent) => {
+    scannerTouchStart.current = e.touches[0].clientY;
+  };
+
+  const handleScannerTouchMove = (e: React.TouchEvent) => {
+    const currentY = e.touches[0].clientY;
+    const deltaY = currentY - scannerTouchStart.current;
+
+    // If swiped down more than 100px, close scanner
+    if (deltaY > 100) {
+      stopScanner();
+      toast.success('Tarama kapatıldı', { duration: 1500 });
     }
   };
 
@@ -288,21 +393,64 @@ const MobilePOS: React.FC = () => {
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <div className="mobile-app-wrapper">
+    <div 
+      className="mobile-app-wrapper"
+      ref={scrollContainer}
+      onTouchStart={handlePullStart}
+      onTouchMove={handlePullMove}
+      onTouchEnd={handlePullEnd}
+    >
+      {/* 🔄 Pull-to-Refresh Indicator */}
+      {pullDistance > 0 && (
+        <div 
+          className="pull-to-refresh-indicator"
+          style={{ 
+            transform: `translateY(${Math.min(pullDistance, 60)}px)`,
+            opacity: pullDistance / 60
+          }}
+        >
+          <div className={`pull-spinner ${isRefreshing ? 'spinning' : ''}`}>
+            🔄
+          </div>
+          <span className="text-sm text-foreground-secondary">
+            {isRefreshing ? 'Yenileniyor...' : pullDistance > 60 ? 'Bırak' : 'Çek'}
+          </span>
+        </div>
+      )}
+
       {/* Mobile Header */}
       <div className="mobile-header">
         <h1 className="mobile-header-title">📱 BarcodePOS</h1>
-        <button 
-          className="relative"
-          onClick={() => setShowCart(true)}
-        >
-          <ShoppingCart className="w-6 h-6 text-primary" />
-          {itemCount > 0 && (
-            <span className="mobile-badge absolute -top-2 -right-2">
-              {itemCount}
-            </span>
-          )}
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Dark Mode Toggle */}
+          <button 
+            className="mobile-icon-btn"
+            onClick={() => {
+              toggleTheme();
+              soundEffects.tap();
+              hapticFeedback.light();
+            }}
+          >
+            {theme === 'dark' ? (
+              <Sun className="w-5 h-5 text-yellow-400" />
+            ) : (
+              <Moon className="w-5 h-5 text-blue-600" />
+            )}
+          </button>
+
+          {/* Cart */}
+          <button 
+            className="relative"
+            onClick={() => setShowCart(true)}
+          >
+            <ShoppingCart className="w-6 h-6 text-primary" />
+            {itemCount > 0 && (
+              <span className="mobile-badge absolute -top-2 -right-2">
+                {itemCount}
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Search Bar */}
@@ -538,7 +686,11 @@ const MobilePOS: React.FC = () => {
 
       {/* 📸 PROFESSIONAL BARCODE SCANNER OVERLAY */}
       {isScanning && (
-        <div className="scanner-overlay">
+        <div 
+          className="scanner-overlay"
+          onTouchStart={handleScannerTouchStart}
+          onTouchMove={handleScannerTouchMove}
+        >
           {/* Header with Close & Torch */}
           <div className="scanner-header">
             <h2 className="scanner-title">📸 Barkod Tarama</h2>
@@ -553,12 +705,7 @@ const MobilePOS: React.FC = () => {
               {/* Close Button */}
               <button
                 className="scanner-close"
-                onClick={() => {
-                  setIsScanning(false);
-                  setIsTorchOn(false);
-                  BarcodeScanner.stopScan();
-                  hapticFeedback.light();
-                }}
+                onClick={stopScanner}
               >
                 <X className="w-6 h-6" />
               </button>

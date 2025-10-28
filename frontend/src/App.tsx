@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Capacitor } from '@capacitor/core';
+import { StatusBar, Style } from '@capacitor/status-bar';
 import { useAuthStore } from './store/authStore';
 import { useThemeStore } from './store/themeStore';
 import MainLayout from './components/Layout/MainLayout';
@@ -46,6 +47,28 @@ const App: React.FC = () => {
       document.documentElement.classList.remove('dark');
     }
   }, [theme]);
+
+  // 📱 Configure StatusBar for native apps
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      const configureStatusBar = async () => {
+        try {
+          // Set status bar style based on theme
+          if (theme === 'dark') {
+            await StatusBar.setStyle({ style: Style.Dark });
+            await StatusBar.setBackgroundColor({ color: '#1F1F1F' });
+          } else {
+            await StatusBar.setStyle({ style: Style.Light });
+            await StatusBar.setBackgroundColor({ color: '#FFFFFF' });
+          }
+        } catch (error) {
+          console.error('StatusBar config failed:', error);
+        }
+      };
+
+      configureStatusBar();
+    }
+  }, [theme, isNativeApp]);
 
   // 📱 Select layout based on platform
   const LayoutComponent = isNativeApp ? MobileLayout : MainLayout;

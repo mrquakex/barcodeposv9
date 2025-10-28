@@ -116,6 +116,63 @@ class SoundEffects {
     this.playTone(800, 0.1, 'square', 0.25);
     setTimeout(() => this.playTone(600, 0.1, 'square', 0.25), 120);
   }
+
+  // 🔔 Notification - Soft triple beep
+  notification() {
+    if (!this.enabled || !this.audioContext) return;
+    
+    this.playTone(1000, 0.08, 'sine', 0.2);
+    setTimeout(() => this.playTone(1200, 0.08, 'sine', 0.2), 100);
+    setTimeout(() => this.playTone(1400, 0.1, 'sine', 0.25), 200);
+  }
+
+  // 💳 Payment complete - Cheerful success
+  paymentComplete() {
+    if (!this.enabled || !this.audioContext) return;
+    
+    this.playTone(600, 0.08, 'sine', 0.25);
+    setTimeout(() => this.playTone(800, 0.08, 'sine', 0.25), 80);
+    setTimeout(() => this.playTone(1000, 0.08, 'sine', 0.25), 160);
+    setTimeout(() => this.playTone(1200, 0.12, 'sine', 0.3), 240);
+  }
+
+  // 👆 Swipe - Soft whoosh
+  swipe() {
+    if (!this.enabled || !this.audioContext) return;
+    
+    this.playTone(800, 0.05, 'triangle', 0.15);
+    setTimeout(() => this.playTone(600, 0.05, 'triangle', 0.1), 50);
+  }
+
+  // 🔄 Refresh - Upward sweep
+  refresh() {
+    if (!this.enabled || !this.audioContext) return;
+    
+    this.playTone(400, 0.08, 'sine', 0.2);
+    setTimeout(() => this.playTone(800, 0.1, 'sine', 0.25), 80);
+  }
+
+  // 📉 Low Stock - Urgent beeps
+  lowStock() {
+    if (!this.enabled || !this.audioContext) return;
+    
+    this.playTone(1000, 0.1, 'square', 0.3);
+    setTimeout(() => this.playTone(1000, 0.1, 'square', 0.3), 200);
+    setTimeout(() => this.playTone(1000, 0.15, 'square', 0.35), 400);
+  }
+
+  // 🎯 Tap - Ultra-short click
+  tap() {
+    this.playTone(1400, 0.03, 'triangle', 0.12);
+  }
+
+  // 🔓 Unlock - Ascending tones
+  unlock() {
+    if (!this.enabled || !this.audioContext) return;
+    
+    this.playTone(600, 0.06, 'sine', 0.2);
+    setTimeout(() => this.playTone(900, 0.08, 'sine', 0.25), 60);
+  }
 }
 
 // Singleton instance
