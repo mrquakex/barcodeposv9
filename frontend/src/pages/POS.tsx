@@ -16,7 +16,7 @@ import ZReportDialog from '../components/POS/ZReportDialog';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
 import { cn } from '../lib/utils';
 import { useKeyboardShortcuts, POSShortcuts } from '../hooks/useKeyboardShortcuts';
 import { soundEffects } from '../lib/sound-effects';
@@ -84,6 +84,8 @@ const POS: React.FC = () => {
   
   // Basic States
   const [isScanning, setIsScanning] = useState(false);
+  const [useFlash, setUseFlash] = useState(false);
+  const [useFrontCamera, setUseFrontCamera] = useState(false);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [showCustomerDialog, setShowCustomerDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
@@ -144,7 +146,7 @@ const POS: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [lastReceipt, setLastReceipt] = useState<any>(null);
   
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<number | null>(null);
@@ -462,23 +464,43 @@ const POS: React.FC = () => {
     if (!barcode.trim()) return;
 
     try {
+      // 📳 Haptic Feedback - Vibrate on scan
+      if (navigator.vibrate) {
+        navigator.vibrate(100);
+      }
+
       const response = await api.get(`/products/barcode/${barcode}`);
       const product = response.data;
 
       if (!product || !product.id) {
         toast.error('Ürün bulunamadı!');
+        soundEffects.error();
+        if (navigator.vibrate) {
+          navigator.vibrate([50, 50, 50]); // Error pattern
+        }
         return;
       }
 
       if (!product.isActive) {
         toast.error('Bu ürün inaktif!');
+        soundEffects.error();
         return;
       }
 
       addToCart(product);
-      toast.success('Sepete eklendi');
+      toast.success(`${product.name} sepete eklendi`);
+      soundEffects.beep(); // Success beep
+      
+      // 📳 Success vibration pattern
+      if (navigator.vibrate) {
+        navigator.vibrate([100, 50, 100]);
+      }
     } catch (error: any) {
       toast.error('Ürün bulunamadı');
+      soundEffects.error();
+      if (navigator.vibrate) {
+        navigator.vibrate([50, 50, 50]);
+      }
     }
   };
 
@@ -914,34 +936,136 @@ const POS: React.FC = () => {
     setCalculatorChange(change);
   };
 
-  const startCamera = () => {
-    setIsScanning(true);
-    setTimeout(() => {
-      const scanner = new Html5QrcodeScanner(
-        'qr-reader',
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        false
-      );
-      scanner.render(
-        (decodedText) => {
-          handleCameraScan(decodedText);
-          scanner.clear();
-          setIsScanning(false);
-        },
-        (error) => {
-          console.error('Scanner error:', error);
-        }
-      );
+  const startCamera = async () => {
+    try {
+      const scanner = new Html5Qrcode('qr-reader');
       scannerRef.current = scanner;
-    }, 100);
+
+      // Get available cameras
+      const devices = await Html5Qrcode.getCameras();
+      
+      if (devices && devices.length > 0) {
+        // Select camera: rear camera preferred for mobile
+        let cameraId = devices[0].id;
+        
+        // Try to find rear camera (environment facing)
+        const rearCamera = devices.find(device => 
+          device.label.toLowerCase().includes('back') || 
+          device.label.toLowerCase().includes('rear') ||
+          device.label.toLowerCase().includes('environment')
+        );
+        
+        if (rearCamera && !useFrontCamera) {
+          cameraId = rearCamera.id;
+        } else if (useFrontCamera) {
+          const frontCamera = devices.find(device => 
+            device.label.toLowerCase().includes('front') || 
+            device.label.toLowerCase().includes('user')
+          );
+          if (frontCamera) {
+            cameraId = frontCamera.id;
+          }
+        }
+
+        // 📱 Mobile-optimized configuration
+        const config = {
+          fps: 30, // Higher FPS for faster scanning
+          qrbox: { width: 300, height: 300 }, // Larger scan area
+          aspectRatio: 1.0,
+          disableFlip: false,
+          experimentalFeatures: {
+            useBarCodeDetectorIfSupported: true
+          }
+        };
+
+        await scanner.start(
+          cameraId,
+          config,
+          async (decodedText) => {
+            // Scan successful
+            await handleCameraScan(decodedText);
+            // Don't stop camera, keep scanning
+          },
+          (errorMessage) => {
+            // Scan error (expected during scanning)
+            // console.log('Scanning...', errorMessage);
+          }
+        );
+
+        setIsScanning(true);
+        toast.success('Kamera aktif - Barkodu tarayın');
+        
+        // 💡 Apply flash if enabled
+        if (useFlash) {
+          applyFlashConstraints(scanner);
+        }
+      } else {
+        toast.error('Kamera bulunamadı!');
+      }
+    } catch (error: any) {
+      console.error('Camera error:', error);
+      toast.error(error?.message || 'Kamera başlatılamadı!');
+      setIsScanning(false);
+    }
   };
 
-  const stopCamera = () => {
-    if (scannerRef.current) {
-      scannerRef.current.clear();
-      scannerRef.current = null;
+  const stopCamera = async () => {
+    try {
+      if (scannerRef.current) {
+        const state = scannerRef.current.getState();
+        if (state === Html5QrcodeScannerState.SCANNING) {
+          await scannerRef.current.stop();
+        }
+        scannerRef.current.clear();
+        scannerRef.current = null;
+      }
+      setIsScanning(false);
+      toast.success('Kamera kapatıldı');
+    } catch (error) {
+      console.error('Stop camera error:', error);
+      setIsScanning(false);
     }
-    setIsScanning(false);
+  };
+
+  // 💡 Flash control helper
+  const applyFlashConstraints = async (scanner: Html5Qrcode) => {
+    try {
+      const stream = await scanner.getRunningTrackCameraCapabilities();
+      if (stream) {
+        const track = stream.getVideoTracks()[0];
+        const capabilities = track.getCapabilities();
+        
+        if ('torch' in capabilities) {
+          await track.applyConstraints({
+            advanced: [{ torch: useFlash } as any]
+          });
+        }
+      }
+    } catch (error) {
+      console.log('Flash not supported', error);
+    }
+  };
+
+  // 💡 Toggle Flash
+  const toggleFlash = async () => {
+    const newFlashState = !useFlash;
+    setUseFlash(newFlashState);
+    
+    if (scannerRef.current && isScanning) {
+      await applyFlashConstraints(scannerRef.current);
+      toast.success(newFlashState ? 'Flaş açık' : 'Flaş kapalı');
+    }
+  };
+
+  // 🔄 Toggle Camera
+  const toggleCamera = async () => {
+    if (isScanning) {
+      await stopCamera();
+      setUseFrontCamera(!useFrontCamera);
+      setTimeout(() => startCamera(), 500);
+    } else {
+      setUseFrontCamera(!useFrontCamera);
+    }
   };
 
   // 💠 ENTERPRISE: Payment Validation
@@ -1463,19 +1587,73 @@ const POS: React.FC = () => {
                 {currentShift ? 'Vardiya Aktif' : 'Vardiya'}
               </FluentButton>
 
-              {/* Camera Button - Hidden on Desktop */}
-              <FluentButton
-                appearance={isScanning ? 'subtle' : 'primary'}
-                onClick={isScanning ? stopCamera : startCamera}
-                icon={<Camera className="w-4 h-4" />}
-                className="md:hidden"
-              >
-                {isScanning ? 'Durdur' : 'Kamera'}
-              </FluentButton>
+              {/* 📱 Camera Controls - Hidden on Desktop */}
+              <div className="md:hidden flex gap-2">
+                <FluentButton
+                  appearance={isScanning ? 'subtle' : 'primary'}
+                  onClick={isScanning ? stopCamera : startCamera}
+                  icon={<Camera className="w-4 h-4" />}
+                >
+                  {isScanning ? 'Durdur' : 'Kamera'}
+                </FluentButton>
+                
+                {isScanning && (
+                  <>
+                    {/* 💡 Flash Toggle */}
+                    <FluentButton
+                      appearance={useFlash ? 'primary' : 'subtle'}
+                      onClick={toggleFlash}
+                      icon={<span className="text-sm">💡</span>}
+                      title="Flaş"
+                    />
+                    
+                    {/* 🔄 Camera Switch */}
+                    <FluentButton
+                      appearance="subtle"
+                      onClick={toggleCamera}
+                      icon={<span className="text-sm">🔄</span>}
+                      title={useFrontCamera ? 'Arka Kamera' : 'Ön Kamera'}
+                    />
+                  </>
+                )}
+              </div>
             </div>
 
+            {/* 📸 Camera Scanner UI */}
             {isScanning && (
-              <div id="qr-reader" className="mt-4 rounded-lg overflow-hidden"></div>
+              <div className="mt-4 relative">
+                {/* Scanner Instructions */}
+                <div className="mb-3 p-3 bg-primary/10 border-2 border-primary/30 rounded-lg">
+                  <p className="fluent-body-small text-center font-medium text-primary">
+                    📸 Barkodu kamera ile tarayın
+                  </p>
+                  <p className="fluent-caption text-center text-foreground-secondary mt-1">
+                    Barkod okununca otomatik sepete eklenecek
+                  </p>
+                </div>
+                
+                {/* Camera Container */}
+                <div className="relative rounded-lg overflow-hidden shadow-lg border-4 border-primary/20">
+                  <div id="qr-reader" className="w-full"></div>
+                  
+                  {/* Scan Guide Overlay */}
+                  <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute inset-8 border-4 border-primary/50 rounded-xl shadow-glow">
+                      {/* Corner indicators */}
+                      <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-xl"></div>
+                      <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-xl"></div>
+                      <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-xl"></div>
+                      <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-xl"></div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Status Indicator */}
+                <div className="mt-3 flex items-center justify-center gap-2">
+                  <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
+                  <p className="fluent-caption text-success font-medium">Tarama Aktif</p>
+                </div>
+              </div>
             )}
           </FluentCard>
       </div>
