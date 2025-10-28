@@ -1,6 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Package, ArrowLeft, X } from 'lucide-react';
+import { 
+  Search, Plus, Package, ArrowLeft, X, Edit, Trash2, 
+  MoreVertical, Star, ShoppingCart, TrendingUp, TrendingDown,
+  Filter, SlidersHorizontal, CheckSquare, Square, ArrowUpDown
+} from 'lucide-react';
 import { api } from '../../lib/api';
 import { soundEffects } from '../../lib/sound-effects';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
@@ -12,15 +16,34 @@ interface Product {
   barcode: string;
   name: string;
   sellPrice: number;
+  buyPrice?: number;
   stock: number;
-  category?: { name: string };
+  category?: { name: string; color?: string };
+  isFavorite?: boolean;
+  createdAt?: string;
 }
+
+type FilterType = 'all' | 'critical' | 'low' | 'favorites';
+type SortType = 'name-asc' | 'name-desc' | 'price-asc' | 'price-desc' | 'stock-asc' | 'stock-desc' | 'newest';
 
 const MobileProducts: React.FC = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [filter, setFilter] = useState<FilterType>('all');
+  const [sortBy, setSortBy] = useState<SortType>('name-asc');
+  const [showFilters, setShowFilters] = useState(false);
+  const [showSortMenu, setShowSortMenu] = useState(false);
+  const [bulkMode, setBulkMode] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  
+  // Swipe states
+  const [swipedProduct, setSwipedProduct] = useState<string | null>(null);
+  const [longPressProduct, setLongPressProduct] = useState<string | null>(null);
+  const touchStartX = useRef<number>(0);
+  const touchStartY = useRef<number>(0);
+  const longPressTimer = useRef<any>();
 
   const hapticFeedback = async (style: ImpactStyle = ImpactStyle.Light) => {
     if (Capacitor.isNativePlatform()) {
@@ -65,86 +88,364 @@ const MobileProducts: React.FC = () => {
     }
   };
 
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.barcode.includes(searchQuery)
-  );
+  // Filter & Sort Logic
+  const getFilteredAndSortedProducts = () => {
+    let filtered = products.filter(product =>
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.barcode.includes(searchQuery) ||
+      product.category?.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
-  const handleProductClick = (product: Product) => {
+    // Apply filter
+    if (filter === 'critical') {
+      filtered = filtered.filter(p => p.stock < 5);
+    } else if (filter === 'low') {
+      filtered = filtered.filter(p => p.stock < 15);
+    } else if (filter === 'favorites') {
+      filtered = filtered.filter(p => p.isFavorite);
+    }
+
+    // Apply sort
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'name-asc': return a.name.localeCompare(b.name);
+        case 'name-desc': return b.name.localeCompare(a.name);
+        case 'price-asc': return a.sellPrice - b.sellPrice;
+        case 'price-desc': return b.sellPrice - a.sellPrice;
+        case 'stock-asc': return a.stock - b.stock;
+        case 'stock-desc': return b.stock - a.stock;
+        case 'newest': return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+        default: return 0;
+      }
+    });
+
+    return filtered;
+  };
+
+  const filteredProducts = getFilteredAndSortedProducts();
+
+  // Touch Handlers for Swipe
+  const handleTouchStart = (e: React.TouchEvent, productId: string) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    
+    // Long press detection
+    longPressTimer.current = setTimeout(() => {
+      setLongPressProduct(productId);
+      hapticFeedback(ImpactStyle.Heavy);
+      soundEffects.beep();
+    }, 500);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent, productId: string) => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+    }
+
+    const touchX = e.touches[0].clientX;
+    const touchY = e.touches[0].clientY;
+    const deltaX = touchX - touchStartX.current;
+    const deltaY = touchY - touchStartY.current;
+
+    // Only swipe if horizontal movement is dominant
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+      setSwipedProduct(productId);
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent, productId: string) => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+    }
+
+    const touchX = e.changedTouches[0].clientX;
+    const deltaX = touchX - touchStartX.current;
+
+    if (Math.abs(deltaX) < 10) {
+      // Regular tap - navigate or quick action
+      if (!bulkMode) {
+        handleProductClick(productId);
+      } else {
+        toggleProductSelection(productId);
+      }
+    }
+  };
+
+  const handleProductClick = (productId: string) => {
     soundEffects.tap();
     hapticFeedback();
-    // Navigate to product detail or edit page
-    navigate(`/products/edit/${product.id}`);
+    navigate(`/products/edit/${productId}`);
+  };
+
+  // Swipe Actions
+  const handleSwipeRight = (productId: string) => {
+    // Edit action
+    soundEffects.tap();
+    hapticFeedback(ImpactStyle.Medium);
+    navigate(`/products/edit/${productId}`);
+    setSwipedProduct(null);
+  };
+
+  const handleSwipeLeft = async (productId: string) => {
+    // Delete action
+    if (confirm('Bu ürünü silmek istediğinize emin misiniz?')) {
+      try {
+        await api.delete(`/products/${productId}`);
+        setProducts(prev => prev.filter(p => p.id !== productId));
+        toast.success('Ürün silindi');
+        soundEffects.cashRegister();
+        hapticFeedback(ImpactStyle.Heavy);
+      } catch (error) {
+        toast.error('Ürün silinemedi');
+        soundEffects.error();
+      }
+    }
+    setSwipedProduct(null);
+  };
+
+  // Quick Actions Menu
+  const handleQuickAction = (action: string, productId: string) => {
+    switch (action) {
+      case 'edit':
+        navigate(`/products/edit/${productId}`);
+        break;
+      case 'addToPos':
+        toast.success('POS\'a eklendi!');
+        // TODO: Add to POS cart
+        break;
+      case 'favorite':
+        toggleFavorite(productId);
+        break;
+      case 'stock':
+        // TODO: Open stock adjustment modal
+        toast('Stok güncelleme özelliği yakında!');
+        break;
+      case 'delete':
+        handleSwipeLeft(productId);
+        break;
+    }
+    setLongPressProduct(null);
+    soundEffects.tap();
+    hapticFeedback();
+  };
+
+  const toggleFavorite = (productId: string) => {
+    setProducts(prev => prev.map(p =>
+      p.id === productId ? { ...p, isFavorite: !p.isFavorite } : p
+    ));
+    toast.success('Favori güncellendi');
+  };
+
+  // Bulk Actions
+  const toggleProductSelection = (productId: string) => {
+    setSelectedProducts(prev =>
+      prev.includes(productId)
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
+    );
+    hapticFeedback();
+  };
+
+  const selectAll = () => {
+    setSelectedProducts(filteredProducts.map(p => p.id));
+    hapticFeedback(ImpactStyle.Medium);
+  };
+
+  const deselectAll = () => {
+    setSelectedProducts([]);
+    hapticFeedback();
+  };
+
+  const bulkDelete = async () => {
+    if (confirm(`${selectedProducts.length} ürünü silmek istediğinize emin misiniz?`)) {
+      try {
+        await Promise.all(selectedProducts.map(id => api.delete(`/products/${id}`)));
+        setProducts(prev => prev.filter(p => !selectedProducts.includes(p.id)));
+        setSelectedProducts([]);
+        setBulkMode(false);
+        toast.success(`${selectedProducts.length} ürün silindi`);
+        soundEffects.cashRegister();
+        hapticFeedback(ImpactStyle.Heavy);
+      } catch (error) {
+        toast.error('Ürünler silinemedi');
+        soundEffects.error();
+      }
+    }
+  };
+
+  // Stock Badge Color
+  const getStockBadgeClass = (stock: number) => {
+    if (stock < 5) return 'critical';
+    if (stock < 15) return 'low';
+    return 'good';
+  };
+
+  // Category Color
+  const getCategoryColor = (category?: { name: string; color?: string }) => {
+    if (category?.color) return category.color;
+    // Default colors based on category name hash
+    const colors = ['#FF3B30', '#FF9500', '#FFCC00', '#34C759', '#007AFF', '#5856D6', '#AF52DE', '#FF2D55'];
+    const hash = category?.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) || 0;
+    return colors[hash % colors.length];
+  };
+
+  // Get initials for avatar
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   return (
-    <div className="mobile-products-clean">
-      {/* Clean Header */}
-      <div className="products-header-clean">
-        <button onClick={() => navigate('/dashboard')} className="back-btn-clean">
+    <div className="mobile-products-ultra">
+      {/* Header */}
+      <div className="products-header-ultra">
+        <button onClick={() => navigate('/dashboard')} className="back-btn-ultra">
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="page-title-clean">Ürünler</h1>
-        <button 
-          onClick={() => {
-            navigate('/products/add');
-            soundEffects.tap();
-            hapticFeedback();
-          }} 
-          className="add-btn-clean"
-        >
-          <Plus className="w-5 h-5" />
-        </button>
+        <h1 className="page-title-ultra">Ürünler</h1>
+        <div className="header-actions-ultra">
+          <button onClick={() => setShowSortMenu(!showSortMenu)} className="icon-btn-ultra">
+            <ArrowUpDown className="w-5 h-5" />
+          </button>
+          <button onClick={() => setShowFilters(!showFilters)} className="icon-btn-ultra">
+            <Filter className="w-5 h-5" />
+          </button>
+          <button onClick={() => navigate('/products/add')} className="add-btn-ultra">
+            <Plus className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {/* Search Bar */}
-      <div className="search-container-clean">
-        <Search className="search-icon-clean" />
+      <div className="search-container-ultra">
+        <Search className="search-icon-ultra" />
         <input
           type="text"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Ürün ara..."
-          className="search-input-clean"
+          placeholder="İsim, barkod veya kategori ara..."
+          className="search-input-ultra"
         />
         {searchQuery && (
-          <button 
-            onClick={() => setSearchQuery('')}
-            className="clear-search-clean"
-          >
+          <button onClick={() => setSearchQuery('')} className="clear-search-ultra">
             <X className="w-4 h-4" />
           </button>
         )}
       </div>
 
-      {/* Products Count */}
-      <div className="products-count-clean">
-        <Package className="w-4 h-4" />
-        <span>{filteredProducts.length} ürün</span>
+      {/* Filter Pills */}
+      {showFilters && (
+        <div className="filter-pills-ultra">
+          <button
+            onClick={() => setFilter('all')}
+            className={`filter-pill ${filter === 'all' ? 'active' : ''}`}
+          >
+            Tümü
+          </button>
+          <button
+            onClick={() => setFilter('critical')}
+            className={`filter-pill critical ${filter === 'critical' ? 'active' : ''}`}
+          >
+            🔴 Kritik
+          </button>
+          <button
+            onClick={() => setFilter('low')}
+            className={`filter-pill low ${filter === 'low' ? 'active' : ''}`}
+          >
+            🟡 Düşük Stok
+          </button>
+          <button
+            onClick={() => setFilter('favorites')}
+            className={`filter-pill ${filter === 'favorites' ? 'active' : ''}`}
+          >
+            ⭐ Favoriler
+          </button>
+        </div>
+      )}
+
+      {/* Sort Menu */}
+      {showSortMenu && (
+        <div className="sort-menu-ultra">
+          <button onClick={() => { setSortBy('name-asc'); setShowSortMenu(false); }} className={sortBy === 'name-asc' ? 'active' : ''}>
+            İsim (A-Z)
+          </button>
+          <button onClick={() => { setSortBy('name-desc'); setShowSortMenu(false); }} className={sortBy === 'name-desc' ? 'active' : ''}>
+            İsim (Z-A)
+          </button>
+          <button onClick={() => { setSortBy('price-asc'); setShowSortMenu(false); }} className={sortBy === 'price-asc' ? 'active' : ''}>
+            Fiyat (Düşük-Yüksek)
+          </button>
+          <button onClick={() => { setSortBy('price-desc'); setShowSortMenu(false); }} className={sortBy === 'price-desc' ? 'active' : ''}>
+            Fiyat (Yüksek-Düşük)
+          </button>
+          <button onClick={() => { setSortBy('stock-asc'); setShowSortMenu(false); }} className={sortBy === 'stock-asc' ? 'active' : ''}>
+            Stok (Az-Çok)
+          </button>
+          <button onClick={() => { setSortBy('stock-desc'); setShowSortMenu(false); }} className={sortBy === 'stock-desc' ? 'active' : ''}>
+            Stok (Çok-Az)
+          </button>
+          <button onClick={() => { setSortBy('newest'); setShowSortMenu(false); }} className={sortBy === 'newest' ? 'active' : ''}>
+            🆕 Yeni Eklenenler
+          </button>
+        </div>
+      )}
+
+      {/* Bulk Mode Toggle */}
+      <div className="products-toolbar-ultra">
+        <div className="toolbar-left">
+          <Package className="w-4 h-4" />
+          <span>{filteredProducts.length} ürün</span>
+        </div>
+        <button
+          onClick={() => {
+            setBulkMode(!bulkMode);
+            setSelectedProducts([]);
+            hapticFeedback();
+          }}
+          className="bulk-toggle"
+        >
+          {bulkMode ? <X className="w-4 h-4" /> : <CheckSquare className="w-4 h-4" />}
+          <span>{bulkMode ? 'İptal' : 'Çoklu Seç'}</span>
+        </button>
       </div>
 
+      {/* Bulk Actions Bar */}
+      {bulkMode && selectedProducts.length > 0 && (
+        <div className="bulk-actions-bar">
+          <button onClick={deselectAll} className="bulk-action-btn">
+            Temizle
+          </button>
+          <span className="bulk-count">{selectedProducts.length} seçili</span>
+          <button onClick={bulkDelete} className="bulk-action-btn delete">
+            <Trash2 className="w-4 h-4" />
+            Sil
+          </button>
+        </div>
+      )}
+
       {/* Products List */}
-      <div className="products-list-clean">
+      <div className="products-list-ultra">
         {isLoading ? (
           // Loading State
-          <div className="loading-clean">
+          <div className="loading-ultra">
             {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="product-skeleton-clean"></div>
+              <div key={i} className="product-skeleton-ultra"></div>
             ))}
           </div>
         ) : filteredProducts.length === 0 ? (
           // Empty State
-          <div className="empty-state-clean">
-            <Package className="w-16 h-16 text-gray-300" />
-            <p className="empty-title-clean">Ürün bulunamadı</p>
-            <p className="empty-subtitle-clean">
+          <div className="empty-state-ultra">
+            <Package className="w-16 h-16" />
+            <p className="empty-title-ultra">Ürün bulunamadı</p>
+            <p className="empty-subtitle-ultra">
               {searchQuery ? 'Arama kriterlerinizi değiştirin' : 'Yeni ürün ekleyin'}
             </p>
             {!searchQuery && (
-              <button 
-                onClick={() => navigate('/products/add')}
-                className="empty-action-clean"
-              >
+              <button onClick={() => navigate('/products/add')} className="empty-action-ultra">
                 <Plus className="w-4 h-4" />
                 Ürün Ekle
               </button>
@@ -153,25 +454,102 @@ const MobileProducts: React.FC = () => {
         ) : (
           // Product Items
           filteredProducts.map((product) => (
-            <div 
+            <div
               key={product.id}
-              onClick={() => handleProductClick(product)}
-              className="product-item-clean"
+              className={`product-item-ultra ${swipedProduct === product.id ? 'swiped' : ''} ${selectedProducts.includes(product.id) ? 'selected' : ''}`}
+              onTouchStart={(e) => handleTouchStart(e, product.id)}
+              onTouchMove={(e) => handleTouchMove(e, product.id)}
+              onTouchEnd={(e) => handleTouchEnd(e, product.id)}
+              style={{ borderLeftColor: getCategoryColor(product.category) }}
             >
-              <div className="product-info-clean">
-                <p className="product-name-clean">{product.name}</p>
-                <p className="product-barcode-clean">{product.barcode}</p>
+              {/* Swipe Left Actions */}
+              {swipedProduct === product.id && (
+                <div className="swipe-actions-left">
+                  <button onClick={() => handleSwipeRight(product.id)} className="swipe-action edit">
+                    <Edit className="w-5 h-5" />
+                  </button>
+                </div>
+              )}
+
+              {/* Main Content */}
+              <div className="product-content-ultra">
+                {/* Avatar */}
+                <div className="product-avatar-ultra" style={{ background: getCategoryColor(product.category) }}>
+                  {getInitials(product.name)}
+                </div>
+
+                {/* Info */}
+                <div className="product-info-ultra">
+                  <div className="product-header-row">
+                    <p className="product-name-ultra">{product.name}</p>
+                    {product.isFavorite && <Star className="w-4 h-4 favorite-star" fill="currentColor" />}
+                  </div>
+                  <p className="product-barcode-ultra">{product.barcode}</p>
+                  {product.category && (
+                    <span className="product-category-ultra">{product.category.name}</span>
+                  )}
+                </div>
+
+                {/* Details */}
+                <div className="product-details-ultra">
+                  <p className="product-price-ultra">₺{product.sellPrice.toFixed(2)}</p>
+                  <div className={`stock-badge-ultra ${getStockBadgeClass(product.stock)}`}>
+                    {product.stock} adet
+                  </div>
+                </div>
+
+                {/* Bulk Mode Checkbox */}
+                {bulkMode && (
+                  <div className="product-checkbox">
+                    {selectedProducts.includes(product.id) ? (
+                      <CheckSquare className="w-5 h-5" />
+                    ) : (
+                      <Square className="w-5 h-5" />
+                    )}
+                  </div>
+                )}
               </div>
-              <div className="product-details-clean">
-                <p className="product-price-clean">₺{product.sellPrice.toFixed(2)}</p>
-                <p className={`product-stock-clean ${product.stock < 10 ? 'low-stock' : ''}`}>
-                  Stok: {product.stock}
-                </p>
-              </div>
+
+              {/* Swipe Right Actions */}
+              {swipedProduct === product.id && (
+                <div className="swipe-actions-right">
+                  <button onClick={() => handleSwipeLeft(product.id)} className="swipe-action delete">
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                </div>
+              )}
             </div>
           ))
         )}
       </div>
+
+      {/* Long Press Quick Menu */}
+      {longPressProduct && (
+        <div className="quick-menu-overlay" onClick={() => setLongPressProduct(null)}>
+          <div className="quick-menu-ultra" onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => handleQuickAction('edit', longPressProduct)} className="quick-menu-item">
+              <Edit className="w-5 h-5" />
+              <span>Düzenle</span>
+            </button>
+            <button onClick={() => handleQuickAction('addToPos', longPressProduct)} className="quick-menu-item">
+              <ShoppingCart className="w-5 h-5" />
+              <span>POS'a Ekle</span>
+            </button>
+            <button onClick={() => handleQuickAction('favorite', longPressProduct)} className="quick-menu-item">
+              <Star className="w-5 h-5" />
+              <span>Favorilere Ekle</span>
+            </button>
+            <button onClick={() => handleQuickAction('stock', longPressProduct)} className="quick-menu-item">
+              <Package className="w-5 h-5" />
+              <span>Stok Güncelle</span>
+            </button>
+            <button onClick={() => handleQuickAction('delete', longPressProduct)} className="quick-menu-item delete">
+              <Trash2 className="w-5 h-5" />
+              <span>Sil</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
