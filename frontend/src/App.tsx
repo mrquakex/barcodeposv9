@@ -89,14 +89,20 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/login" element={token ? <Navigate to="/dashboard" /> : <Login />} />
         
+        {/* Mobile-only routes WITHOUT layout (full screen pages) */}
+        {isNativeApp && token && (
+          <>
+            <Route path="/products/add" element={<MobileProductAdd />} />
+            <Route path="/notifications" element={<MobileNotifications />} />
+            <Route path="/profile" element={<MobileProfile />} />
+            <Route path="/stock-count" element={<MobileStockCount />} />
+          </>
+        )}
+
         <Route element={token ? <LayoutComponent /> : <Navigate to="/login" />}>
           <Route path="/dashboard" element={isNativeApp ? <MobileDashboard /> : <Dashboard />} />
           <Route path="/pos" element={<POS />} />
           <Route path="/products" element={isNativeApp ? <MobileProducts /> : <Products />} />
-          <Route path="/products/add" element={isNativeApp ? <MobileProductAdd /> : <Products />} />
-          <Route path="/notifications" element={isNativeApp ? <MobileNotifications /> : <Dashboard />} />
-          <Route path="/profile" element={isNativeApp ? <MobileProfile /> : <Profile />} />
-          <Route path="/stock-count" element={isNativeApp ? <MobileStockCount /> : <StockCount />} />
           <Route path="/customers" element={<Customers />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/suppliers" element={<Suppliers />} />

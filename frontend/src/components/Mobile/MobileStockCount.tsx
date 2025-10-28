@@ -24,35 +24,54 @@ const MobileStockCount: React.FC = () => {
     try {
       setIsScanning(true);
       soundEffects.beep();
+      console.log('🚀 StockCount: Starting scan...');
 
-      const { camera } = await BarcodeScanner.checkPermissions();
+      const permissionResult = await BarcodeScanner.checkPermissions();
+      console.log('StockCount: Permission status:', permissionResult);
       
-      if (camera !== 'granted') {
+      if (permissionResult.camera !== 'granted') {
+        console.log('StockCount: Requesting permission...');
         const result = await BarcodeScanner.requestPermissions();
+        console.log('StockCount: Permission result:', result);
+        
         if (result.camera !== 'granted') {
-          toast.error('Kamera izni gerekli!');
+          toast.error('❌ Kamera izni gerekli!');
           setIsScanning(false);
           return;
         }
       }
 
+      console.log('StockCount: Opening scanner...');
+      toast('📸 Kamera açılıyor...', { duration: 1000 });
+      
       const scanResult = await BarcodeScanner.scan();
+      console.log('StockCount: Scan result:', scanResult);
       
       if (scanResult.barcodes && scanResult.barcodes.length > 0) {
         const barcode = scanResult.barcodes[0].displayValue || scanResult.barcodes[0].rawValue;
+        console.log('StockCount: Barcode:', barcode);
         
         if (barcode) {
           await addProduct(barcode);
           soundEffects.cashRegister();
+          toast.success(`✅ ${barcode}`);
+          
           if (Capacitor.isNativePlatform()) {
             await Haptics.impact({ style: ImpactStyle.Medium });
           }
         }
+      } else {
+        toast('Barkod bulunamadı', { icon: '🔍' });
       }
     } catch (error: any) {
-      console.error('Scan error:', error);
+      console.error('StockCount: Scan error:', error);
+      console.error('StockCount: Error details:', {
+        message: error.message,
+        code: error.code
+      });
+      
       if (error.message && !error.message.toLowerCase().includes('cancel')) {
-        toast.error('Barkod tarama başarısız');
+        toast.error(`❌ Hata: ${error.message || 'Barkod tarama başarısız'}`);
       }
     } finally {
       setIsScanning(false);

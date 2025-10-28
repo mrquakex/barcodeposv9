@@ -40,32 +40,49 @@ const MobileProductAdd: React.FC = () => {
   const scanBarcode = async () => {
     try {
       soundEffects.beep();
+      console.log('🚀 ProductAdd: Starting barcode scan...');
 
-      const { camera } = await BarcodeScanner.checkPermissions();
+      const permissionResult = await BarcodeScanner.checkPermissions();
+      console.log('ProductAdd: Permission status:', permissionResult);
       
-      if (camera !== 'granted') {
+      if (permissionResult.camera !== 'granted') {
+        console.log('ProductAdd: Requesting permission...');
         const result = await BarcodeScanner.requestPermissions();
+        console.log('ProductAdd: Permission result:', result);
+        
         if (result.camera !== 'granted') {
-          toast.error('Kamera izni gerekli!');
+          toast.error('❌ Kamera izni gerekli!');
           return;
         }
       }
 
+      console.log('ProductAdd: Opening scanner...');
+      toast('📸 Kamera açılıyor...', { duration: 1000 });
+      
       const scanResult = await BarcodeScanner.scan();
+      console.log('ProductAdd: Scan result:', scanResult);
       
       if (scanResult.barcodes && scanResult.barcodes.length > 0) {
         const scannedBarcode = scanResult.barcodes[0].displayValue || scanResult.barcodes[0].rawValue;
+        console.log('ProductAdd: Barcode scanned:', scannedBarcode);
         
         if (scannedBarcode) {
           setBarcode(scannedBarcode);
           soundEffects.cashRegister();
-          toast.success(`Barkod: ${scannedBarcode}`);
+          toast.success(`✅ Barkod: ${scannedBarcode}`);
         }
+      } else {
+        toast('Barkod bulunamadı', { icon: '🔍' });
       }
     } catch (error: any) {
-      console.error('Scan error:', error);
+      console.error('ProductAdd: Scan error:', error);
+      console.error('ProductAdd: Error details:', {
+        message: error.message,
+        code: error.code
+      });
+      
       if (error.message && !error.message.toLowerCase().includes('cancel')) {
-        toast.error('Barkod tarama başarısız');
+        toast.error(`❌ Hata: ${error.message || 'Barkod tarama başarısız'}`);
       }
     }
   };

@@ -49,8 +49,8 @@ const MobilePOS: React.FC = () => {
   const scrollContainer = useRef<HTMLDivElement>(null);
 
   // 📱 APP VERSION (increment this with each APK release)
-  const CURRENT_VERSION: string = "2.5.0"; // This APK version - TAM SÜRÜM!
-  const LATEST_VERSION: string = "2.5.0"; // Server latest version (şu an en son versiyon)
+const CURRENT_VERSION: string = "2.5.1"; // This APK version - BUG FIX!
+const LATEST_VERSION: string = "2.5.1"; // Server latest version
 
   // 🔄 Check for updates on app start
   useEffect(() => {
@@ -211,38 +211,62 @@ const MobilePOS: React.FC = () => {
       hapticFeedback.light();
       soundEffects.beep();
 
+      console.log('🚀 Starting camera scan...');
+
       // 🚀 ML Kit - Check permissions
-      const { camera } = await BarcodeScanner.checkPermissions();
+      console.log('📸 Checking camera permissions...');
+      const permissionResult = await BarcodeScanner.checkPermissions();
+      console.log('Permission status:', permissionResult);
       
-      if (camera !== 'granted') {
+      if (permissionResult.camera !== 'granted') {
         // Request permission
+        console.log('🔒 Requesting camera permission...');
         const result = await BarcodeScanner.requestPermissions();
+        console.log('Permission request result:', result);
+        
         if (result.camera !== 'granted') {
-          toast.error('Kamera izni gerekli!');
+          toast.error('❌ Kamera izni reddedildi!');
           return;
         }
       }
 
+      console.log('✅ Permission granted! Starting scan...');
+      
       // 📸 ML Kit native scanner (kendi UI'ı var!)
+      toast('📸 Kamera açılıyor...', { duration: 1000 });
       const scanResult = await BarcodeScanner.scan();
+      console.log('📦 Scan result:', scanResult);
       
       if (scanResult.barcodes && scanResult.barcodes.length > 0) {
         const barcode = scanResult.barcodes[0].displayValue || scanResult.barcodes[0].rawValue;
+        console.log('✅ Barcode scanned:', barcode);
         
         if (barcode) {
           // 📳 Haptic: Success!
           hapticFeedback.success();
           soundEffects.cashRegister();
+          toast.success(`Barkod: ${barcode}`);
           
           await addProductByBarcode(barcode);
         }
+      } else {
+        console.log('❌ No barcode found in result');
+        toast('Barkod bulunamadı, tekrar deneyin', { icon: '🔍' });
       }
     } catch (error: any) {
-      console.error('ML Kit scan error:', error);
+      console.error('❌ ML Kit scan error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        code: error.code,
+        stack: error.stack
+      });
+      
       if (error.message && !error.message.toLowerCase().includes('cancel')) {
-        toast.error('Barkod tarama başarısız');
+        toast.error(`❌ Hata: ${error.message || 'Barkod tarama başarısız'}`);
         soundEffects.error();
         hapticFeedback.error();
+      } else {
+        console.log('User cancelled scan');
       }
     }
   };
