@@ -3,10 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
+import { Share } from '@capacitor/share';
 import { 
   Camera, ShoppingCart, Trash2, Plus, Minus, X, 
-  ArrowLeft, CheckCircle2, Info, Bell, Wifi, WifiOff,
-  RotateCcw, MessageSquare, DollarSign, CreditCard, User, Users
+  ArrowLeft, CheckCircle2, WifiOff, RotateCcw, Bell,
+  DollarSign, CreditCard, User, Users, Calculator,
+  MessageSquare, Send, Mail, MessageCircle, Printer
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { soundEffects } from '../../lib/sound-effects';
@@ -31,6 +33,8 @@ interface QuickProduct {
   icon: string;
 }
 
+type PaymentMode = 'simple' | 'smart-change' | 'split' | 'multiple';
+
 const MobilePOS: React.FC = () => {
   const navigate = useNavigate();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -42,13 +46,21 @@ const MobilePOS: React.FC = () => {
   const [quickProducts, setQuickProducts] = useState<QuickProduct[]>([]);
   const [stockWarning, setStockWarning] = useState<string | null>(null);
 
-  // Gesture state
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
-  const [lastTap, setLastTap] = useState(0);
-  const [shakeCount, setShakeCount] = useState(0);
+  // Payment modes
+  const [paymentMode, setPaymentMode] = useState<PaymentMode>('simple');
+  const [receivedAmount, setReceivedAmount] = useState('');
+  const [splitPeople, setSplitPeople] = useState(2);
+  const [multiplePayments, setMultiplePayments] = useState<{method: string; amount: number}[]>([]);
+  
+  // Note system
+  const [editingNote, setEditingNote] = useState<string | null>(null);
+  const [noteText, setNoteText] = useState('');
+
+  // Receipt sharing
+  const [showReceiptShare, setShowReceiptShare] = useState(false);
 
   const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const change = receivedAmount ? parseFloat(receivedAmount) - total : 0;
 
   const hapticFeedback = async (style: ImpactStyle = ImpactStyle.Light) => {
     if (Capacitor.isNativePlatform()) {
@@ -58,13 +70,9 @@ const MobilePOS: React.FC = () => {
 
   // Check online status
   useEffect(() => {
-    const checkConnection = () => {
-      setIsOnline(navigator.onLine);
-    };
-    
+    const checkConnection = () => setIsOnline(navigator.onLine);
     window.addEventListener('online', checkConnection);
     window.addEventListener('offline', checkConnection);
-    
     return () => {
       window.removeEventListener('online', checkConnection);
       window.removeEventListener('offline', checkConnection);
@@ -76,28 +84,8 @@ const MobilePOS: React.FC = () => {
     loadQuickProducts();
   }, []);
 
-  // Shake to undo (Gesture #8)
-  useEffect(() => {
-    if (!Capacitor.isNativePlatform()) return;
-
-    const handleShake = (event: any) => {
-      if (event.acceleration.x > 15 || event.acceleration.y > 15 || event.acceleration.z > 15) {
-        setShakeCount(prev => prev + 1);
-        
-        if (shakeCount >= 2) {
-          undoLastAction();
-          setShakeCount(0);
-        }
-      }
-    };
-
-    window.addEventListener('devicemotion', handleShake);
-    return () => window.removeEventListener('devicemotion', handleShake);
-  }, [shakeCount, cartItems]);
-
   const loadQuickProducts = async () => {
     try {
-      // Mock data - gerçekte API'den gelecek
       const mockProducts: QuickProduct[] = [
         { id: '1', barcode: '8690632018560', name: 'Cola', price: 30, stock: 50, icon: '🥤' },
         { id: '2', barcode: '8690632018561', name: 'Fanta', price: 28, stock: 14, icon: '🍊' },
@@ -114,7 +102,6 @@ const MobilePOS: React.FC = () => {
     }
   };
 
-  // Start barcode scan
   const startScan = async () => {
     if (isScanning) return;
     
@@ -154,7 +141,6 @@ const MobilePOS: React.FC = () => {
     }
   };
 
-  // Add product by barcode
   const addProductByBarcode = async (barcode: string) => {
     try {
       const response = await api.get(`/products/barcode/${barcode}`);
@@ -166,7 +152,6 @@ const MobilePOS: React.FC = () => {
         return;
       }
 
-      // Check stock warning
       if (product.stock && product.stock <= 15) {
         setStockWarning(`${product.name} - Kalan: ${product.stock} adet`);
         setTimeout(() => setStockWarning(null), 5000);
@@ -188,7 +173,6 @@ const MobilePOS: React.FC = () => {
     }
   };
 
-  // Add quick product
   const addQuickProduct = (product: QuickProduct) => {
     if (product.stock && product.stock <= 15) {
       setStockWarning(`${product.name} - Kalan: ${product.stock} adet`);
@@ -208,7 +192,6 @@ const MobilePOS: React.FC = () => {
     soundEffects.tap();
   };
 
-  // Add to cart
   const addToCart = (item: CartItem) => {
     const existingItem = cartItems.find(i => i.barcode === item.barcode);
     
@@ -225,7 +208,6 @@ const MobilePOS: React.FC = () => {
     }
   };
 
-  // Update quantity
   const updateQuantity = (barcode: string, delta: number) => {
     setCartItems(prev => {
       const updated = prev.map(item => {
@@ -243,7 +225,6 @@ const MobilePOS: React.FC = () => {
     hapticFeedback();
   };
 
-  // Remove item
   const removeItem = (barcode: string) => {
     setCartItems(prev => prev.filter(item => item.barcode !== barcode));
     toast.success('Ürün silindi', { duration: 1000 });
@@ -251,7 +232,6 @@ const MobilePOS: React.FC = () => {
     hapticFeedback(ImpactStyle.Medium);
   };
 
-  // Clear cart
   const clearCart = () => {
     if (cartItems.length === 0) return;
     
@@ -263,28 +243,16 @@ const MobilePOS: React.FC = () => {
     }
   };
 
-  // Undo last action (Gesture #8)
-  const undoLastAction = () => {
-    if (cartItems.length === 0) return;
-    
-    const lastItem = cartItems[cartItems.length - 1];
-    toast((t) => (
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <span>Son işlemi geri al?<br/>{lastItem.name}</span>
-        <button onClick={() => {
-          removeItem(lastItem.barcode);
-          toast.dismiss(t.id);
-        }} style={{ padding: '5px 10px', background: '#000', color: '#fff', border: 'none', borderRadius: '5px' }}>
-          EVET
-        </button>
-      </div>
-    ), { duration: 3000 });
-    
-    hapticFeedback(ImpactStyle.Heavy);
-    soundEffects.error();
+  const updateItemNote = (barcode: string, note: string) => {
+    setCartItems(prev => prev.map(item =>
+      item.barcode === barcode ? { ...item, note } : item
+    ));
+    setEditingNote(null);
+    setNoteText('');
+    toast.success('Not eklendi');
+    hapticFeedback();
   };
 
-  // Complete sale
   const completeSale = async (paymentMethod: 'CASH' | 'CARD' | 'CREDIT') => {
     if (cartItems.length === 0) {
       toast.error('Sepet boş!');
@@ -302,7 +270,8 @@ const MobilePOS: React.FC = () => {
         items: cartItems.map(item => ({
           productId: item.id,
           quantity: item.quantity,
-          price: item.price
+          price: item.price,
+          note: item.note
         })),
         paymentMethod,
         total
@@ -317,10 +286,12 @@ const MobilePOS: React.FC = () => {
       hapticFeedback(ImpactStyle.Heavy);
       
       setCartItems([]);
+      setReceivedAmount('');
+      setPaymentMode('simple');
       
       setTimeout(() => {
-        setShowSuccess(false);
-      }, 3000);
+        setShowReceiptShare(true);
+      }, 2000);
       
     } catch (error: any) {
       console.error('Sale error:', error);
@@ -329,7 +300,57 @@ const MobilePOS: React.FC = () => {
     }
   };
 
-  // Success Screen
+  // Smart change calculation
+  const calculateSmartChange = (amount: number): string[] => {
+    const bills = [200, 100, 50, 20, 10, 5, 2, 1, 0.5, 0.25, 0.10, 0.05, 0.01];
+    const result: string[] = [];
+    let remaining = amount;
+
+    bills.forEach(bill => {
+      const count = Math.floor(remaining / bill);
+      if (count > 0) {
+        result.push(`${count}x ${bill >= 1 ? bill + '₺' : (bill * 100) + 'kr'}`);
+        remaining = Math.round((remaining - (bill * count)) * 100) / 100;
+      }
+    });
+
+    return result;
+  };
+
+  // Share receipt
+  const shareReceipt = async (method: string) => {
+    const receipt = `
+🧾 BarcodePOS PRO
+━━━━━━━━━━━━━━━━━━━━
+${cartItems.map(item => `${item.name}\n${item.quantity} x ₺${item.price.toFixed(2)} = ₺${(item.price * item.quantity).toFixed(2)}`).join('\n\n')}
+━━━━━━━━━━━━━━━━━━━━
+TOPLAM: ₺${lastSaleTotal.toFixed(2)}
+
+Teşekkür ederiz! 🙏
+`.trim();
+
+    try {
+      if (method === 'share' && Capacitor.isNativePlatform()) {
+        await Share.share({
+          title: 'Fiş',
+          text: receipt,
+          dialogTitle: 'Fişi Paylaş'
+        });
+      } else {
+        // Web için clipboard
+        await navigator.clipboard.writeText(receipt);
+        toast.success('Fiş kopyalandı!');
+      }
+      
+      hapticFeedback();
+      soundEffects.tap();
+    } catch (error) {
+      console.error('Share error:', error);
+      toast.error('Paylaşılamadı');
+    }
+  };
+
+  // Success Screen with Receipt Share
   if (showSuccess) {
     return (
       <div className="mobile-pos-success">
@@ -341,8 +362,31 @@ const MobilePOS: React.FC = () => {
           <p className="success-amount-pro">₺{lastSaleTotal.toFixed(2)}</p>
           <p className="success-subtitle-pro">Ödeme başarıyla alındı</p>
           
+          {showReceiptShare && (
+            <div className="receipt-share-pro">
+              <p className="share-title-pro">📤 Fiş Gönder:</p>
+              <div className="share-buttons-pro">
+                <button onClick={() => shareReceipt('share')} className="share-btn-pro whatsapp">
+                  <MessageCircle className="w-5 h-5" />
+                  <span>Paylaş</span>
+                </button>
+                <button onClick={() => shareReceipt('copy')} className="share-btn-pro mail">
+                  <Mail className="w-5 h-5" />
+                  <span>Kopyala</span>
+                </button>
+                <button onClick={() => toast('Yazıcı özelliği yakında!', {icon: '🖨️'})} className="share-btn-pro print">
+                  <Printer className="w-5 h-5" />
+                  <span>Yazdır</span>
+                </button>
+              </div>
+            </div>
+          )}
+          
           <button 
-            onClick={() => setShowSuccess(false)}
+            onClick={() => {
+              setShowSuccess(false);
+              setShowReceiptShare(false);
+            }}
             className="success-btn-pro"
           >
             Yeni Satışa Başla
@@ -379,6 +423,9 @@ const MobilePOS: React.FC = () => {
                   {item.stock && item.stock <= 15 && (
                     <p className="item-stock-warn">⚠️ Stok: {item.stock}</p>
                   )}
+                  {item.note && (
+                    <p className="item-note">📝 {item.note}</p>
+                  )}
                 </div>
                 <p className="item-total-detail">₺{(item.price * item.quantity).toFixed(2)}</p>
               </div>
@@ -391,10 +438,39 @@ const MobilePOS: React.FC = () => {
                 <button onClick={() => updateQuantity(item.barcode, 1)} className="qty-btn-detail plus">
                   <Plus className="w-4 h-4" />
                 </button>
+                <button 
+                  onClick={() => {
+                    setEditingNote(item.barcode);
+                    setNoteText(item.note || '');
+                  }} 
+                  className="note-btn-detail"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                </button>
                 <button onClick={() => removeItem(item.barcode)} className="remove-btn-detail">
                   <X className="w-4 h-4" />
                 </button>
               </div>
+
+              {/* Note Edit */}
+              {editingNote === item.barcode && (
+                <div className="note-edit-pro">
+                  <input
+                    type="text"
+                    value={noteText}
+                    onChange={(e) => setNoteText(e.target.value)}
+                    placeholder="Not ekle..."
+                    className="note-input-pro"
+                    autoFocus
+                  />
+                  <button onClick={() => updateItemNote(item.barcode, noteText)} className="note-save-pro">
+                    Kaydet
+                  </button>
+                  <button onClick={() => setEditingNote(null)} className="note-cancel-pro">
+                    İptal
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -406,6 +482,90 @@ const MobilePOS: React.FC = () => {
             <span className="total-amount-pro">₺{total.toFixed(2)}</span>
           </div>
 
+          {/* Payment Mode Selector */}
+          <div className="payment-mode-selector">
+            <button
+              onClick={() => setPaymentMode('simple')}
+              className={`mode-btn ${paymentMode === 'simple' ? 'active' : ''}`}
+            >
+              Basit
+            </button>
+            <button
+              onClick={() => setPaymentMode('smart-change')}
+              className={`mode-btn ${paymentMode === 'smart-change' ? 'active' : ''}`}
+            >
+              <Calculator className="w-4 h-4" />
+              Para Üstü
+            </button>
+            <button
+              onClick={() => setPaymentMode('split')}
+              className={`mode-btn ${paymentMode === 'split' ? 'active' : ''}`}
+            >
+              <Users className="w-4 h-4" />
+              Böl
+            </button>
+          </div>
+
+          {/* Smart Change Mode */}
+          {paymentMode === 'smart-change' && (
+            <div className="smart-change-pro">
+              <div className="change-input-pro">
+                <label>Alınan:</label>
+                <input
+                  type="number"
+                  value={receivedAmount}
+                  onChange={(e) => setReceivedAmount(e.target.value)}
+                  placeholder="0"
+                  className="amount-input-pro"
+                />
+              </div>
+              
+              {change > 0 && (
+                <div className="change-result-pro">
+                  <p className="change-amount">Para Üstü: ₺{change.toFixed(2)}</p>
+                  <div className="smart-breakdown">
+                    <p className="breakdown-title">💡 Vermek için:</p>
+                    {calculateSmartChange(change).map((item, i) => (
+                      <span key={i} className="breakdown-item">{item}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="quick-amounts-pro">
+                {[50, 100, 150, 200, 500].map(amount => (
+                  <button
+                    key={amount}
+                    onClick={() => setReceivedAmount(amount.toString())}
+                    className="quick-amount-btn"
+                  >
+                    {amount}₺
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Split Payment Mode */}
+          {paymentMode === 'split' && (
+            <div className="split-payment-pro">
+              <div className="split-people-pro">
+                <label>Kişi sayısı:</label>
+                <div className="people-control">
+                  <button onClick={() => setSplitPeople(Math.max(2, splitPeople - 1))} className="people-btn">
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <span className="people-count">{splitPeople}</span>
+                  <button onClick={() => setSplitPeople(splitPeople + 1)} className="people-btn">
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              <p className="split-amount-pro">Kişi başı: ₺{(total / splitPeople).toFixed(2)}</p>
+            </div>
+          )}
+
+          {/* Payment Buttons */}
           <div className="payment-buttons-pro">
             <button onClick={() => completeSale('CASH')} className="pay-btn-pro cash">
               <DollarSign className="w-5 h-5" />
@@ -440,9 +600,6 @@ const MobilePOS: React.FC = () => {
           )}
         </div>
         <div className="header-actions-main">
-          <button onClick={() => cartItems.length > 0 && undoLastAction()} className="icon-btn-main" disabled={cartItems.length === 0}>
-            <RotateCcw className="w-5 h-5" />
-          </button>
           <button onClick={clearCart} className="icon-btn-main" disabled={cartItems.length === 0}>
             <Trash2 className="w-5 h-5" />
           </button>
@@ -490,7 +647,7 @@ const MobilePOS: React.FC = () => {
         </div>
       </div>
 
-      {/* Mini Cart (if items exist) */}
+      {/* Mini Cart */}
       {cartItems.length > 0 && (
         <button 
           onClick={() => setShowCartDetail(true)}
@@ -507,7 +664,7 @@ const MobilePOS: React.FC = () => {
         </button>
       )}
 
-      {/* FAB - Scan Button */}
+      {/* FAB */}
       <button 
         onClick={startScan}
         disabled={isScanning}

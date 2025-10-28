@@ -5503,6 +5503,407 @@ body.scanner-active .barcode-scanner-ui {
   transform: scale(0.95);
 }
 
+/* Receipt Share */
+.receipt-share-pro {
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: rgba(0,0,0,0.03);
+  border-radius: 12px;
+}
+
+.dark .receipt-share-pro {
+  background: rgba(255,255,255,0.05);
+}
+
+.share-title-pro {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 1rem;
+}
+
+.dark .share-title-pro {
+  color: #d1d5db;
+}
+
+.share-buttons-pro {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.share-btn-pro {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-radius: 10px;
+  border: 2px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dark .share-btn-pro {
+  background: #1f2937;
+  border-color: #374151;
+  color: #d1d5db;
+}
+
+.share-btn-pro:active {
+  transform: scale(0.95);
+}
+
+.share-btn-pro.whatsapp:active {
+  background: #25d366;
+  color: #fff;
+  border-color: #25d366;
+}
+
+.share-btn-pro.mail:active {
+  background: #3b82f6;
+  color: #fff;
+  border-color: #3b82f6;
+}
+
+.share-btn-pro.print:active {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+}
+
+/* Payment Mode Selector */
+.payment-mode-selector {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  padding: 0 1rem;
+}
+
+.mode-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+  background: #fff;
+  color: #6b7280;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dark .mode-btn {
+  background: #1f2937;
+  border-color: #374151;
+  color: #9ca3af;
+}
+
+.mode-btn.active {
+  background: #000;
+  color: #fff;
+  border-color: #000;
+}
+
+.dark .mode-btn.active {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
+}
+
+/* Smart Change */
+.smart-change-pro {
+  padding: 1rem;
+  background: rgba(0,0,0,0.03);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.dark .smart-change-pro {
+  background: rgba(255,255,255,0.05);
+}
+
+.change-input-pro {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.change-input-pro label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.dark .change-input-pro label {
+  color: #d1d5db;
+}
+
+.amount-input-pro {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+  background: #fff;
+  color: #000;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.dark .amount-input-pro {
+  background: #1f2937;
+  border-color: #374151;
+  color: #fff;
+}
+
+.change-result-pro {
+  padding: 1rem;
+  background: #10b981;
+  color: #fff;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.change-amount {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.smart-breakdown {
+  margin-top: 0.75rem;
+}
+
+.breakdown-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  opacity: 0.9;
+}
+
+.breakdown-item {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background: rgba(255,255,255,0.2);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.quick-amounts-pro {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.quick-amount-btn {
+  flex: 1;
+  min-width: calc(33.333% - 0.5rem);
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dark .quick-amount-btn {
+  background: #1f2937;
+  border-color: #374151;
+  color: #d1d5db;
+}
+
+.quick-amount-btn:active {
+  transform: scale(0.95);
+  background: #000;
+  color: #fff;
+  border-color: #000;
+}
+
+.dark .quick-amount-btn:active {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
+}
+
+/* Split Payment */
+.split-payment-pro {
+  padding: 1rem;
+  background: rgba(0,0,0,0.03);
+  border-radius: 12px;
+  margin-bottom: 1rem;
+}
+
+.dark .split-payment-pro {
+  background: rgba(255,255,255,0.05);
+}
+
+.split-people-pro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.split-people-pro label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.dark .split-people-pro label {
+  color: #d1d5db;
+}
+
+.people-control {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.people-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 2px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dark .people-btn {
+  background: #1f2937;
+  border-color: #374151;
+  color: #d1d5db;
+}
+
+.people-btn:active {
+  transform: scale(0.9);
+}
+
+.people-count {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #000;
+  min-width: 40px;
+  text-align: center;
+}
+
+.dark .people-count {
+  color: #fff;
+}
+
+.split-amount-pro {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #10b981;
+  text-align: center;
+}
+
+/* Item Note */
+.item-note {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-style: italic;
+  margin-top: 0.25rem;
+}
+
+.dark .item-note {
+  color: #9ca3af;
+}
+
+.note-btn-detail {
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: none;
+  background: #f3f4f6;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dark .note-btn-detail {
+  background: #374151;
+  color: #9ca3af;
+}
+
+.note-btn-detail:active {
+  transform: scale(0.9);
+}
+
+.note-edit-pro {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.dark .note-edit-pro {
+  border-top-color: #374151;
+}
+
+.note-input-pro {
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 2px solid #e5e7eb;
+  background: #fff;
+  color: #000;
+  font-size: 0.85rem;
+}
+
+.dark .note-input-pro {
+  background: #1f2937;
+  border-color: #374151;
+  color: #fff;
+}
+
+.note-save-pro,
+.note-cancel-pro {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.note-save-pro {
+  background: #10b981;
+  color: #fff;
+}
+
+.note-cancel-pro {
+  background: #6b7280;
+  color: #fff;
+}
+
+.note-save-pro:active,
+.note-cancel-pro:active {
+  transform: scale(0.95);
+}
+
 /* Responsive */
 @media (min-width: 768px) {
   .menu-grid-clean {
