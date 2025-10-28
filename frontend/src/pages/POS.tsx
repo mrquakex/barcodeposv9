@@ -13,6 +13,7 @@ import HoldSalesDialog from '../components/POS/HoldSalesDialog';
 import PriceOverrideDialog from '../components/POS/PriceOverrideDialog';
 import ShiftManagementDialog from '../components/POS/ShiftManagementDialog';
 import ZReportDialog from '../components/POS/ZReportDialog';
+import MobilePOS from '../components/Mobile/MobilePOS';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
@@ -78,6 +79,11 @@ interface HeldSale {
 const POS: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuthStore();
+  
+  // 📱 NATIVE APP DETECTION - Show different UI for mobile app
+  if (Capacitor.isNativePlatform()) {
+    return <MobilePOS />;
+  }
   
   // 💠 ENTERPRISE: Multi-Channel States
   const [channels, setChannels] = useState<SalesChannel[]>([
