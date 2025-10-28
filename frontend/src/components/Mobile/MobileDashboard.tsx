@@ -50,151 +50,151 @@ const MobileDashboard: React.FC = () => {
     }
   };
 
-  // 18 PREMIUM BUTTONS with unique 3D designs
+  // 🎨 18 ULTRA PREMIUM BUTTONS - Luxury Color Palette
   const menuButtons: MenuButton[] = [
     { 
       icon: ShoppingCart, 
       title: 'Satış Yap', 
       path: '/pos', 
-      gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      color: '#667eea',
-      shadowColor: 'rgba(102, 126, 234, 0.4)'
+      gradient: 'linear-gradient(135deg, #6B46C1 0%, #9333EA 100%)',
+      color: '#6B46C1',
+      shadowColor: 'rgba(107, 70, 193, 0.5)'
     },
     { 
       icon: Package, 
       title: 'Ürünler', 
       path: '/products', 
-      gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-      color: '#f093fb',
-      shadowColor: 'rgba(240, 147, 251, 0.4)'
+      gradient: 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)',
+      color: '#F59E0B',
+      shadowColor: 'rgba(245, 158, 11, 0.5)'
     },
     { 
       icon: PlusCircle, 
       title: 'Ürün Ekle', 
       path: '/products/add', 
-      gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-      color: '#4facfe',
-      shadowColor: 'rgba(79, 172, 254, 0.4)'
+      gradient: 'linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)',
+      color: '#1E3A8A',
+      shadowColor: 'rgba(30, 58, 138, 0.5)'
     },
     { 
       icon: Users, 
       title: 'Müşteriler', 
       path: '/customers', 
-      gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-      color: '#43e97b',
-      shadowColor: 'rgba(67, 233, 123, 0.4)'
+      gradient: 'linear-gradient(135deg, #059669 0%, #10B981 100%)',
+      color: '#059669',
+      shadowColor: 'rgba(5, 150, 105, 0.5)'
     },
     { 
       icon: Building2, 
       title: 'Firmalar', 
       path: '/suppliers', 
-      gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-      color: '#fa709a',
-      shadowColor: 'rgba(250, 112, 154, 0.4)'
+      gradient: 'linear-gradient(135deg, #DC2626 0%, #EF4444 100%)',
+      color: '#DC2626',
+      shadowColor: 'rgba(220, 38, 38, 0.5)'
     },
     { 
       icon: FileText, 
       title: 'Alış Faturaları', 
       path: '/purchase-orders', 
-      gradient: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
-      color: '#30cfd0',
-      shadowColor: 'rgba(48, 207, 208, 0.4)'
+      gradient: 'linear-gradient(135deg, #7C3AED 0%, #A78BFA 100%)',
+      color: '#7C3AED',
+      shadowColor: 'rgba(124, 58, 237, 0.5)'
     },
     { 
       icon: BarChart3, 
       title: 'Satış Raporu', 
       path: '/reports/sales', 
-      gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-      color: '#a8edea',
-      shadowColor: 'rgba(168, 237, 234, 0.4)'
+      gradient: 'linear-gradient(135deg, #0891B2 0%, #06B6D4 100%)',
+      color: '#0891B2',
+      shadowColor: 'rgba(8, 145, 178, 0.5)'
     },
     { 
       icon: TrendingUp, 
       title: 'Ürünsel Rapor', 
       path: '/reports/products', 
-      gradient: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
-      color: '#ff9a9e',
-      shadowColor: 'rgba(255, 154, 158, 0.4)'
+      gradient: 'linear-gradient(135deg, #DB2777 0%, #EC4899 100%)',
+      color: '#DB2777',
+      shadowColor: 'rgba(219, 39, 119, 0.5)'
     },
     { 
       icon: PackageSearch, 
       title: 'Grupsal Rapor', 
       path: '/reports/groups', 
-      gradient: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
-      color: '#ffecd2',
-      shadowColor: 'rgba(255, 236, 210, 0.4)'
+      gradient: 'linear-gradient(135deg, #EA580C 0%, #FB923C 100%)',
+      color: '#EA580C',
+      shadowColor: 'rgba(234, 88, 12, 0.5)'
     },
     { 
       icon: ClipboardList, 
       title: 'Stok Sayımı', 
       path: '/stock-count', 
-      gradient: 'linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)',
-      color: '#ff6e7f',
-      shadowColor: 'rgba(255, 110, 127, 0.4)'
+      gradient: 'linear-gradient(135deg, #0D9488 0%, #14B8A6 100%)',
+      color: '#0D9488',
+      shadowColor: 'rgba(13, 148, 136, 0.5)'
     },
     { 
       icon: ArrowUpCircle, 
       title: 'Gelirler', 
       path: '/income', 
-      gradient: 'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)',
-      color: '#e0c3fc',
-      shadowColor: 'rgba(224, 195, 252, 0.4)'
+      gradient: 'linear-gradient(135deg, #16A34A 0%, #22C55E 100%)',
+      color: '#16A34A',
+      shadowColor: 'rgba(22, 163, 74, 0.5)'
     },
     { 
       icon: ArrowDownCircle, 
       title: 'Giderler', 
       path: '/expenses', 
-      gradient: 'linear-gradient(135deg, #f77062 0%, #fe5196 100%)',
-      color: '#f77062',
-      shadowColor: 'rgba(247, 112, 98, 0.4)'
+      gradient: 'linear-gradient(135deg, #BE123C 0%, #F43F5E 100%)',
+      color: '#BE123C',
+      shadowColor: 'rgba(190, 18, 60, 0.5)'
     },
     { 
       icon: UserCog, 
       title: 'Personeller', 
       path: '/employees', 
-      gradient: 'linear-gradient(135deg, #c471f5 0%, #fa71cd 100%)',
-      color: '#c471f5',
-      shadowColor: 'rgba(196, 113, 245, 0.4)'
+      gradient: 'linear-gradient(135deg, #9333EA 0%, #C084FC 100%)',
+      color: '#9333EA',
+      shadowColor: 'rgba(147, 51, 234, 0.5)'
     },
     { 
       icon: Grid3x3, 
       title: 'Ürün Grupları', 
       path: '/categories', 
-      gradient: 'linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)',
-      color: '#fbc2eb',
-      shadowColor: 'rgba(251, 194, 235, 0.4)'
+      gradient: 'linear-gradient(135deg, #4F46E5 0%, #818CF8 100%)',
+      color: '#4F46E5',
+      shadowColor: 'rgba(79, 70, 229, 0.5)'
     },
     { 
       icon: Store, 
       title: 'Şubeler', 
       path: '/branches', 
-      gradient: 'linear-gradient(135deg, #fdcbf1 0%, #e6dee9 100%)',
-      color: '#fdcbf1',
-      shadowColor: 'rgba(253, 203, 241, 0.4)'
+      gradient: 'linear-gradient(135deg, #B91C1C 0%, #DC2626 100%)',
+      color: '#B91C1C',
+      shadowColor: 'rgba(185, 28, 28, 0.5)'
     },
     { 
       icon: Coins, 
       title: 'Döviz Kurları', 
       path: '/exchange-rates', 
-      gradient: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)',
-      color: '#a1c4fd',
-      shadowColor: 'rgba(161, 196, 253, 0.4)'
+      gradient: 'linear-gradient(135deg, #CA8A04 0%, #EAB308 100%)',
+      color: '#CA8A04',
+      shadowColor: 'rgba(202, 138, 4, 0.5)'
     },
     { 
       icon: Bell, 
       title: 'Bildirimler', 
       path: '/notifications', 
-      gradient: 'linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)',
-      color: '#d299c2',
-      shadowColor: 'rgba(210, 153, 194, 0.4)'
+      gradient: 'linear-gradient(135deg, #C026D3 0%, #E879F9 100%)',
+      color: '#C026D3',
+      shadowColor: 'rgba(192, 38, 211, 0.5)'
     },
     { 
       icon: User, 
       title: 'Profil', 
       path: '/profile', 
-      gradient: 'linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%)',
-      color: '#89f7fe',
-      shadowColor: 'rgba(137, 247, 254, 0.4)'
+      gradient: 'linear-gradient(135deg, #0284C7 0%, #0EA5E9 100%)',
+      color: '#0284C7',
+      shadowColor: 'rgba(2, 132, 199, 0.5)'
     },
   ];
 
@@ -213,7 +213,7 @@ const MobileDashboard: React.FC = () => {
           <div className="user-info-premium">
             <h1 className="greeting-premium">{getGreeting()} ✨</h1>
             <p className="user-name-premium">{user?.name || 'Kullanıcı'}</p>
-            <p className="company-badge">BarcodePOS Premium</p>
+            <p className="company-badge">BarcodePOS PRO 💎</p>
           </div>
           <button
             onClick={() => {
