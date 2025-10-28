@@ -1030,12 +1030,11 @@ const POS: React.FC = () => {
   // 💡 Flash control helper
   const applyFlashConstraints = async (scanner: Html5Qrcode) => {
     try {
-      const stream = await scanner.getRunningTrackCameraCapabilities();
-      if (stream) {
-        const track = stream.getVideoTracks()[0];
-        const capabilities = track.getCapabilities();
+      const track = scanner.getRunningTrack();
+      if (track) {
+        const capabilities = track.getCapabilities() as any;
         
-        if ('torch' in capabilities) {
+        if (capabilities && 'torch' in capabilities) {
           await track.applyConstraints({
             advanced: [{ torch: useFlash } as any]
           });
