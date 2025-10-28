@@ -184,8 +184,9 @@ const POS: React.FC = () => {
   useEffect(() => {
     fetchCustomers();
     return () => {
-      if (scannerRef.current) {
-        scannerRef.current.clear();
+      // Cleanup: Stop camera on unmount
+      if (isScanning) {
+        stopCamera();
       }
     };
   }, []);
