@@ -965,26 +965,37 @@ const POS: React.FC = () => {
     setCalculatorChange(change);
   };
 
-  // 🚀 EXTREME POWER MODE - Canvas-Based Aggressive Scanning
+  // 🚀 MOBILE-OPTIMIZED BARCODE SCANNER
   const startCamera = async () => {
     try {
       console.log('🎬 Starting camera...');
+      console.log('📱 User Agent:', navigator.userAgent);
+      console.log('🔒 Is Secure Context (HTTPS):', window.isSecureContext);
+      
       setIsScanning(true);
       
       const videoElement = videoRef.current;
       const canvasElement = canvasRef.current;
       
-      console.log('🔍 Camera elements - Video:', !!videoElement, 'Canvas:', !!canvasElement);
+      console.log('🔍 Elements - Video:', !!videoElement, 'Canvas:', !!canvasElement);
       
-      if (!videoElement) {
-        throw new Error('📷 Video element bulunamadı! Lütfen sayfayı yenileyin.');
-      }
-      
-      if (!canvasElement) {
-        throw new Error('📷 Canvas element bulunamadı! Lütfen sayfayı yenileyin.');
+      if (!videoElement || !canvasElement) {
+        throw new Error('📷 Kamera bileşenleri hazır değil. Lütfen sayfayı yenileyin.');
       }
 
-      // 🎯 Create ZXing reader with EXTREME hints
+      // 🔐 Check camera permission first
+      try {
+        const permissionStatus = await navigator.permissions.query({ name: 'camera' as PermissionName });
+        console.log('📷 Kamera izni durumu:', permissionStatus.state);
+        
+        if (permissionStatus.state === 'denied') {
+          throw new Error('📷 Kamera izni reddedildi! Lütfen tarayıcı ayarlarından kamera iznini açın.');
+        }
+      } catch (permErr) {
+        console.warn('Permission API not supported:', permErr);
+      }
+
+      // 🎯 ZXing reader with optimized hints
       const hints = new Map();
       hints.set(DecodeHintType.TRY_HARDER, true);
       hints.set(DecodeHintType.POSSIBLE_FORMATS, [
@@ -998,34 +1009,12 @@ const POS: React.FC = () => {
       const codeReader = new BrowserMultiFormatReader(hints);
       scannerRef.current = codeReader;
 
-      // 📹 Get cameras
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const videoDevices = devices.filter(device => device.kind === 'videoinput');
-      
-      if (videoDevices.length === 0) {
-        throw new Error('📷 Kamera bulunamadı!');
-      }
-
-      // 🎥 Select back camera
-      let selectedDeviceId = videoDevices[0].deviceId;
-      const backCamera = videoDevices.find(device => 
-        device.label.toLowerCase().includes('back') ||
-        device.label.toLowerCase().includes('rear') ||
-        device.label.toLowerCase().includes('environment') ||
-        device.label.toLowerCase().includes('arka')
-      );
-      if (backCamera) {
-        selectedDeviceId = backCamera.deviceId;
-      }
-
-      // 🎬 OPTIMIZED constraints for clear video + fast scanning
+      // 🎬 MOBILE-FIRST constraints (simpler = more compatible)
       const constraints: MediaStreamConstraints = {
         video: {
-          deviceId: { exact: selectedDeviceId },
+          facingMode: { ideal: 'environment' },
           width: { ideal: 1280, min: 640 },
           height: { ideal: 720, min: 480 },
-          frameRate: { ideal: 30 },
-          facingMode: { ideal: 'environment' },
         }
       };
 
@@ -1132,28 +1121,50 @@ const POS: React.FC = () => {
       soundEffects.beep();
     } catch (error: any) {
       console.error('🔴 Camera error:', error);
-      console.error('Error details:', {
+      console.error('📋 Error details:', {
         name: error.name,
         message: error.message,
-        stack: error.stack,
+        isSecureContext: window.isSecureContext,
+        protocol: window.location.protocol,
       });
       
-      // Detailed error message
+      // 🎯 User-friendly error messages
       let errorMsg = 'Kamera başlatılamadı!';
+      let errorDetail = '';
       
-      if (error.name === 'NotAllowedError' || error.message?.includes('Permission')) {
-        errorMsg = '📷 Kamera izni verilmedi! Lütfen tarayıcı ayarlarından kamera iznini açın.';
-      } else if (error.name === 'NotFoundError' || error.message?.includes('not found') || error.message?.includes('bulunamadı')) {
-        errorMsg = '📷 Kamera bulunamadı! Cihazınızda kamera yok veya kullanılamıyor.';
-      } else if (error.name === 'NotReadableError' || error.message?.includes('in use')) {
-        errorMsg = '📷 Kamera kullanımda! Diğer uygulamaları kapatın.';
-      } else if (error.name === 'TypeError' || error.message?.includes('element')) {
-        errorMsg = '📷 Sayfa yüklenirken hata oluştu. Lütfen sayfayı yenileyin.';
-      } else if (error.message) {
+      // Check HTTPS first (most common mobile issue)
+      if (!window.isSecureContext && window.location.protocol !== 'https:') {
+        errorMsg = '⚠️ Kamera sadece HTTPS sitelerinde çalışır!';
+        errorDetail = 'Lütfen https://www.barcodepos.trade adresini kullanın.';
+      }
+      // Permission denied
+      else if (error.name === 'NotAllowedError' || error.message?.includes('Permission') || error.message?.includes('denied')) {
+        errorMsg = '🚫 Kamera izni verilmedi!';
+        errorDetail = 'Tarayıcı ayarlarından kamera iznini açın ve sayfayı yenileyin.';
+      }
+      // Camera not found
+      else if (error.name === 'NotFoundError' || error.message?.includes('not found') || error.message?.includes('bulunamadı')) {
+        errorMsg = '📷 Kamera bulunamadı!';
+        errorDetail = 'Cihazınızda kamera yok veya erişilemiyor.';
+      }
+      // Camera in use
+      else if (error.name === 'NotReadableError' || error.message?.includes('in use') || error.message?.includes('could not start')) {
+        errorMsg = '⚠️ Kamera kullanımda!';
+        errorDetail = 'Diğer uygulamaları kapatıp tekrar deneyin.';
+      }
+      // Generic error
+      else if (error.message) {
         errorMsg = error.message;
       }
       
-      toast.error(errorMsg, { duration: 5000 });
+      // Show error with detail
+      toast.error(errorMsg, { duration: 6000 });
+      if (errorDetail) {
+        setTimeout(() => {
+          toast.error(errorDetail, { duration: 6000 });
+        }, 500);
+      }
+      
       soundEffects.error();
       setIsScanning(false);
       setShowCameraModal(false);
