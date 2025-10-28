@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Camera, ShoppingCart, CreditCard, Search, Plus, X, Minus, Trash2, Sun, Moon, PackageOpen, Inbox } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { App as CapApp } from '@capacitor/app';
-import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
+import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import { api } from '../../lib/api';
 import toast from 'react-hot-toast';
 import { soundEffects } from '../../lib/sound-effects';
@@ -38,24 +38,19 @@ const MobilePOS: React.FC = () => {
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [showCart, setShowCart] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
-  const [isScanning, setIsScanning] = useState(false);
   const [frequentProducts, setFrequentProducts] = useState<Product[]>([]);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
-  const [isTorchOn, setIsTorchOn] = useState(false);
-  const [multiScanMode, setMultiScanMode] = useState(false);
-  const [scannedItems, setScannedItems] = useState<CartItem[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
   const [isLoadingProducts, setIsLoadingProducts] = useState(true);
   
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const scannerTouchStart = useRef<number>(0);
   const pullStartY = useRef<number>(0);
   const scrollContainer = useRef<HTMLDivElement>(null);
 
   // 📱 APP VERSION (increment this with each APK release)
-  const CURRENT_VERSION: string = "1.0.9"; // This APK version
-  const LATEST_VERSION: string = "1.0.9"; // Server latest version (şu an en son versiyon)
+  const CURRENT_VERSION: string = "2.0.0"; // This APK version - ML KIT!
+  const LATEST_VERSION: string = "2.0.0"; // Server latest version (şu an en son versiyon)
 
   // 🔄 Check for updates on app start
   useEffect(() => {
@@ -69,10 +64,7 @@ const MobilePOS: React.FC = () => {
 
     if (Capacitor.isNativePlatform()) {
       backButtonListener = CapApp.addListener('backButton', ({ canGoBack }) => {
-        if (isScanning) {
-          // Close scanner if open
-          stopScanner();
-        } else if (showCart) {
+        if (showCart) {
           // Close cart
           setShowCart(false);
         } else if (showPayment) {
@@ -92,7 +84,7 @@ const MobilePOS: React.FC = () => {
     return () => {
       backButtonListener?.remove();
     };
-  }, [isScanning, showCart, showPayment]);
+  }, [showCart, showPayment]);
 
   const checkForUpdates = () => {
     const lastCheckedVersion = localStorage.getItem('lastCheckedVersion');
@@ -211,121 +203,47 @@ const MobilePOS: React.FC = () => {
     scanning: () => navigator.vibrate && navigator.vibrate([50, 100, 50]),
   };
 
-  const toggleTorch = async () => {
-    try {
-      if (isTorchOn) {
-        await BarcodeScanner.disableTorch();
-        setIsTorchOn(false);
-        hapticFeedback.light();
-      } else {
-        await BarcodeScanner.enableTorch();
-        setIsTorchOn(true);
-        hapticFeedback.medium();
-      }
-    } catch (error) {
-      console.error('Torch toggle failed:', error);
-    }
-  };
-
-  // 🛑 Stop Scanner (Back button / Close button / Swipe down)
-  const stopScanner = () => {
-    setIsScanning(false);
-    setIsTorchOn(false);
-    setMultiScanMode(false);
-    BarcodeScanner.stopScan();
-    
-    // ULTIMATE FIX: Restore everything
-    document.body.style.background = '';
-    document.body.style.backgroundColor = '';
-    document.querySelector('html')?.style.removeProperty('background');
-    document.querySelector('html')?.style.removeProperty('background-color');
-    
-    // Show POS content wrapper again
-    const contentWrapper = document.querySelector('.mobile-app-wrapper');
-    if (contentWrapper) {
-      (contentWrapper as HTMLElement).style.visibility = 'visible';
-    }
-    
-    // Show bottom navigation again
-    const bottomNav = document.querySelector('.bottom-navigation');
-    if (bottomNav) {
-      (bottomNav as HTMLElement).style.display = 'flex';
-    }
-    
-    hapticFeedback.light();
-  };
-
-  // 👆 Swipe Down Gesture Handlers
-  const handleScannerTouchStart = (e: React.TouchEvent) => {
-    scannerTouchStart.current = e.touches[0].clientY;
-  };
-
-  const handleScannerTouchMove = (e: React.TouchEvent) => {
-    const currentY = e.touches[0].clientY;
-    const deltaY = currentY - scannerTouchStart.current;
-
-    // If swiped down more than 100px, close scanner
-    if (deltaY > 100) {
-      stopScanner();
-      toast.success('Tarama kapatıldı', { duration: 1500 });
-    }
-  };
+  // ML Kit handles everything - no need for manual scanner control!
 
   const startCameraScan = async () => {
     try {
-      setIsScanning(true);
-      setIsTorchOn(false);
-      
       // 📳 Haptic: Scan started
       hapticFeedback.light();
+      soundEffects.beep();
 
-      const status = await BarcodeScanner.checkPermission({ force: true });
+      // 🚀 ML Kit - Check permissions
+      const { camera } = await BarcodeScanner.checkPermissions();
       
-      if (status.granted) {
-        // ULTIMATE FIX: Make everything transparent for camera
-        document.body.style.background = 'transparent';
-        document.body.style.backgroundColor = 'transparent';
-        document.querySelector('html')?.style.setProperty('background', 'transparent');
-        document.querySelector('html')?.style.setProperty('background-color', 'transparent');
-        
-        // Hide ONLY the POS content wrapper (not root!)
-        const contentWrapper = document.querySelector('.mobile-app-wrapper');
-        if (contentWrapper) {
-          (contentWrapper as HTMLElement).style.visibility = 'hidden';
+      if (camera !== 'granted') {
+        // Request permission
+        const result = await BarcodeScanner.requestPermissions();
+        if (result.camera !== 'granted') {
+          toast.error('Kamera izni gerekli!');
+          return;
         }
+      }
+
+      // 📸 ML Kit native scanner (kendi UI'ı var!)
+      const scanResult = await BarcodeScanner.scan();
+      
+      if (scanResult.barcodes && scanResult.barcodes.length > 0) {
+        const barcode = scanResult.barcodes[0].displayValue || scanResult.barcodes[0].rawValue;
         
-        // Hide bottom navigation
-        const bottomNav = document.querySelector('.bottom-navigation');
-        if (bottomNav) {
-          (bottomNav as HTMLElement).style.display = 'none';
-        }
-        
-        soundEffects.beep();
-        
-        // 📳 Haptic: Scanning...
-        hapticFeedback.scanning();
-        
-        const result = await BarcodeScanner.startScan();
-        
-        if (result.hasContent && result.content) {
+        if (barcode) {
           // 📳 Haptic: Success!
           hapticFeedback.success();
-          
           soundEffects.cashRegister();
-          await addProductByBarcode(result.content);
+          
+          await addProductByBarcode(barcode);
         }
-      } else {
-        toast.error('Kamera izni gerekli!');
-        hapticFeedback.error();
       }
     } catch (error: any) {
-      toast.error('Kamera hatası!');
-      soundEffects.error();
-      hapticFeedback.error();
-    } finally {
-      setIsScanning(false);
-      setIsTorchOn(false);
-      BarcodeScanner.stopScan();
+      console.error('ML Kit scan error:', error);
+      if (error.message && !error.message.toLowerCase().includes('cancel')) {
+        toast.error('Barkod tarama başarısız');
+        soundEffects.error();
+        hapticFeedback.error();
+      }
     }
   };
 
@@ -649,7 +567,6 @@ const MobilePOS: React.FC = () => {
       <button
         className="fab"
         onClick={startCameraScan}
-        disabled={isScanning}
       >
         <Camera className="w-7 h-7" />
       </button>
@@ -782,56 +699,6 @@ const MobilePOS: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* 📸 PROFESSIONAL BARCODE SCANNER OVERLAY */}
-      {isScanning && (
-        <div 
-          className="scanner-overlay"
-          style={{ background: 'transparent', backgroundColor: 'transparent' }}
-          onTouchStart={handleScannerTouchStart}
-          onTouchMove={handleScannerTouchMove}
-        >
-          {/* Header with Close & Torch */}
-          <div className="scanner-header">
-            <h2 className="scanner-title">📸 Barkod Tarama</h2>
-            <div className="flex items-center gap-3">
-              {/* Flash/Torch Toggle */}
-              <button
-                className={`torch-button ${isTorchOn ? 'active' : ''}`}
-                onClick={toggleTorch}
-              >
-                {isTorchOn ? '🔦' : '💡'}
-              </button>
-              {/* Close Button */}
-              <button
-                className="scanner-close"
-                onClick={stopScanner}
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-          </div>
-
-          {/* Scanning Frame with Laser */}
-          <div className="scanning-frame" style={{ background: 'transparent !important' }}>
-            {/* Bottom corners */}
-            <div className="corner-bl" />
-            <div className="corner-br" />
-            
-            {/* 🔴 Laser Line Animation */}
-            <div className="laser-line" />
-          </div>
-
-          {/* Instructions & Status */}
-          <div className="scanner-instructions">
-            <p>Barkodu beyaz çerçeveye hizalayın</p>
-            <div className="scanning-status">
-              <div className="scanning-pulse" />
-              <span>Taranıyor...</span>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* 🔄 UPDATE DIALOG - iOS 17 Style */}
       {showUpdateDialog && (
