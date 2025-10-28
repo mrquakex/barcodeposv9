@@ -34,13 +34,40 @@ const MobilePOS: React.FC = () => {
   const [showPayment, setShowPayment] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [frequentProducts, setFrequentProducts] = useState<Product[]>([]);
+  const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Load frequent products
+  // 📱 APP VERSION (increment this with each APK release)
+  const CURRENT_VERSION: string = "1.0.0";
+  const LATEST_VERSION: string = "1.0.1"; // Update this when new APK is ready
+
+  // 🔄 Check for updates on app start
   useEffect(() => {
+    checkForUpdates();
     loadFrequentProducts();
   }, []);
+
+  const checkForUpdates = () => {
+    const lastCheckedVersion = localStorage.getItem('lastCheckedVersion');
+    
+    // If there's a new version available and user hasn't dismissed it
+    if (LATEST_VERSION !== CURRENT_VERSION && lastCheckedVersion !== LATEST_VERSION) {
+      setShowUpdateDialog(true);
+    }
+  };
+
+  const handleUpdate = () => {
+    // Navigate to download page
+    window.open('/indir.html', '_blank');
+    localStorage.setItem('lastCheckedVersion', LATEST_VERSION);
+    setShowUpdateDialog(false);
+  };
+
+  const dismissUpdate = () => {
+    localStorage.setItem('lastCheckedVersion', LATEST_VERSION);
+    setShowUpdateDialog(false);
+  };
 
   const loadFrequentProducts = async () => {
     try {
@@ -477,6 +504,63 @@ const MobilePOS: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* 🔄 UPDATE DIALOG - iOS 17 Style */}
+      {showUpdateDialog && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998]"
+            onClick={dismissUpdate}
+          />
+          
+          {/* Update Dialog */}
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6">
+            <div className="mobile-card max-w-sm w-full animate-scale-in">
+              {/* Icon */}
+              <div className="flex justify-center mb-4">
+                <div className="w-20 h-20 bg-gradient-to-br from-primary to-primary-pressed rounded-full flex items-center justify-center">
+                  <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                </div>
+              </div>
+              
+              {/* Content */}
+              <h3 className="text-2xl font-bold text-center text-foreground mb-2">
+                🎉 Yeni Güncelleme!
+              </h3>
+              <p className="text-center text-foreground-secondary mb-2">
+                <strong>v{LATEST_VERSION}</strong> sürümü mevcut
+              </p>
+              <p className="text-sm text-center text-foreground-secondary mb-6">
+                Yeni özellikler ve iyileştirmeler ile daha iyi bir deneyim!
+              </p>
+              
+              {/* Buttons */}
+              <div className="space-y-3">
+                <button
+                  className="mobile-btn-primary"
+                  onClick={handleUpdate}
+                >
+                  🚀 Şimdi Güncelle
+                </button>
+                <button
+                  className="mobile-btn-secondary"
+                  onClick={dismissUpdate}
+                >
+                  Daha Sonra
+                </button>
+              </div>
+              
+              {/* Version info */}
+              <p className="text-xs text-center text-foreground-tertiary mt-4">
+                Mevcut sürüm: v{CURRENT_VERSION}
+              </p>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Bottom safe area */}
       <div className="h-24" />

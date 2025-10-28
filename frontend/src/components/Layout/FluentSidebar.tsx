@@ -174,6 +174,41 @@ const FluentSidebar: React.FC<FluentSidebarProps> = ({ isMobileOpen = false, onM
             const hasChildren = item.children && item.children.length > 0;
 
             if (!hasChildren && item.path) {
+              // 🔗 External link (opens in new tab)
+              const isExternalLink = item.path.endsWith('.html');
+              
+              if (isExternalLink) {
+                return (
+                  <a
+                    key={item.path}
+                    href={item.path}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn(
+                      'flex items-center gap-3 px-3 py-2 mb-1 rounded',
+                      'transition-all fluent-motion-fast',
+                      'group relative',
+                      'text-foreground hover:bg-background-alt'
+                    )}
+                  >
+                    <Icon className="w-5 h-5 shrink-0" />
+                    {(isExpanded || isMobileOpen) && (
+                      <>
+                        <span className="fluent-body flex-1">{item.label}</span>
+                        {item.badge !== undefined && (
+                          <FluentBadge size="small" appearance="error">{item.badge}</FluentBadge>
+                        )}
+                      </>
+                    )}
+                    {!isExpanded && !isMobileOpen && (
+                      <div className="absolute left-full ml-2 px-3 py-2 bg-card border border-border rounded fluent-depth-8 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                        {item.label}
+                      </div>
+                    )}
+                  </a>
+                );
+              }
+              
               return (
                 <Link
                   key={item.path}
