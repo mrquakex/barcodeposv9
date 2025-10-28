@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
 import { 
   LayoutDashboard, ShoppingCart, Package, Users, BarChart3, 
   Settings, ChevronRight, Search, Menu, X,
@@ -45,7 +46,8 @@ const FluentSidebar: React.FC<FluentSidebarProps> = ({ isMobileOpen = false, onM
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
-  const menuItems: MenuItem[] = [
+  // 📱 Base menu items
+  const baseMenuItems: MenuItem[] = [
     { icon: LayoutDashboard, label: t('nav.dashboard'), path: '/dashboard', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
     { icon: ShoppingCart, label: t('nav.pos'), path: '/pos', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
     { 
@@ -94,9 +96,19 @@ const FluentSidebar: React.FC<FluentSidebarProps> = ({ isMobileOpen = false, onM
         { icon: Building2, label: t('nav.branches'), path: '/branches' },
       ]
     },
-    { icon: Smartphone, label: '📱 Mobil Uygulama', path: '/indir.html', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
-    { icon: Settings, label: t('nav.settings'), path: '/settings', roles: ['ADMIN', 'MANAGER'] },
   ];
+
+  // 📱 Add "Mobile App" link ONLY if NOT running as native app
+  const menuItems: MenuItem[] = Capacitor.isNativePlatform() 
+    ? [
+        ...baseMenuItems,
+        { icon: Settings, label: t('nav.settings'), path: '/settings', roles: ['ADMIN', 'MANAGER'] },
+      ]
+    : [
+        ...baseMenuItems,
+        { icon: Smartphone, label: '📱 Mobil Uygulama', path: '/indir.html', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
+        { icon: Settings, label: t('nav.settings'), path: '/settings', roles: ['ADMIN', 'MANAGER'] },
+      ];
 
   const filteredMenu = menuItems.filter(item => 
     !item.roles || item.roles.includes(user?.role || '')

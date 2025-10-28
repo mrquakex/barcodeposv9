@@ -1,8 +1,10 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
 import { useAuthStore } from './store/authStore';
 import { useThemeStore } from './store/themeStore';
 import MainLayout from './components/Layout/MainLayout';
+import MobileLayout from './components/Mobile/MobileLayout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import POS from './pages/POS';
@@ -32,6 +34,9 @@ import UserManagement from './pages/UserManagement';
 const App: React.FC = () => {
   const { token } = useAuthStore();
   const { theme } = useThemeStore();
+  
+  // 📱 Detect if running as native app
+  const isNativeApp = Capacitor.isNativePlatform();
 
   // Tema'yı her değiştiğinde uygula
   useEffect(() => {
@@ -41,6 +46,9 @@ const App: React.FC = () => {
       document.documentElement.classList.remove('dark');
     }
   }, [theme]);
+
+  // 📱 Select layout based on platform
+  const LayoutComponent = isNativeApp ? MobileLayout : MainLayout;
 
   return (
     <BrowserRouter
@@ -52,7 +60,7 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/login" element={token ? <Navigate to="/dashboard" /> : <Login />} />
         
-        <Route element={token ? <MainLayout /> : <Navigate to="/login" />}>
+        <Route element={token ? <LayoutComponent /> : <Navigate to="/login" />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/pos" element={<POS />} />
           <Route path="/products" element={<Products />} />

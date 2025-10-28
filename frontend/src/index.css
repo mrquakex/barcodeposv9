@@ -1005,6 +1005,111 @@ body.scanner-active .barcode-scanner-ui {
 }
 
 /* ============================================
+   📱 MOBILE LAYOUT - Full Screen Native Experience
+   No Sidebar, Bottom Navigation Only
+   ============================================ */
+
+/* Mobile Layout Container */
+.mobile-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(135deg, #F0F4F8 0%, #E8EEF5 50%, #F5F7FA 100%);
+}
+
+/* Mobile Content Area (with bottom padding for nav) */
+.mobile-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 80px; /* Space for bottom nav */
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+/* ============================================
+   🧭 BOTTOM NAVIGATION - Native iOS/Android Style
+   Glassmorphism + Haptic Feedback + Spring Animations
+   ============================================ */
+
+/* Bottom Navigation Bar */
+.bottom-navigation {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 72px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 12px 16px;
+  z-index: 1000;
+  box-shadow: 
+    0 -2px 16px rgba(0, 0, 0, 0.05),
+    0 -1px 4px rgba(0, 0, 0, 0.03);
+}
+
+/* Bottom Nav Item */
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  color: rgba(0, 0, 0, 0.5);
+  min-width: 64px;
+}
+
+/* Bottom Nav Item Icon */
+.bottom-nav-item svg {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Bottom Nav Item Label */
+.bottom-nav-label {
+  font-size: 11px;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Active State */
+.bottom-nav-item.active {
+  color: #0078D4;
+  background: linear-gradient(135deg, rgba(0, 120, 212, 0.08) 0%, rgba(0, 95, 183, 0.12) 100%);
+  transform: translateY(-2px);
+}
+
+.bottom-nav-item.active svg {
+  transform: scale(1.1);
+  filter: drop-shadow(0 2px 8px rgba(0, 120, 212, 0.3));
+}
+
+.bottom-nav-item.active .bottom-nav-label {
+  font-weight: 600;
+}
+
+/* Hover State (for web testing) */
+.bottom-nav-item:hover:not(.active) {
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+/* Active Press Effect */
+.bottom-nav-item:active {
+  transform: scale(0.95);
+}
+
+/* ============================================
    📸 BARCODE SCANNER OVERLAY - Professional UI
    Laser Animation + Scanning Frame + Glassmorphism
    ============================================ */
