@@ -85,8 +85,10 @@ const POS: React.FC = () => {
   
   // Basic States
   const [isScanning, setIsScanning] = useState(false);
+  const [showCameraModal, setShowCameraModal] = useState(false);
   const [useFlash, setUseFlash] = useState(false);
   const [useFrontCamera, setUseFrontCamera] = useState(false);
+  const [lastScannedCode, setLastScannedCode] = useState<string>('');
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [showCustomerDialog, setShowCustomerDialog] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
@@ -190,6 +192,13 @@ const POS: React.FC = () => {
       }
     };
   }, []);
+
+  // 📸 Start camera when modal opens
+  useEffect(() => {
+    if (showCameraModal && !isScanning) {
+      startCamera();
+    }
+  }, [showCameraModal]);
 
   // 💠 ENTERPRISE: Click outside to close search dropdown
   useEffect(() => {
@@ -466,10 +475,17 @@ const POS: React.FC = () => {
   const handleCameraScan = async (barcode: string) => {
     if (!barcode.trim()) return;
 
+    // Prevent duplicate scans (same code within 2 seconds)
+    if (barcode === lastScannedCode) {
+      return;
+    }
+    setLastScannedCode(barcode);
+    setTimeout(() => setLastScannedCode(''), 2000);
+
     try {
       // 📳 Haptic Feedback - Vibrate on scan
       if (navigator.vibrate) {
-        navigator.vibrate(100);
+        navigator.vibrate(200);
       }
 
       const response = await api.get(`/products/barcode/${barcode}`);
@@ -490,14 +506,19 @@ const POS: React.FC = () => {
         return;
       }
 
+      // 🎉 Success!
       addToCart(product);
-      toast.success(`${product.name} sepete eklendi`);
-      soundEffects.beep(); // Success beep
+      toast.success(`✅ ${product.name} sepete eklendi`, { duration: 2000 });
+      soundEffects.cashRegister(); // Cash register sound
       
       // 📳 Success vibration pattern
       if (navigator.vibrate) {
-        navigator.vibrate([100, 50, 100]);
+        navigator.vibrate([200, 100, 200]);
       }
+      
+      // ✅ Auto-close camera after successful scan
+      await stopCamera();
+      setShowCameraModal(false);
     } catch (error: any) {
       toast.error('Ürün bulunamadı');
       soundEffects.error();
@@ -1615,79 +1636,15 @@ const POS: React.FC = () => {
                 {currentShift ? 'Vardiya Aktif' : 'Vardiya'}
               </FluentButton>
 
-              {/* 📱 Camera Controls - Hidden on Desktop */}
-              <div className="md:hidden flex gap-2">
-                <FluentButton
-                  appearance={isScanning ? 'subtle' : 'primary'}
-                  onClick={isScanning ? stopCamera : startCamera}
-                  icon={<Camera className="w-4 h-4" />}
-                >
-                  {isScanning ? 'Durdur' : 'Kamera'}
-                </FluentButton>
-                
-                {isScanning && (
-                  <>
-                    {/* 💡 Flash Toggle */}
-                    <FluentButton
-                      appearance={useFlash ? 'primary' : 'subtle'}
-                      onClick={toggleFlash}
-                      icon={<span className="text-sm">💡</span>}
-                      title="Flaş"
-                    />
-                    
-                    {/* 🔄 Camera Switch */}
-                    <FluentButton
-                      appearance="subtle"
-                      onClick={toggleCamera}
-                      icon={<span className="text-sm">🔄</span>}
-                      title={useFrontCamera ? 'Arka Kamera' : 'Ön Kamera'}
-                    />
-                  </>
-                )}
-              </div>
-            </div>
-
-            {/* 📸 ZXing Camera Scanner UI - Hidden video element */}
-            <div className={`mt-4 relative ${isScanning ? '' : 'hidden'}`}>
-              {/* Scanner Instructions */}
-              <div className="mb-3 p-3 bg-primary/10 border-2 border-primary/30 rounded-lg">
-                <p className="fluent-body-small text-center font-medium text-primary">
-                  ⚡ ZXing Hızlı Tarayıcı
-                </p>
-                <p className="fluent-caption text-center text-foreground-secondary mt-1">
-                  Tüm barkod türleri desteklenir • Anlık okuma
-                </p>
-              </div>
-              
-              {/* Camera Container */}
-              <div className="relative rounded-lg overflow-hidden shadow-lg border-4 border-primary/20">
-                {/* Video element for ZXing - Always in DOM */}
-                <video
-                  ref={videoRef}
-                  id="zxing-video"
-                  className="w-full h-auto"
-                  autoPlay
-                  playsInline
-                  muted
-                />
-                
-                {/* Scan Guide Overlay */}
-                <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute inset-8 border-4 border-primary/50 rounded-xl shadow-glow">
-                    {/* Corner indicators */}
-                    <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-xl"></div>
-                    <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-xl"></div>
-                    <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-xl"></div>
-                    <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-xl"></div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Status Indicator */}
-              <div className="mt-3 flex items-center justify-center gap-2">
-                <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
-                <p className="fluent-caption text-success font-medium">⚡ Tarama Aktif</p>
-              </div>
+              {/* 📱 Camera Button - Hidden on Desktop */}
+              <FluentButton
+                appearance="primary"
+                onClick={() => setShowCameraModal(true)}
+                icon={<Camera className="w-4 h-4" />}
+                className="md:hidden"
+              >
+                📸 Kamera
+              </FluentButton>
             </div>
           </FluentCard>
       </div>
@@ -2260,6 +2217,106 @@ const POS: React.FC = () => {
         onClose={() => setShowZReport(false)}
         shift={currentShift}
       />
+
+      {/* 📸 FULLSCREEN CAMERA MODAL */}
+      {showCameraModal && (
+        <div className="fixed inset-0 z-[9999] bg-black">
+          {/* Header */}
+          <div className="absolute top-0 left-0 right-0 z-10 p-4 bg-gradient-to-b from-black/80 to-transparent">
+            <div className="flex items-center justify-between">
+              <h2 className="text-white text-xl font-semibold flex items-center gap-2">
+                <Camera className="w-6 h-6" />
+                Barkod Tarayıcı
+              </h2>
+              <button
+                onClick={async () => {
+                  await stopCamera();
+                  setShowCameraModal(false);
+                }}
+                className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+              >
+                <X className="w-6 h-6 text-white" />
+              </button>
+            </div>
+          </div>
+
+          {/* Video Container */}
+          <div className="absolute inset-0">
+            <video
+              ref={videoRef}
+              id="zxing-video-fullscreen"
+              className="w-full h-full object-cover"
+              autoPlay
+              playsInline
+              muted
+            />
+            
+            {/* Scan Guide Overlay */}
+            <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+              {/* Dark overlay with cutout */}
+              <div className="absolute inset-0 bg-black/50"></div>
+              
+              {/* Scan area */}
+              <div className="relative w-72 h-72 border-4 border-white rounded-2xl shadow-2xl">
+                {/* Corner indicators */}
+                <div className="absolute -top-2 -left-2 w-12 h-12 border-t-4 border-l-4 border-primary rounded-tl-2xl"></div>
+                <div className="absolute -top-2 -right-2 w-12 h-12 border-t-4 border-r-4 border-primary rounded-tr-2xl"></div>
+                <div className="absolute -bottom-2 -left-2 w-12 h-12 border-b-4 border-l-4 border-primary rounded-bl-2xl"></div>
+                <div className="absolute -bottom-2 -right-2 w-12 h-12 border-b-4 border-r-4 border-primary rounded-br-2xl"></div>
+                
+                {/* Scanning line animation */}
+                <div className="absolute inset-0 overflow-hidden rounded-2xl">
+                  <div className="absolute w-full h-1 bg-primary/50 animate-scan"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Controls */}
+          <div className="absolute bottom-0 left-0 right-0 z-10 p-6 bg-gradient-to-t from-black/80 to-transparent">
+            {/* Instructions */}
+            <div className="mb-4 text-center">
+              <p className="text-white text-lg font-medium mb-1">
+                🎯 Barkodu beyaz kare içine getirin
+              </p>
+              <p className="text-white/70 text-sm">
+                Otomatik okuma yapılacak • Yakın tutun
+              </p>
+            </div>
+
+            {/* Control Buttons */}
+            <div className="flex items-center justify-center gap-4">
+              {/* Flash Toggle */}
+              <button
+                onClick={toggleFlash}
+                className={`p-4 rounded-full transition-all ${
+                  useFlash 
+                    ? 'bg-yellow-500 text-white shadow-lg shadow-yellow-500/50' 
+                    : 'bg-white/20 text-white'
+                }`}
+              >
+                <span className="text-2xl">{useFlash ? '💡' : '🔦'}</span>
+              </button>
+
+              {/* Camera Switch */}
+              <button
+                onClick={toggleCamera}
+                className="p-4 rounded-full bg-white/20 text-white hover:bg-white/30 transition-all"
+              >
+                <span className="text-2xl">🔄</span>
+              </button>
+            </div>
+
+            {/* Status */}
+            {isScanning && (
+              <div className="mt-4 flex items-center justify-center gap-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                <p className="text-green-400 font-medium">Tarama aktif...</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

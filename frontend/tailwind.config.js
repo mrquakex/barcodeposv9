@@ -58,6 +58,15 @@ export default {
         normal: 'var(--motion-normal)',
         slow: 'var(--motion-slow)',
       },
+      keyframes: {
+        scan: {
+          '0%': { transform: 'translateY(0)' },
+          '100%': { transform: 'translateY(288px)' },
+        },
+      },
+      animation: {
+        scan: 'scan 2s ease-in-out infinite',
+      },
     },
   },
   plugins: [],
