@@ -1015,34 +1015,60 @@ const POS: React.FC = () => {
         }
       };
 
-      // ⚡ DIRECT ZXING SCANNING - Simpler & More Reliable
-      console.log('🎯 Starting ZXing direct scan...');
+      // 📹 Get available cameras
+      const devices = await BrowserMultiFormatReader.listVideoInputDevices();
+      console.log('📷 Available cameras:', devices.length);
       
-      await codeReader.decodeFromConstraints(
-        constraints,
+      if (devices.length === 0) {
+        throw new Error('Kamera bulunamadı!');
+      }
+
+      // 🎥 Select back camera
+      let selectedDeviceId = devices[0].deviceId;
+      const backCamera = devices.find(device => 
+        device.label.toLowerCase().includes('back') ||
+        device.label.toLowerCase().includes('rear') ||
+        device.label.toLowerCase().includes('environment') ||
+        device.label.toLowerCase().includes('arka')
+      );
+      if (backCamera) {
+        selectedDeviceId = backCamera.deviceId;
+        console.log('✅ Arka kamera seçildi:', backCamera.label);
+      } else {
+        console.log('⚠️ Arka kamera bulunamadı, ilk kamera kullanılıyor:', devices[0].label);
+      }
+
+      // ⚡ MOST RELIABLE METHOD - decodeFromVideoDevice
+      console.log('🎯 Starting ZXing scan...');
+      
+      await codeReader.decodeFromVideoDevice(
+        selectedDeviceId,
         videoElement,
         (result, error) => {
           if (result) {
             const barcode = result.getText();
             console.log('✅ BARKOD OKUNDU:', barcode);
             
-            // 📳 Vibrate
+            // 📳 Strong vibration
             if (navigator.vibrate) {
-              navigator.vibrate([200, 100, 200]);
+              navigator.vibrate([200, 100, 200, 100, 200]);
             }
+            
+            // Show success toast
+            toast.success(`📦 ${barcode}`, { duration: 2000 });
             
             // Handle scan
             handleCameraScan(barcode);
           }
           
-          // Log errors for debugging
+          // Don't log NotFoundException (normal when no barcode in view)
           if (error && !(error instanceof NotFoundException)) {
-            console.warn('Scan error:', error);
+            console.warn('⚠️ Scan error:', error.message);
           }
         }
       );
       
-      console.log('✅ ZXing scanner başlatıldı!');
+      console.log('✅ ZXing tarama başlatıldı! Barkodu kareye getirin...');
       
       soundEffects.beep();
     } catch (error: any) {
