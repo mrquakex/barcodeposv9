@@ -983,35 +983,36 @@ const POS: React.FC = () => {
         isQuaggaInitialized.current = false;
       }
 
-      // 🎯 QUAGGA MINIMAL CONFIG - Mobile Optimized
+      // 🎯 QUAGGA ULTRA SIMPLE CONFIG - Manual ROI for Mobile
       Quagga.init(
         {
           inputStream: {
             type: 'LiveStream',
             target: container,
             constraints: {
-              width: { min: 640, ideal: 1280, max: 1920 },
-              height: { min: 480, ideal: 720, max: 1080 },
+              width: 640,  // Fixed resolution for consistency
+              height: 480,
               facingMode: 'environment',
-              aspectRatio: { ideal: 16/9 },
+            },
+            area: { // ⚡ ONLY SCAN CENTER AREA (matching the green box)
+              top: '25%',
+              right: '25%',
+              left: '25%',
+              bottom: '25%',
             },
           },
           decoder: {
             readers: ['ean_reader'], // ONLY EAN
             debug: {
               drawBoundingBox: true,
-              showFrequency: true, // ✅ SHOW FREQUENCY
+              showFrequency: true,
               drawScanline: true,
-              showPattern: true,   // ✅ SHOW PATTERN
+              showPattern: true,
             },
           },
-          locate: true,
-          locator: {
-            patchSize: 'medium', // Medium is more reliable
-            halfSample: true,    // Mobile needs this
-          },
-          numOfWorkers: 0, // ⚡ DISABLE WORKERS (mobile issue!)
-          frequency: 10,   // ⚡ Lower frequency for mobile stability
+          locate: false, // ⚡ DISABLE AUTO-LOCATE (manual ROI faster!)
+          numOfWorkers: 0,
+          frequency: 5, // ⚡ Even slower for mobile (5fps)
         },
         (err) => {
           if (err) {
@@ -1021,17 +1022,22 @@ const POS: React.FC = () => {
           
           console.log('✅ Quagga initialized successfully!');
           
-          // 🎯 PROCESSED EVENT - Log every second (10 frames @ 10fps)
+          // 🎯 PROCESSED EVENT - Log every second (5 frames @ 5fps)
           let processedCount = 0;
           Quagga.onProcessed((result) => {
             processedCount++;
-            if (processedCount % 10 === 0) { // Log every 10 frames (1 second @ 10fps)
-              console.log('📱 Processed', processedCount, 'frames');
+            if (processedCount % 5 === 0) { // Log every 5 frames (1 second @ 5fps)
+              console.log('📱 Processed', processedCount, 'frames (5fps, center ROI only)');
             }
             
-            // If boxes are detected, log them immediately!
+            // ALWAYS log if ANY box is detected
             if (result && result.boxes && result.boxes.length > 0) {
-              console.log('📐 FOUND', result.boxes.length, 'potential barcode boxes!');
+              console.log('🟢 BARCODE BOX DETECTED!', result.boxes.length, 'boxes');
+            }
+            
+            // Log line detection
+            if (result && result.line) {
+              console.log('📏 LINE DETECTED at angle:', result.line);
             }
           });
           
@@ -1084,8 +1090,9 @@ const POS: React.FC = () => {
           Quagga.start();
           isQuaggaInitialized.current = true;
           
-          console.log('📱 MOBILE OPTIMIZED MODE - Stable 10fps, Medium quality');
-          console.log('💡 TIP: Kamera okumazsa "Manuel Barkod Gir" butonunu kullanın!');
+          console.log('📱 ULTRA SIMPLE MODE - 5fps, Center ROI only, NO auto-locate');
+          console.log('💡 TIP: Barkodu yeşil karenin ORTASINA getirin!');
+          console.log('💡 Okumazsa "Manuel Barkod Gir" butonunu kullanın!');
           soundEffects.beep();
         }
       );
@@ -2330,3 +2337,4 @@ const POS: React.FC = () => {
 };
 
 export default POS;
+
