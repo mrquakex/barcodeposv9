@@ -16,7 +16,8 @@ import ZReportDialog from '../components/POS/ZReportDialog';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { BrowserMultiFormatReader, NotFoundException } from '@zxing/browser';
+import { BrowserMultiFormatReader } from '@zxing/browser';
+import { NotFoundException } from '@zxing/library';
 import { cn } from '../lib/utils';
 import { useKeyboardShortcuts, POSShortcuts } from '../hooks/useKeyboardShortcuts';
 import { soundEffects } from '../lib/sound-effects';
@@ -944,8 +945,8 @@ const POS: React.FC = () => {
       const codeReader = new BrowserMultiFormatReader();
       scannerRef.current = codeReader;
 
-      // Get video devices
-      const videoInputDevices = await codeReader.listVideoInputDevices();
+      // Get video devices (static method)
+      const videoInputDevices = await BrowserMultiFormatReader.listVideoInputDevices();
       
       if (!videoInputDevices || videoInputDevices.length === 0) {
         throw new Error('Kamera bulunamadı!');
@@ -1025,16 +1026,16 @@ const POS: React.FC = () => {
 
   const stopCamera = async () => {
     try {
-      if (scannerRef.current) {
-        scannerRef.current.reset();
-        scannerRef.current = null;
-      }
-      
       // Stop video stream
       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
         videoRef.current.srcObject = null;
+      }
+      
+      // Clear scanner reference
+      if (scannerRef.current) {
+        scannerRef.current = null;
       }
       
       setIsScanning(false);
