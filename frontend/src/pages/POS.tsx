@@ -149,8 +149,6 @@ const POS: React.FC = () => {
   
   const scannerRef = useRef<BrowserMultiFormatReader | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const animationFrameRef = useRef<number | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<number | null>(null);
@@ -975,12 +973,11 @@ const POS: React.FC = () => {
       setIsScanning(true);
       
       const videoElement = videoRef.current;
-      const canvasElement = canvasRef.current;
       
-      console.log('🔍 Elements - Video:', !!videoElement, 'Canvas:', !!canvasElement);
+      console.log('🔍 Elements - Video:', !!videoElement);
       
-      if (!videoElement || !canvasElement) {
-        throw new Error('📷 Kamera bileşenleri hazır değil. Lütfen sayfayı yenileyin.');
+      if (!videoElement) {
+        throw new Error('📷 Video element hazır değil. Lütfen sayfayı yenileyin.');
       }
 
       // 🔐 Check camera permission first
@@ -1018,105 +1015,34 @@ const POS: React.FC = () => {
         }
       };
 
-      // Start video stream
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      videoElement.srcObject = stream;
+      // ⚡ DIRECT ZXING SCANNING - Simpler & More Reliable
+      console.log('🎯 Starting ZXing direct scan...');
       
-      await new Promise((resolve) => {
-        videoElement.onloadedmetadata = () => {
-          videoElement.play();
-          resolve(true);
-        };
-      });
-
-      // Setup canvas
-      const ctx = canvasElement.getContext('2d', { willReadFrequently: true });
-      if (!ctx) {
-        throw new Error('Canvas context bulunamadı!');
-      }
-
-      // 💡 Try auto-torch
-      const track = stream.getVideoTracks()[0];
-      const capabilities = track.getCapabilities() as any;
-      if (capabilities.torch) {
-        try {
-          await track.applyConstraints({ advanced: [{ torch: true } as any] });
-        } catch (e) {
-          console.log('Torch unavailable');
-        }
-      }
-
-      let isScanning = false;
-      let lastScanTime = 0;
-
-      // ⚡ AGGRESSIVE SCANNING LOOP - 20 times per second
-      const scanFrame = async () => {
-        if (!scannerRef.current || !videoRef.current) {
-          return;
-        }
-
-        const now = Date.now();
-        if (isScanning || (now - lastScanTime < 50)) {
-          animationFrameRef.current = requestAnimationFrame(scanFrame);
-          return;
-        }
-
-        try {
-          isScanning = true;
-          lastScanTime = now;
-
-          // Draw video frame to canvas with sharpening
-          canvasElement.width = videoElement.videoWidth;
-          canvasElement.height = videoElement.videoHeight;
-          
-          ctx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
-          
-          // 🔍 Get image data and enhance
-          const imageData = ctx.getImageData(0, 0, canvasElement.width, canvasElement.height);
-          
-          // Sharpen & increase contrast
-          const data = imageData.data;
-          for (let i = 0; i < data.length; i += 4) {
-            // Increase contrast
-            const factor = 1.3;
-            data[i] = Math.min(255, (data[i] - 128) * factor + 128);     // R
-            data[i + 1] = Math.min(255, (data[i + 1] - 128) * factor + 128); // G
-            data[i + 2] = Math.min(255, (data[i + 2] - 128) * factor + 128); // B
-          }
-          
-          ctx.putImageData(imageData, 0, 0);
-
-          // Decode from enhanced canvas
-          const result = await codeReader.decodeFromCanvas(canvasElement);
-          
+      await codeReader.decodeFromConstraints(
+        constraints,
+        videoElement,
+        (result, error) => {
           if (result) {
             const barcode = result.getText();
-            console.log('🎯 BARKOD BULUNDU:', barcode);
+            console.log('✅ BARKOD OKUNDU:', barcode);
             
-            // Stop scanning loop
-            if (animationFrameRef.current) {
-              cancelAnimationFrame(animationFrameRef.current);
-            }
-            
-            // 📳 ULTRA vibration
+            // 📳 Vibrate
             if (navigator.vibrate) {
-              navigator.vibrate([200, 100, 200, 100, 200]);
+              navigator.vibrate([200, 100, 200]);
             }
             
-            await handleCameraScan(barcode);
-            return;
+            // Handle scan
+            handleCameraScan(barcode);
           }
-        } catch (error) {
-          // Continue scanning
-        } finally {
-          isScanning = false;
+          
+          // Log errors for debugging
+          if (error && !(error instanceof NotFoundException)) {
+            console.warn('Scan error:', error);
+          }
         }
-
-        animationFrameRef.current = requestAnimationFrame(scanFrame);
-      };
-
-      // Start the scanning loop
-      animationFrameRef.current = requestAnimationFrame(scanFrame);
+      );
+      
+      console.log('✅ ZXing scanner başlatıldı!');
       
       soundEffects.beep();
     } catch (error: any) {
@@ -1176,10 +1102,9 @@ const POS: React.FC = () => {
 
   const stopCamera = async () => {
     try {
-      // Stop animation loop
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
+      // Clear scanner reference
+      if (scannerRef.current) {
+        scannerRef.current = null;
       }
 
       // Stop video stream
@@ -1187,11 +1112,6 @@ const POS: React.FC = () => {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
         videoRef.current.srcObject = null;
-      }
-      
-      // Clear scanner
-      if (scannerRef.current) {
-        scannerRef.current = null;
       }
       
       setIsScanning(false);
@@ -2329,12 +2249,6 @@ const POS: React.FC = () => {
           autoPlay
           playsInline
           muted
-        />
-
-        {/* Hidden Canvas for Processing */}
-        <canvas
-          ref={canvasRef}
-          className="hidden"
         />
         
         {/* Clean Target Frame */}
