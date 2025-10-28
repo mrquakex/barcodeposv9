@@ -17,7 +17,7 @@ import { api } from '../lib/api';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import { BrowserMultiFormatReader } from '@zxing/browser';
-import { NotFoundException } from '@zxing/library';
+import { NotFoundException, DecodeHintType, BarcodeFormat } from '@zxing/library';
 import { cn } from '../lib/utils';
 import { useKeyboardShortcuts, POSShortcuts } from '../hooks/useKeyboardShortcuts';
 import { soundEffects } from '../lib/sound-effects';
@@ -960,7 +960,7 @@ const POS: React.FC = () => {
     setCalculatorChange(change);
   };
 
-  // 📸 ZXing - Modern & Fast Barcode Scanner
+  // 📸 ZXing - Modern & Fast Barcode Scanner with Multi-Angle Support
   const startCamera = async () => {
     try {
       // Set scanning state first to render video element
@@ -969,8 +969,32 @@ const POS: React.FC = () => {
       // Wait for video element to be in DOM
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      // Create ZXing reader
-      const codeReader = new BrowserMultiFormatReader();
+      // 🎯 Create ZXing reader with POWERFUL hints for multi-angle scanning
+      const hints = new Map();
+      
+      // 💪 TRY_HARDER: Spends more time to detect barcodes (rotated, damaged, etc.)
+      hints.set(DecodeHintType.TRY_HARDER, true);
+      
+      // 📐 Support ALL barcode formats
+      hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+        BarcodeFormat.EAN_13,      // Supermarket barcodes
+        BarcodeFormat.EAN_8,       // Small barcodes
+        BarcodeFormat.UPC_A,       // US barcodes
+        BarcodeFormat.UPC_E,       // Small US barcodes
+        BarcodeFormat.CODE_128,    // Shipping/inventory
+        BarcodeFormat.CODE_39,     // Industrial
+        BarcodeFormat.CODE_93,     // Logistics
+        BarcodeFormat.ITF,         // Warehouse
+        BarcodeFormat.QR_CODE,     // QR codes
+        BarcodeFormat.DATA_MATRIX, // 2D codes
+        BarcodeFormat.CODABAR,     // Medical/logistics
+        BarcodeFormat.AZTEC,       // Transport tickets
+      ]);
+      
+      // 🔄 Enable rotation detection (reads upside-down & sideways)
+      hints.set(DecodeHintType.ASSUME_GS1, false);
+      
+      const codeReader = new BrowserMultiFormatReader(hints);
       scannerRef.current = codeReader;
 
       // Get video devices (static method)
@@ -1010,24 +1034,25 @@ const POS: React.FC = () => {
         throw new Error('📷 Video element bulunamadı! Lütfen sayfayı yenileyin.');
       }
 
-      // Start scanning
+      // ⚡ Start HIGH-PERFORMANCE scanning
       await codeReader.decodeFromVideoDevice(
         selectedDeviceId,
         videoElement,
         async (result, error) => {
           if (result) {
-            // Barcode detected!
+            // 🎉 Barcode detected at ANY ANGLE!
             const barcode = result.getText();
             await handleCameraScan(barcode);
           }
           
           if (error && !(error instanceof NotFoundException)) {
+            // Only log actual errors, not "barcode not found" errors
             console.error('Scan error:', error);
           }
         }
       );
 
-      toast.success('🎯 Kamera aktif - Barkodu tarayın');
+      toast.success('🎯 Kamera aktif - Her açıdan okur!', { duration: 2000 });
       soundEffects.beep();
     } catch (error: any) {
       console.error('Camera error:', error);
@@ -2277,11 +2302,17 @@ const POS: React.FC = () => {
             {/* Instructions */}
             <div className="mb-4 text-center">
               <p className="text-white text-lg font-medium mb-1">
-                🎯 Barkodu beyaz kare içine getirin
+                🎯 Barkodu kameraya gösterin
               </p>
               <p className="text-white/70 text-sm">
-                Otomatik okuma yapılacak • Yakın tutun
+                Her açıdan okur • Döndürmeniz gerekmez
               </p>
+              <div className="mt-2 flex items-center justify-center gap-2">
+                <span className="text-white/50 text-xs">↻ Yan</span>
+                <span className="text-white/50 text-xs">⟲ Ters</span>
+                <span className="text-white/50 text-xs">⇅ Eğik</span>
+                <span className="text-white/50 text-xs">✓ Düz</span>
+              </div>
             </div>
 
             {/* Control Buttons */}
