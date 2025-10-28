@@ -20,7 +20,7 @@ import { useTranslation } from 'react-i18next';
 import { BrowserMultiFormatReader, BarcodeFormat } from '@zxing/browser';
 import { NotFoundException, DecodeHintType } from '@zxing/library';
 import { Capacitor } from '@capacitor/core';
-import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
+import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import { cn } from '../lib/utils';
 import { useKeyboardShortcuts, POSShortcuts } from '../hooks/useKeyboardShortcuts';
 import { soundEffects } from '../lib/sound-effects';
@@ -980,64 +980,47 @@ const POS: React.FC = () => {
       
       setIsScanning(true);
       
-      // 📱 NATIVE PLATFORM - Use Capacitor Barcode Scanner
+      // 📱 NATIVE PLATFORM - Use ML Kit Barcode Scanner
       if (Capacitor.isNativePlatform()) {
-        console.log('⚡ Using NATIVE Barcode Scanner (Capacitor)');
+        console.log('⚡ Using ML Kit Barcode Scanner');
         
-        // Check camera permission
-        const status = await BarcodeScanner.checkPermission({ force: true });
+        // Check camera permission (ML Kit API)
+        const { camera } = await BarcodeScanner.checkPermissions();
         
-        if (status.granted) {
-          // Hide background
-          document.body.classList.add('scanner-active');
-          
-          // Make modal transparent for camera
-          setShowCameraModal(true);
-          
-          soundEffects.beep();
-          
-          // Start scanning
-          const result = await BarcodeScanner.startScan();
-          
-          // Scan completed
-          document.body.classList.remove('scanner-active');
-          
-          if (result.hasContent) {
-            const barcode = result.content || '';
-            console.log('📦 ✅ NATIVE BARCODE SCANNED:', barcode);
-            
-            // Vibrate
-            if (navigator.vibrate) {
-              navigator.vibrate([200, 100, 200]);
-            }
-            
-            // Show toast
-            toast.success(`⚡ ${barcode}`, { duration: 2000 });
-            soundEffects.cashRegister();
-            
-            // Handle scan
-            handleCameraScan(barcode);
-            
-            // Stop and close
-            BarcodeScanner.stopScan();
-            setShowCameraModal(false);
+        if (camera !== 'granted') {
+          // Request permission
+          const result = await BarcodeScanner.requestPermissions();
+          if (result.camera !== 'granted') {
+            toast.error('Kamera izni gerekli!', { duration: 3000 });
+            soundEffects.error();
             setIsScanning(false);
-          } else {
-            console.log('❌ No barcode found');
-            setIsScanning(false);
+            return;
           }
-        } else if (status.denied) {
-          toast.error('Kamera izni reddedildi! Ayarlardan kamera iznini verin.', { duration: 5000 });
-          soundEffects.error();
-          setIsScanning(false);
-          setShowCameraModal(false);
-        } else {
-          // Ask for permission
-          toast.error('Kamera izni gerekiyor!', { duration: 3000 });
-          soundEffects.error();
-          setIsScanning(false);
-          setShowCameraModal(false);
         }
+
+        soundEffects.beep();
+        
+        // ML Kit scan (native UI)
+        const scanResult = await BarcodeScanner.scan();
+        
+        if (scanResult.barcodes && scanResult.barcodes.length > 0) {
+          const barcode = scanResult.barcodes[0].displayValue || scanResult.barcodes[0].rawValue || '';
+          console.log('📦 ✅ ML KIT BARCODE SCANNED:', barcode);
+          
+          // Vibrate
+          if (navigator.vibrate) {
+            navigator.vibrate([200, 100, 200]);
+          }
+          
+          // Show toast
+          toast.success(`⚡ ${barcode}`, { duration: 2000 });
+          soundEffects.cashRegister();
+          
+          // Handle scan
+          handleCameraScan(barcode);
+        }
+        
+        setIsScanning(false);
       } 
       // 🌐 WEB PLATFORM - Use ZXing
       else {
@@ -1118,7 +1101,7 @@ const POS: React.FC = () => {
       // Clean up native scanner if error
       if (Capacitor.isNativePlatform()) {
         document.body.classList.remove('scanner-active');
-        BarcodeScanner.stopScan();
+        // ML Kit handles cleanup automatically
       }
       
       // 🎯 User-friendly error messages
@@ -1170,9 +1153,9 @@ const POS: React.FC = () => {
       
       // Stop NATIVE scanner
       if (Capacitor.isNativePlatform()) {
-        console.log('🛑 Stopping NATIVE scanner...');
+        console.log('🛑 ML Kit scanner auto-cleanup');
         document.body.classList.remove('scanner-active');
-        BarcodeScanner.stopScan();
+        // ML Kit handles cleanup automatically
       } 
       // Stop WEB scanner (ZXing)
       else {
