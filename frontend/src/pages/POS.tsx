@@ -998,11 +998,7 @@ const POS: React.FC = () => {
           },
           decoder: {
             readers: [
-              'ean_reader',        // EAN-13 & EAN-8 (PRIMARY)
-              'ean_8_reader',      // EAN-8
-              'code_128_reader',   // CODE-128
-              'code_39_reader',    // CODE-39
-              'upc_reader',        // UPC-A & UPC-E
+              'ean_reader',        // ⚡ ONLY EAN (fastest!)
             ],
             debug: {
               drawBoundingBox: true,  // SHOW DETECTION BOX
@@ -1014,11 +1010,11 @@ const POS: React.FC = () => {
           },
           locate: true, // Auto-detect barcode location
           locator: {
-            patchSize: 'medium',  // Faster than 'large'
-            halfSample: true,     // 2x faster processing
+            patchSize: 'x-large',  // ⚡ LARGEST for better detection
+            halfSample: false,     // ⚡ FULL QUALITY (no downsampling)
           },
           numOfWorkers: navigator.hardwareConcurrency || 4,
-          frequency: 30, // 🔥 SCAN 30 TIMES PER SECOND!
+          frequency: 60, // ⚡⚡⚡ SCAN 60 TIMES PER SECOND!
         },
         (err) => {
           if (err) {
@@ -1028,52 +1024,62 @@ const POS: React.FC = () => {
           
           console.log('✅ Quagga initialized successfully!');
           
-          // 🎯 PROCESSED EVENT - Log every frame
+          // 🎯 PROCESSED EVENT - Log every second (60 frames)
           let processedCount = 0;
           Quagga.onProcessed((result) => {
             processedCount++;
-            if (processedCount % 30 === 0) { // Log every 30 frames (1 second)
-              console.log('🔄 Processed', processedCount, 'frames');
+            if (processedCount % 60 === 0) { // Log every 60 frames (1 second @ 60fps)
+              console.log('⚡ Processed', processedCount, 'frames (60fps)');
             }
             
-            // If boxes are detected, log them
-            if (result && result.boxes && result.boxes.length > 0) {
+            // If boxes are detected, log them (but less frequently)
+            if (result && result.boxes && result.boxes.length > 0 && processedCount % 30 === 0) {
               console.log('📐 Detected', result.boxes.length, 'potential barcode boxes');
             }
           });
           
-          // Handle detected barcode
+          // ⚡⚡⚡ INSTANT READ - Accept ANY barcode immediately
+          let lastAcceptedBarcode = '';
+          let lastAcceptedTime = 0;
+          
           Quagga.onDetected((result) => {
             if (result.codeResult && result.codeResult.code) {
               const barcode = result.codeResult.code;
+              const now = Date.now();
+              
+              // ⚡ Prevent duplicate reads within 2 seconds
+              if (barcode === lastAcceptedBarcode && now - lastAcceptedTime < 2000) {
+                return;
+              }
+              
               const confidence = result.codeResult.decodedCodes
                 .reduce((sum:number, code:any) => sum + (code.error || 0), 0) / result.codeResult.decodedCodes.length;
               
               console.log('📦 Barcode detected:', barcode, 'Confidence:', confidence.toFixed(3));
               
-              // 🔥 RELAXED CONFIDENCE - Accept more reads
-              if (confidence < 0.30) { // 0.30 = More tolerant (was 0.15)
-                console.log('✅ ACCEPTED BARCODE:', barcode, 'Confidence:', confidence.toFixed(3));
-                
-                // Vibrate
-                if (navigator.vibrate) {
-                  navigator.vibrate([200, 100, 200]);
-                }
-                
-                // Show toast
-                toast.success(`📦 ${barcode}`, { duration: 2000 });
-                
-                // Handle scan
-                handleCameraScan(barcode);
-                
-                // Stop after successful scan
-                setTimeout(() => {
-                  stopCamera();
-                  setShowCameraModal(false);
-                }, 500);
-              } else {
-                console.log('⚠️ REJECTED (low confidence):', barcode, 'Confidence:', confidence.toFixed(3));
+              // ⚡⚡⚡ INSTANT ACCEPT - NO THRESHOLD!
+              // Accept ANY barcode that Quagga can read
+              console.log('✅ INSTANT ACCEPTED:', barcode, 'Confidence:', confidence.toFixed(3));
+              
+              lastAcceptedBarcode = barcode;
+              lastAcceptedTime = now;
+              
+              // Vibrate
+              if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200]);
               }
+              
+              // Show toast
+              toast.success(`⚡ ${barcode}`, { duration: 2000 });
+              
+              // Handle scan
+              handleCameraScan(barcode);
+              
+              // Stop after successful scan
+              setTimeout(() => {
+                stopCamera();
+                setShowCameraModal(false);
+              }, 500);
             }
           });
           
@@ -1081,7 +1087,7 @@ const POS: React.FC = () => {
           Quagga.start();
           isQuaggaInitialized.current = true;
           
-          console.log('🎯 Quagga ULTRA AGGRESSIVE MODE started! Point at barcode...');
+          console.log('⚡⚡⚡ INSTANT READ MODE - 60fps, NO threshold, FULL quality!');
           soundEffects.beep();
         }
       );
