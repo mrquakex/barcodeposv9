@@ -17,9 +17,16 @@ android {
         }
     }
     buildTypes {
-        release {
+        debug {
+            // Don't minify debug builds (causes issues)
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            shrinkResources false
+        }
+        release {
+            // Optimize release builds
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     

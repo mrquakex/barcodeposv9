@@ -12,6 +12,10 @@ dist/
 build/
 *.log
 
+# APK files (hosted on Google Drive)
+*.apk
+android/app/build/
+
 # Database
 *.db
 *.db-journal

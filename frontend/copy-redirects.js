@@ -9,8 +9,8 @@ const __dirname = dirname(__filename);
 // Files to copy
 const filesToCopy = [
   { file: '_redirects', desc: '_redirects file' },
-  { file: 'indir.html', desc: 'Download page' },
-  { file: 'barcodeposv9.apk', desc: 'APK file' }
+  { file: 'indir.html', desc: 'Download page' }
+  // APK artık Google Drive'da: https://drive.google.com/file/d/1Azot-dCh3dMFrkzhDvO1_bwwSOvphvwK
 ];
 
 filesToCopy.forEach(({ file, desc }) => {
