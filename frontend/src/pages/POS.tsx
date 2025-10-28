@@ -994,11 +994,6 @@ const POS: React.FC = () => {
 
         setIsScanning(true);
         toast.success('Kamera aktif - Barkodu tarayın');
-        
-        // 💡 Apply flash if enabled
-        if (useFlash) {
-          applyFlashConstraints(scanner);
-        }
       } else {
         toast.error('Kamera bulunamadı!');
       }
@@ -1027,32 +1022,37 @@ const POS: React.FC = () => {
     }
   };
 
-  // 💡 Flash control helper
-  const applyFlashConstraints = async (scanner: Html5Qrcode) => {
-    try {
-      const track = scanner.getRunningTrack();
-      if (track) {
-        const capabilities = track.getCapabilities() as any;
-        
-        if (capabilities && 'torch' in capabilities) {
-          await track.applyConstraints({
-            advanced: [{ torch: useFlash } as any]
-          });
-        }
-      }
-    } catch (error) {
-      console.log('Flash not supported', error);
-    }
-  };
-
-  // 💡 Toggle Flash
+  // 💡 Toggle Flash (using MediaStream API directly)
   const toggleFlash = async () => {
     const newFlashState = !useFlash;
     setUseFlash(newFlashState);
     
-    if (scannerRef.current && isScanning) {
-      await applyFlashConstraints(scannerRef.current);
-      toast.success(newFlashState ? 'Flaş açık' : 'Flaş kapalı');
+    try {
+      // Access video element created by Html5Qrcode
+      const videoElement = document.querySelector('#qr-reader video') as HTMLVideoElement;
+      
+      if (videoElement && videoElement.srcObject) {
+        const stream = videoElement.srcObject as MediaStream;
+        const track = stream.getVideoTracks()[0];
+        
+        if (track) {
+          const capabilities = track.getCapabilities() as any;
+          
+          if (capabilities && 'torch' in capabilities) {
+            await track.applyConstraints({
+              advanced: [{ torch: newFlashState } as any]
+            });
+            toast.success(newFlashState ? '💡 Flaş açık' : 'Flaş kapalı');
+          } else {
+            toast.error('Flaş desteklenmiyor');
+            setUseFlash(false);
+          }
+        }
+      }
+    } catch (error) {
+      console.log('Flash not supported', error);
+      toast.error('Flaş kullanılamıyor');
+      setUseFlash(false);
     }
   };
 
