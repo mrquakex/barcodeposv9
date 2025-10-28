@@ -212,20 +212,40 @@ const MobilePOS: React.FC = () => {
 
   const loadQuickProducts = async () => {
     try {
-      const mockProducts: QuickProduct[] = [
-        { id: '1', barcode: '8690632018560', name: 'Cola', price: 30, stock: 50, icon: '🥤' },
-        { id: '2', barcode: '8690632018561', name: 'Fanta', price: 28, stock: 14, icon: '🍊' },
-        { id: '3', barcode: '8690632018562', name: 'Su', price: 5, stock: 100, icon: '💧' },
-        { id: '4', barcode: '8690632018563', name: 'Ekmek', price: 8, stock: 200, icon: '🍞' },
-        { id: '5', barcode: '8690632018564', name: 'Çay', price: 10, stock: 80, icon: '☕' },
-        { id: '6', barcode: '8690632018565', name: 'Çikolata', price: 15, stock: 60, icon: '🍫' },
-        { id: '7', barcode: '8690632018566', name: 'Süt', price: 25, stock: 40, icon: '🥛' },
-        { id: '8', barcode: '8690632018567', name: 'Meyve Suyu', price: 12, stock: 70, icon: '🧃' },
-      ];
-      setQuickProducts(mockProducts);
+      // Load real products from API (first 8 products)
+      const response = await api.get('/products');
+      const products = response.data.products || [];
+      
+      // Map to quick products format with emoji
+      const quickProds: QuickProduct[] = products.slice(0, 8).map((p: any) => ({
+        id: p.id, // ✅ Real UUID from database!
+        barcode: p.barcode,
+        name: p.name,
+        price: p.sellPrice,
+        stock: p.stock,
+        icon: getCategoryEmoji(p.category?.name)
+      }));
+      
+      setQuickProducts(quickProds);
     } catch (error) {
       console.error('Quick products load error:', error);
+      // Don't show quick products if API fails
+      setQuickProducts([]);
     }
+  };
+
+  // Get emoji based on category name
+  const getCategoryEmoji = (categoryName?: string): string => {
+    const name = categoryName?.toLowerCase() || '';
+    if (name.includes('içecek') || name.includes('drink')) return '🥤';
+    if (name.includes('gıda') || name.includes('food')) return '🍞';
+    if (name.includes('süt') || name.includes('milk')) return '🥛';
+    if (name.includes('çikolata') || name.includes('chocolate')) return '🍫';
+    if (name.includes('çay') || name.includes('tea')) return '☕';
+    if (name.includes('kahve') || name.includes('coffee')) return '☕';
+    if (name.includes('su') || name.includes('water')) return '💧';
+    if (name.includes('meyve') || name.includes('fruit')) return '🍊';
+    return '📦'; // Default
   };
 
   const startScan = async () => {

@@ -174,15 +174,16 @@ const MobileProducts: React.FC = () => {
   const handleProductClick = (productId: string) => {
     soundEffects.tap();
     hapticFeedback();
-    navigate(`/products/edit/${productId}`);
+    // Show quick menu instead of navigating (mobile doesn't have edit page yet)
+    setLongPressProduct(productId);
   };
 
   // Swipe Actions
   const handleSwipeRight = (productId: string) => {
-    // Edit action
+    // Show quick menu instead
     soundEffects.tap();
     hapticFeedback(ImpactStyle.Medium);
-    navigate(`/products/edit/${productId}`);
+    setLongPressProduct(productId);
     setSwipedProduct(null);
   };
 
