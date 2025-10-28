@@ -54,8 +54,8 @@ const MobilePOS: React.FC = () => {
   const scrollContainer = useRef<HTMLDivElement>(null);
 
   // 📱 APP VERSION (increment this with each APK release)
-  const CURRENT_VERSION: string = "1.0.8"; // This APK version
-  const LATEST_VERSION: string = "1.0.8"; // Server latest version (şu an en son versiyon)
+  const CURRENT_VERSION: string = "1.0.9"; // This APK version
+  const LATEST_VERSION: string = "1.0.9"; // Server latest version (şu an en son versiyon)
 
   // 🔄 Check for updates on app start
   useEffect(() => {
@@ -787,6 +787,7 @@ const MobilePOS: React.FC = () => {
       {isScanning && (
         <div 
           className="scanner-overlay"
+          style={{ background: 'transparent', backgroundColor: 'transparent' }}
           onTouchStart={handleScannerTouchStart}
           onTouchMove={handleScannerTouchMove}
         >
@@ -812,7 +813,7 @@ const MobilePOS: React.FC = () => {
           </div>
 
           {/* Scanning Frame with Laser */}
-          <div className="scanning-frame">
+          <div className="scanning-frame" style={{ background: 'transparent !important' }}>
             {/* Bottom corners */}
             <div className="corner-bl" />
             <div className="corner-br" />
