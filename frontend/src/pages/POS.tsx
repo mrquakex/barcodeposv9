@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Camera, Search, X, Trash2, CreditCard, Banknote, User, Plus, Printer, Wallet, Tag, RotateCcw, UserPlus, Pause, Edit3, Clock } from 'lucide-react';
+import { Camera, Search, X, Trash2, CreditCard, Banknote, User, Plus, Printer, Wallet, Tag, RotateCcw, UserPlus, Pause, Edit3, Clock, Keyboard } from 'lucide-react';
 import FluentButton from '../components/fluent/FluentButton';
 import FluentCard from '../components/fluent/FluentCard';
 import FluentInput from '../components/fluent/FluentInput';
@@ -983,38 +983,35 @@ const POS: React.FC = () => {
         isQuaggaInitialized.current = false;
       }
 
-      // 🎯 QUAGGA CONFIGURATION - ULTRA AGGRESSIVE MODE
+      // 🎯 QUAGGA MINIMAL CONFIG - Mobile Optimized
       Quagga.init(
         {
           inputStream: {
-            name: 'Live',
             type: 'LiveStream',
-            target: container, // Quagga will create video element inside this div
+            target: container,
             constraints: {
-              width: { ideal: 1920 }, // Higher resolution
-              height: { ideal: 1080 },
-              facingMode: 'environment', // Back camera
+              width: { min: 640, ideal: 1280, max: 1920 },
+              height: { min: 480, ideal: 720, max: 1080 },
+              facingMode: 'environment',
+              aspectRatio: { ideal: 16/9 },
             },
           },
           decoder: {
-            readers: [
-              'ean_reader',        // ⚡ ONLY EAN (fastest!)
-            ],
+            readers: ['ean_reader'], // ONLY EAN
             debug: {
-              drawBoundingBox: true,  // SHOW DETECTION BOX
-              showFrequency: false,
-              drawScanline: true,     // SHOW SCAN LINE
-              showPattern: false,
+              drawBoundingBox: true,
+              showFrequency: true, // ✅ SHOW FREQUENCY
+              drawScanline: true,
+              showPattern: true,   // ✅ SHOW PATTERN
             },
-            multiple: false, // Single barcode mode (faster)
           },
-          locate: true, // Auto-detect barcode location
+          locate: true,
           locator: {
-            patchSize: 'x-large',  // ⚡ LARGEST for better detection
-            halfSample: false,     // ⚡ FULL QUALITY (no downsampling)
+            patchSize: 'medium', // Medium is more reliable
+            halfSample: true,    // Mobile needs this
           },
-          numOfWorkers: navigator.hardwareConcurrency || 4,
-          frequency: 60, // ⚡⚡⚡ SCAN 60 TIMES PER SECOND!
+          numOfWorkers: 0, // ⚡ DISABLE WORKERS (mobile issue!)
+          frequency: 10,   // ⚡ Lower frequency for mobile stability
         },
         (err) => {
           if (err) {
@@ -1024,17 +1021,17 @@ const POS: React.FC = () => {
           
           console.log('✅ Quagga initialized successfully!');
           
-          // 🎯 PROCESSED EVENT - Log every second (60 frames)
+          // 🎯 PROCESSED EVENT - Log every second (10 frames @ 10fps)
           let processedCount = 0;
           Quagga.onProcessed((result) => {
             processedCount++;
-            if (processedCount % 60 === 0) { // Log every 60 frames (1 second @ 60fps)
-              console.log('⚡ Processed', processedCount, 'frames (60fps)');
+            if (processedCount % 10 === 0) { // Log every 10 frames (1 second @ 10fps)
+              console.log('📱 Processed', processedCount, 'frames');
             }
             
-            // If boxes are detected, log them (but less frequently)
-            if (result && result.boxes && result.boxes.length > 0 && processedCount % 30 === 0) {
-              console.log('📐 Detected', result.boxes.length, 'potential barcode boxes');
+            // If boxes are detected, log them immediately!
+            if (result && result.boxes && result.boxes.length > 0) {
+              console.log('📐 FOUND', result.boxes.length, 'potential barcode boxes!');
             }
           });
           
@@ -1087,7 +1084,8 @@ const POS: React.FC = () => {
           Quagga.start();
           isQuaggaInitialized.current = true;
           
-          console.log('⚡⚡⚡ INSTANT READ MODE - 60fps, NO threshold, FULL quality!');
+          console.log('📱 MOBILE OPTIMIZED MODE - Stable 10fps, Medium quality');
+          console.log('💡 TIP: Kamera okumazsa "Manuel Barkod Gir" butonunu kullanın!');
           soundEffects.beep();
         }
       );
@@ -2304,6 +2302,27 @@ const POS: React.FC = () => {
               <div className="absolute w-full h-2 bg-gradient-to-r from-transparent via-green-400 to-transparent shadow-xl shadow-green-400/70 animate-scan"></div>
             </div>
           </div>
+        </div>
+
+        {/* ⚡ MANUAL INPUT BUTTON - Fallback if camera doesn't work */}
+        <button
+          onClick={async () => {
+            await stopCamera();
+            const barcode = prompt('📦 Barkod numarasını girin:');
+            if (barcode && barcode.trim()) {
+              handleCameraScan(barcode.trim());
+              setShowCameraModal(false);
+            }
+          }}
+          className="absolute bottom-24 left-1/2 -translate-x-1/2 z-20 px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-2xl transition-all pointer-events-auto flex items-center gap-3"
+        >
+          <Keyboard className="w-6 h-6" />
+          Manuel Barkod Gir
+        </button>
+
+        {/* Help Text */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 text-white/70 text-sm text-center pointer-events-none">
+          Kamera okumuyor mu? Yukarıdaki butona tıklayıp manuel girin
         </div>
       </div>
     </div>
