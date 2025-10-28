@@ -1068,9 +1068,10 @@ const POS: React.FC = () => {
       });
 
       toast.success('Nakit satış tamamlandı!');
+      soundEffects.cashRegister(); // 🔊 Sound: Sale completed
       updateChannel(activeChannelId, { cart: [], customer: null });
       setCalculatorPaid(''); // Reset calculator
-      setShowReceiptDialog(true);
+      // Not opening receipt dialog for quick cash sales
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Satış hatası!');
     } finally {
