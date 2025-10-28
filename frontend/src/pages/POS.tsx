@@ -942,6 +942,12 @@ const POS: React.FC = () => {
   // 📸 ZXing - Modern & Fast Barcode Scanner
   const startCamera = async () => {
     try {
+      // Set scanning state first to render video element
+      setIsScanning(true);
+      
+      // Wait for video element to be in DOM
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       // Create ZXing reader
       const codeReader = new BrowserMultiFormatReader();
       scannerRef.current = codeReader;
@@ -950,7 +956,7 @@ const POS: React.FC = () => {
       const videoInputDevices = await BrowserMultiFormatReader.listVideoInputDevices();
       
       if (!videoInputDevices || videoInputDevices.length === 0) {
-        throw new Error('Kamera bulunamadı!');
+        throw new Error('📷 Kamera bulunamadı!');
       }
 
       // Select camera: prefer back camera (environment)
@@ -980,7 +986,7 @@ const POS: React.FC = () => {
       // Get video element
       const videoElement = videoRef.current;
       if (!videoElement) {
-        throw new Error('Video element bulunamadı!');
+        throw new Error('📷 Video element bulunamadı! Lütfen sayfayı yenileyin.');
       }
 
       // Start scanning
@@ -1000,7 +1006,6 @@ const POS: React.FC = () => {
         }
       );
 
-      setIsScanning(true);
       toast.success('🎯 Kamera aktif - Barkodu tarayın');
       soundEffects.beep();
     } catch (error: any) {
@@ -1642,49 +1647,48 @@ const POS: React.FC = () => {
               </div>
             </div>
 
-            {/* 📸 ZXing Camera Scanner UI */}
-            {isScanning && (
-              <div className="mt-4 relative">
-                {/* Scanner Instructions */}
-                <div className="mb-3 p-3 bg-primary/10 border-2 border-primary/30 rounded-lg">
-                  <p className="fluent-body-small text-center font-medium text-primary">
-                    ⚡ ZXing Hızlı Tarayıcı
-                  </p>
-                  <p className="fluent-caption text-center text-foreground-secondary mt-1">
-                    Tüm barkod türleri desteklenir • Anlık okuma
-                  </p>
-                </div>
+            {/* 📸 ZXing Camera Scanner UI - Hidden video element */}
+            <div className={`mt-4 relative ${isScanning ? '' : 'hidden'}`}>
+              {/* Scanner Instructions */}
+              <div className="mb-3 p-3 bg-primary/10 border-2 border-primary/30 rounded-lg">
+                <p className="fluent-body-small text-center font-medium text-primary">
+                  ⚡ ZXing Hızlı Tarayıcı
+                </p>
+                <p className="fluent-caption text-center text-foreground-secondary mt-1">
+                  Tüm barkod türleri desteklenir • Anlık okuma
+                </p>
+              </div>
+              
+              {/* Camera Container */}
+              <div className="relative rounded-lg overflow-hidden shadow-lg border-4 border-primary/20">
+                {/* Video element for ZXing - Always in DOM */}
+                <video
+                  ref={videoRef}
+                  id="zxing-video"
+                  className="w-full h-auto"
+                  autoPlay
+                  playsInline
+                  muted
+                />
                 
-                {/* Camera Container */}
-                <div className="relative rounded-lg overflow-hidden shadow-lg border-4 border-primary/20">
-                  {/* Video element for ZXing */}
-                  <video
-                    ref={videoRef}
-                    className="w-full h-auto"
-                    autoPlay
-                    playsInline
-                    muted
-                  />
-                  
-                  {/* Scan Guide Overlay */}
-                  <div className="absolute inset-0 pointer-events-none">
-                    <div className="absolute inset-8 border-4 border-primary/50 rounded-xl shadow-glow">
-                      {/* Corner indicators */}
-                      <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-xl"></div>
-                      <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-xl"></div>
-                      <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-xl"></div>
-                      <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-xl"></div>
-                    </div>
+                {/* Scan Guide Overlay */}
+                <div className="absolute inset-0 pointer-events-none">
+                  <div className="absolute inset-8 border-4 border-primary/50 rounded-xl shadow-glow">
+                    {/* Corner indicators */}
+                    <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-xl"></div>
+                    <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-xl"></div>
+                    <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-xl"></div>
+                    <div className="absolute -bottom-1 -right-1 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-xl"></div>
                   </div>
                 </div>
-                
-                {/* Status Indicator */}
-                <div className="mt-3 flex items-center justify-center gap-2">
-                  <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
-                  <p className="fluent-caption text-success font-medium">⚡ Tarama Aktif</p>
-                </div>
               </div>
-            )}
+              
+              {/* Status Indicator */}
+              <div className="mt-3 flex items-center justify-center gap-2">
+                <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
+                <p className="fluent-caption text-success font-medium">⚡ Tarama Aktif</p>
+              </div>
+            </div>
           </FluentCard>
       </div>
 
