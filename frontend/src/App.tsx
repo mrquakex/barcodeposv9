@@ -8,6 +8,7 @@ import MainLayout from './components/Layout/MainLayout';
 import MobileLayout from './components/Mobile/MobileLayout';
 import MobileDashboard from './components/Mobile/MobileDashboard';
 import MobileProducts from './components/Mobile/MobileProducts';
+import MobileProductAdd from './components/Mobile/MobileProductAdd';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import POS from './pages/POS';
@@ -89,6 +90,7 @@ const App: React.FC = () => {
           <Route path="/dashboard" element={isNativeApp ? <MobileDashboard /> : <Dashboard />} />
           <Route path="/pos" element={<POS />} />
           <Route path="/products" element={isNativeApp ? <MobileProducts /> : <Products />} />
+          <Route path="/products/add" element={isNativeApp ? <MobileProductAdd /> : <Products />} />
           <Route path="/customers" element={<Customers />} />
           <Route path="/categories" element={<Categories />} />
           <Route path="/suppliers" element={<Suppliers />} />
