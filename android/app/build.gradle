@@ -22,6 +22,13 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    
+    // Custom APK name
+    applicationVariants.configureEach { variant ->
+        variant.outputs.configureEach {
+            outputFileName = "BarcodePOS-${variant.name}-v${variant.versionName}.apk"
+        }
+    }
 }
 
 repositories {

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BarcodePOS - Android Uygulaması İndir</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #0078D4 0%, #005a9e 100%);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0, 120, 212, 0.3);
+        }
+        
+        h1 {
+            font-size: 32px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .version {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        
+        .qr-code {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            display: inline-block;
+            margin: 20px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .qr-code img {
+            width: 250px;
+            height: 250px;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #0078D4 0%, #005a9e 100%);
+            color: white;
+            text-decoration: none;
+            padding: 16px 40px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            margin: 20px 0;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 6px 20px rgba(0, 120, 212, 0.3);
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 120, 212, 0.4);
+        }
+        
+        .download-btn:active {
+            transform: translateY(0);
+        }
+        
+        .info {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 12px;
+            text-align: left;
+        }
+        
+        .info h3 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .info ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .info li {
+            padding: 8px 0;
+            color: #666;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .info li:before {
+            content: "✓";
+            color: #0078D4;
+            font-weight: bold;
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #999;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 12px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #0078D4;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">📱</div>
+        <h1>BarcodePOS</h1>
+        <p class="version">Versiyon 1.0 - Android Uygulaması</p>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value">4.8 MB</div>
+                <div class="stat-label">Dosya Boyutu</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">Android 7.0+</div>
+                <div class="stat-label">Minimum Sürüm</div>
+            </div>
+        </div>
+        
+        <div class="qr-code">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=https://www.barcodepos.trade/BarcodePOS.apk" alt="QR Kod">
+        </div>
+        <p style="font-size: 14px; color: #666; margin-bottom: 20px;">
+            📱 QR kodu telefonunuzla tarayın veya<br>
+            aşağıdaki butona tıklayın
+        </p>
+        
+        <a href="/BarcodePOS.apk" class="download-btn" download>
+            📥 APK İndir (4.8 MB)
+        </a>
+        
+        <div class="info">
+            <h3>📋 Kurulum Talimatları</h3>
+            <ul>
+                <li>APK dosyasını indirin</li>
+                <li>Telefonunuzun "Bilinmeyen Kaynaklardan Yükleme" iznini verin</li>
+                <li>İndirilen dosyayı açın ve "Yükle" butonuna basın</li>
+                <li>Kurulum tamamlandıktan sonra uygulamayı açabilirsiniz</li>
+            </ul>
+        </div>
+        
+        <div class="info" style="margin-top: 15px;">
+            <h3>✨ Özellikler</h3>
+            <ul>
+                <li>Kamera ile barkod okuma</li>
+                <li>Multi-channel POS sistemi</li>
+                <li>Offline çalışma desteği</li>
+                <li>Müşteri ve stok yönetimi</li>
+                <li>Vardiya ve raporlama</li>
+            </ul>
+        </div>
+        
+        <div class="footer">
+            <p>© 2025 BarcodePOS - Tüm hakları saklıdır</p>
+            <p style="margin-top: 5px;">
+                <a href="https://www.barcodepos.trade" style="color: #0078D4;">Ana Siteye Dön</a>
+            </p>
+        </div>
+    </div>
+    
+    <script>
+        // Auto-download on mobile
+        if (/Android/i.test(navigator.userAgent)) {
+            // Show a hint for mobile users
+            const btn = document.querySelector('.download-btn');
+            btn.innerHTML = '📥 İndir (Android Tespit Edildi)';
+        }
+    </script>
+</body>
+</html>
+
