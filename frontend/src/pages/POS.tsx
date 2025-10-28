@@ -1165,6 +1165,9 @@ const POS: React.FC = () => {
         }, 500);
       }
       
+      // 📱 MOBILE DEBUG: Show full error on screen
+      alert(`❌ KAMERA HATASI:\n\n${errorMsg}\n\n${errorDetail}\n\nDetay:\nHata: ${error.name}\nMesaj: ${error.message}\nHTTPS: ${window.isSecureContext ? 'Evet' : 'Hayır'}`);
+      
       soundEffects.error();
       setIsScanning(false);
       setShowCameraModal(false);
