@@ -1020,53 +1020,23 @@ const POS: React.FC = () => {
         selectedDeviceId = backCamera.deviceId;
       }
 
-      // 🎬 Request HIGH QUALITY video stream
+      // 🎬 HIGH QUALITY video constraints for ZXing
       const constraints = {
         video: {
-          deviceId: selectedDeviceId,
+          deviceId: selectedDeviceId ? { exact: selectedDeviceId } : undefined,
           width: { ideal: 1920 },      // Full HD width
           height: { ideal: 1080 },     // Full HD height
-          frameRate: { ideal: 60 },    // 60 FPS for fast capture
-          focusMode: { ideal: 'continuous' },  // Auto-focus
-          exposureMode: { ideal: 'continuous' }, // Auto-exposure
-          whiteBalanceMode: { ideal: 'continuous' },
+          frameRate: { ideal: 60, min: 30 },    // 60 FPS for fast capture
+          focusMode: 'continuous-video',  // Auto-focus
         }
       };
 
-      // Start video stream with high quality
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      videoElement.srcObject = stream;
-      await videoElement.play();
-
-      // 💡 Auto-flash in dark environments
-      const track = stream.getVideoTracks()[0];
-      const capabilities = track.getCapabilities() as any;
-      
-      // Check light level and enable torch if dark
-      if (capabilities.torch) {
-        const settings = track.getSettings() as any;
-        if (settings.brightness && settings.brightness < 50) {
-          try {
-            await track.applyConstraints({
-              advanced: [{ torch: true } as any]
-            });
-          } catch (e) {
-            console.log('Torch not available');
-          }
-        }
-      }
-
-      // ⚡ ULTRA FAST CONTINUOUS SCANNING
-      const scanInterval = setInterval(async () => {
-        if (!scannerRef.current || !videoElement) {
-          clearInterval(scanInterval);
-          return;
-        }
-
-        try {
-          const result = await codeReader.decodeFromVideoElement(videoElement);
+      // ⚡ Start ZXing scanning with high quality constraints
+      await codeReader.decodeFromVideoDevice(
+        selectedDeviceId,
+        videoElement,
+        async (result, error) => {
           if (result) {
-            clearInterval(scanInterval);
             const barcode = result.getText();
             console.log('🎯 Barkod okundu:', barcode);
             
@@ -1077,13 +1047,28 @@ const POS: React.FC = () => {
             
             await handleCameraScan(barcode);
           }
-        } catch (error) {
-          // Continue scanning
+          // Continue scanning on error - library handles retry automatically
         }
-      }, 100); // Scan every 100ms = 10 times per second
+      );
 
-      // Store interval reference for cleanup
-      (scannerRef.current as any).scanInterval = scanInterval;
+      // 💡 Try to enable torch in dark environments (after stream starts)
+      setTimeout(async () => {
+        if (videoElement.srcObject) {
+          const stream = videoElement.srcObject as MediaStream;
+          const track = stream.getVideoTracks()[0];
+          const capabilities = track.getCapabilities() as any;
+          
+          if (capabilities.torch) {
+            try {
+              await track.applyConstraints({
+                advanced: [{ torch: true } as any]
+              });
+            } catch (e) {
+              console.log('Torch not available');
+            }
+          }
+        }
+      }, 500);
 
       soundEffects.beep();
     } catch (error: any) {
@@ -1110,12 +1095,7 @@ const POS: React.FC = () => {
 
   const stopCamera = async () => {
     try {
-      // ⚡ Clear scan interval
-      if (scannerRef.current && (scannerRef.current as any).scanInterval) {
-        clearInterval((scannerRef.current as any).scanInterval);
-      }
-
-      // Stop video stream
+      // Stop video stream first
       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
         stream.getTracks().forEach(track => track.stop());
