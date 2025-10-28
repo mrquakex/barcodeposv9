@@ -49,8 +49,8 @@ const MobilePOS: React.FC = () => {
   const scrollContainer = useRef<HTMLDivElement>(null);
 
   // 📱 APP VERSION (increment this with each APK release)
-const CURRENT_VERSION: string = "2.5.1"; // This APK version - BUG FIX!
-const LATEST_VERSION: string = "2.5.1"; // Server latest version
+const CURRENT_VERSION: string = "2.6.0"; // This APK version - ULTRA PREMIUM DASHBOARD!
+const LATEST_VERSION: string = "2.6.0"; // Server latest version
 
   // 🔄 Check for updates on app start
   useEffect(() => {

@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { 
   ShoppingCart, Package, PlusCircle, Users, Building2, FileText,
   BarChart3, TrendingUp, PackageSearch, ClipboardList, DollarSign, 
-  Receipt, UserCog, Grid3x3, Store, Coins, Bell, User, Sun, Moon
+  Receipt, UserCog, Grid3x3, Store, Coins, Bell, User, Sun, Moon,
+  Sparkles, Zap, ArrowUpCircle, ArrowDownCircle
 } from 'lucide-react';
 import { useThemeStore } from '../../store/themeStore';
 import { useAuthStore } from '../../store/authStore';
@@ -16,7 +17,8 @@ interface MenuButton {
   title: string;
   path: string;
   gradient: string;
-  emoji: string;
+  color: string;
+  shadowColor: string;
 }
 
 const MobileDashboard: React.FC = () => {
@@ -24,6 +26,7 @@ const MobileDashboard: React.FC = () => {
   const { theme, toggleTheme } = useThemeStore();
   const { user } = useAuthStore();
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -47,250 +50,252 @@ const MobileDashboard: React.FC = () => {
     }
   };
 
-  // 18 ANA BUTON
+  // 18 PREMIUM BUTTONS with unique 3D designs
   const menuButtons: MenuButton[] = [
-    { icon: ShoppingCart, title: 'Satış Yap', path: '/pos', gradient: 'linear-gradient(135deg, #3F8EFC 0%, #74C0FC 100%)', emoji: '💰' },
-    { icon: Package, title: 'Ürünler', path: '/products', gradient: 'linear-gradient(135deg, #10B981 0%, #34D399 100%)', emoji: '📦' },
-    { icon: PlusCircle, title: 'Ürün Ekle', path: '/products/add', gradient: 'linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%)', emoji: '➕' },
-    { icon: Users, title: 'Müşteriler', path: '/customers', gradient: 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)', emoji: '👥' },
-    { icon: Building2, title: 'Firmalar', path: '/suppliers', gradient: 'linear-gradient(135deg, #EF4444 0%, #F87171 100%)', emoji: '🏭' },
-    { icon: FileText, title: 'Alış Faturaları', path: '/purchase-orders', gradient: 'linear-gradient(135deg, #06B6D4 0%, #22D3EE 100%)', emoji: '📄' },
-    { icon: BarChart3, title: 'Satış Raporu', path: '/sales', gradient: 'linear-gradient(135deg, #EC4899 0%, #F472B6 100%)', emoji: '📊' },
-    { icon: TrendingUp, title: 'Ürünsel Rapor', path: '/reports', gradient: 'linear-gradient(135deg, #14B8A6 0%, #2DD4BF 100%)', emoji: '📈' },
-    { icon: Grid3x3, title: 'Grupsal Rapor', path: '/reports?type=group', gradient: 'linear-gradient(135deg, #6366F1 0%, #818CF8 100%)', emoji: '🗂️' },
-    { icon: PackageSearch, title: 'Stok Sayımı', path: '/stock-count', gradient: 'linear-gradient(135deg, #F97316 0%, #FB923C 100%)', emoji: '📋' },
-    { icon: DollarSign, title: 'Gelirler', path: '/cash-register?type=income', gradient: 'linear-gradient(135deg, #10B981 0%, #34D399 100%)', emoji: '💵' },
-    { icon: Receipt, title: 'Giderler', path: '/expenses', gradient: 'linear-gradient(135deg, #EF4444 0%, #F87171 100%)', emoji: '💸' },
-    { icon: UserCog, title: 'Personeller', path: '/employees', gradient: 'linear-gradient(135deg, #8B5CF6 0%, #A78BFA 100%)', emoji: '👨‍💼' },
-    { icon: Grid3x3, title: 'Ürün Grupları', path: '/categories', gradient: 'linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%)', emoji: '🗂️' },
-    { icon: Store, title: 'Şubeler', path: '/branches', gradient: 'linear-gradient(135deg, #06B6D4 0%, #22D3EE 100%)', emoji: '🏪' },
-    { icon: Coins, title: 'Döviz Kurları', path: '/settings?tab=exchange', gradient: 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)', emoji: '💱' },
-    { icon: Bell, title: 'Bildirimler', path: '/notifications', gradient: 'linear-gradient(135deg, #EC4899 0%, #F472B6 100%)', emoji: '🔔' },
-    { icon: User, title: 'Profil', path: '/profile', gradient: 'linear-gradient(135deg, #64748B 0%, #94A3B8 100%)', emoji: '👤' },
+    { 
+      icon: ShoppingCart, 
+      title: 'Satış Yap', 
+      path: '/pos', 
+      gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      color: '#667eea',
+      shadowColor: 'rgba(102, 126, 234, 0.4)'
+    },
+    { 
+      icon: Package, 
+      title: 'Ürünler', 
+      path: '/products', 
+      gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+      color: '#f093fb',
+      shadowColor: 'rgba(240, 147, 251, 0.4)'
+    },
+    { 
+      icon: PlusCircle, 
+      title: 'Ürün Ekle', 
+      path: '/products/add', 
+      gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+      color: '#4facfe',
+      shadowColor: 'rgba(79, 172, 254, 0.4)'
+    },
+    { 
+      icon: Users, 
+      title: 'Müşteriler', 
+      path: '/customers', 
+      gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+      color: '#43e97b',
+      shadowColor: 'rgba(67, 233, 123, 0.4)'
+    },
+    { 
+      icon: Building2, 
+      title: 'Firmalar', 
+      path: '/suppliers', 
+      gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
+      color: '#fa709a',
+      shadowColor: 'rgba(250, 112, 154, 0.4)'
+    },
+    { 
+      icon: FileText, 
+      title: 'Alış Faturaları', 
+      path: '/purchase-orders', 
+      gradient: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
+      color: '#30cfd0',
+      shadowColor: 'rgba(48, 207, 208, 0.4)'
+    },
+    { 
+      icon: BarChart3, 
+      title: 'Satış Raporu', 
+      path: '/reports/sales', 
+      gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
+      color: '#a8edea',
+      shadowColor: 'rgba(168, 237, 234, 0.4)'
+    },
+    { 
+      icon: TrendingUp, 
+      title: 'Ürünsel Rapor', 
+      path: '/reports/products', 
+      gradient: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)',
+      color: '#ff9a9e',
+      shadowColor: 'rgba(255, 154, 158, 0.4)'
+    },
+    { 
+      icon: PackageSearch, 
+      title: 'Grupsal Rapor', 
+      path: '/reports/groups', 
+      gradient: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
+      color: '#ffecd2',
+      shadowColor: 'rgba(255, 236, 210, 0.4)'
+    },
+    { 
+      icon: ClipboardList, 
+      title: 'Stok Sayımı', 
+      path: '/stock-count', 
+      gradient: 'linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)',
+      color: '#ff6e7f',
+      shadowColor: 'rgba(255, 110, 127, 0.4)'
+    },
+    { 
+      icon: ArrowUpCircle, 
+      title: 'Gelirler', 
+      path: '/income', 
+      gradient: 'linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%)',
+      color: '#e0c3fc',
+      shadowColor: 'rgba(224, 195, 252, 0.4)'
+    },
+    { 
+      icon: ArrowDownCircle, 
+      title: 'Giderler', 
+      path: '/expenses', 
+      gradient: 'linear-gradient(135deg, #f77062 0%, #fe5196 100%)',
+      color: '#f77062',
+      shadowColor: 'rgba(247, 112, 98, 0.4)'
+    },
+    { 
+      icon: UserCog, 
+      title: 'Personeller', 
+      path: '/employees', 
+      gradient: 'linear-gradient(135deg, #c471f5 0%, #fa71cd 100%)',
+      color: '#c471f5',
+      shadowColor: 'rgba(196, 113, 245, 0.4)'
+    },
+    { 
+      icon: Grid3x3, 
+      title: 'Ürün Grupları', 
+      path: '/categories', 
+      gradient: 'linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)',
+      color: '#fbc2eb',
+      shadowColor: 'rgba(251, 194, 235, 0.4)'
+    },
+    { 
+      icon: Store, 
+      title: 'Şubeler', 
+      path: '/branches', 
+      gradient: 'linear-gradient(135deg, #fdcbf1 0%, #e6dee9 100%)',
+      color: '#fdcbf1',
+      shadowColor: 'rgba(253, 203, 241, 0.4)'
+    },
+    { 
+      icon: Coins, 
+      title: 'Döviz Kurları', 
+      path: '/exchange-rates', 
+      gradient: 'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)',
+      color: '#a1c4fd',
+      shadowColor: 'rgba(161, 196, 253, 0.4)'
+    },
+    { 
+      icon: Bell, 
+      title: 'Bildirimler', 
+      path: '/notifications', 
+      gradient: 'linear-gradient(135deg, #d299c2 0%, #fef9d7 100%)',
+      color: '#d299c2',
+      shadowColor: 'rgba(210, 153, 194, 0.4)'
+    },
+    { 
+      icon: User, 
+      title: 'Profil', 
+      path: '/profile', 
+      gradient: 'linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%)',
+      color: '#89f7fe',
+      shadowColor: 'rgba(137, 247, 254, 0.4)'
+    },
   ];
 
   return (
-    <div className="mobile-app-wrapper" style={{
-      background: theme === 'dark' 
-        ? 'linear-gradient(135deg, #1C1C1E 0%, #2C2C2E 50%, #1C1C1E 100%)'
-        : 'linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 50%, #F8FAFC 100%)',
-      minHeight: '100vh',
-      paddingBottom: 'calc(80px + env(safe-area-inset-bottom))',
-    }}>
-      {/* Header with User Info */}
-      <div style={{
-        background: 'linear-gradient(135deg, #3F8EFC 0%, #74C0FC 100%)',
-        padding: '24px 20px',
-        paddingTop: 'calc(24px + env(safe-area-inset-top))',
-        borderBottomLeftRadius: '24px',
-        borderBottomRightRadius: '24px',
-        boxShadow: '0 8px 32px rgba(63, 142, 252, 0.3)',
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-          <div>
-            <h1 style={{
-              fontSize: '28px',
-              fontWeight: '700',
-              color: 'white',
-              marginBottom: '4px',
-              letterSpacing: '-0.5px',
-            }}>
-              {getGreeting()} 👋
-            </h1>
-            <p style={{
-              fontSize: '16px',
-              color: 'rgba(255, 255, 255, 0.9)',
-              fontWeight: '500',
-            }}>
-              {user?.name || 'Kullanıcı'} - BarcodePOS
-            </p>
+    <div className="ultra-premium-dashboard">
+      {/* 🌌 ANIMATED BACKGROUND MESH */}
+      <div className="dashboard-bg-mesh"></div>
+
+      {/* ✨ PREMIUM HEADER with Glassmorphism */}
+      <div className="premium-header">
+        <div className="header-glass-card">
+          <div className="user-avatar-3d">
+            <div className="avatar-glow"></div>
+            <User className="w-8 h-8 text-white" />
           </div>
-          
-          {/* Theme Toggle */}
+          <div className="user-info-premium">
+            <h1 className="greeting-premium">{getGreeting()} ✨</h1>
+            <p className="user-name-premium">{user?.name || 'Kullanıcı'}</p>
+            <p className="company-badge">BarcodePOS Premium</p>
+          </div>
           <button
             onClick={() => {
               toggleTheme();
               soundEffects.tap();
-              if (Capacitor.isNativePlatform()) {
-                Haptics.impact({ style: ImpactStyle.Light });
-              }
             }}
-            style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '12px',
-              background: 'rgba(255, 255, 255, 0.2)',
-              border: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              transition: 'all 0.3s',
-            }}
+            className="theme-toggle-3d"
           >
+            <div className="toggle-glow"></div>
             {theme === 'dark' ? (
               <Sun className="w-6 h-6 text-yellow-300" />
             ) : (
-              <Moon className="w-6 h-6 text-white" />
+              <Moon className="w-6 h-6 text-indigo-600" />
             )}
           </button>
         </div>
 
-        {/* Live Clock */}
-        <div style={{
-          background: 'rgba(255, 255, 255, 0.15)',
-          backdropFilter: 'blur(10px)',
-          borderRadius: '12px',
-          padding: '12px 16px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-        }}>
-          <div style={{
-            fontSize: '24px',
-            fontWeight: '700',
-            color: 'white',
-            fontFamily: 'monospace',
-          }}>
-            {currentTime.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
-          </div>
-          <div style={{
-            flex: 1,
-            fontSize: '14px',
-            color: 'rgba(255, 255, 255, 0.9)',
-            fontWeight: '500',
-          }}>
-            {currentTime.toLocaleDateString('tr-TR', { 
-              weekday: 'long', 
-              day: 'numeric', 
-              month: 'long' 
+        {/* 🕐 FLOATING CLOCK */}
+        <div className="floating-clock">
+          <div className="clock-glow"></div>
+          <Sparkles className="w-4 h-4 text-white/80" />
+          <span className="clock-time">
+            {currentTime.toLocaleTimeString('tr-TR', { 
+              hour: '2-digit', 
+              minute: '2-digit',
+              second: '2-digit'
             })}
+          </span>
+          <Zap className="w-4 h-4 text-yellow-300" />
+        </div>
+
+        {/* 📊 QUICK STATS (3D Floating Islands) */}
+        <div className="stats-floating-islands">
+          <div className="stat-island stat-island-1">
+            <div className="island-glow"></div>
+            <DollarSign className="w-6 h-6 text-emerald-400" />
+            <div className="stat-content">
+              <p className="stat-value">₺24,850</p>
+              <p className="stat-label">Bugün</p>
+            </div>
+          </div>
+          <div className="stat-island stat-island-2">
+            <div className="island-glow"></div>
+            <ShoppingCart className="w-6 h-6 text-blue-400" />
+            <div className="stat-content">
+              <p className="stat-value">127</p>
+              <p className="stat-label">Satış</p>
+            </div>
+          </div>
+          <div className="stat-island stat-island-3">
+            <div className="island-glow"></div>
+            <Package className="w-6 h-6 text-purple-400" />
+            <div className="stat-content">
+              <p className="stat-value">1,245</p>
+              <p className="stat-label">Ürün</p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Menu Grid - 18 Buttons */}
-      <div style={{
-        padding: '20px',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gap: '16px',
-      }}>
+      {/* 🎯 PREMIUM MENU GRID (3D Glassmorphic Cards) */}
+      <div className="premium-menu-grid">
         {menuButtons.map((button, index) => (
           <button
             key={index}
+            className="menu-card-3d"
             onClick={() => handleNavigation(button.path)}
             style={{
-              background: theme === 'dark' 
-                ? 'rgba(44, 44, 46, 0.95)'
-                : 'rgba(255, 255, 255, 0.95)',
-              backdropFilter: 'blur(20px)',
-              borderRadius: '16px',
-              padding: '16px 12px',
-              border: theme === 'dark' 
-                ? '1px solid rgba(255, 255, 255, 0.1)'
-                : '1px solid rgba(0, 0, 0, 0.06)',
-              cursor: 'pointer',
-              transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
-              boxShadow: theme === 'dark'
-                ? '0 4px 16px rgba(0, 0, 0, 0.4)'
-                : '0 4px 16px rgba(0, 0, 0, 0.06)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '8px',
-              position: 'relative',
-              overflow: 'hidden',
-            }}
-            onMouseDown={(e) => {
-              e.currentTarget.style.transform = 'scale(0.95)';
-            }}
-            onMouseUp={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'scale(1)';
-            }}
+              '--gradient': button.gradient,
+              '--shadow-color': button.shadowColor,
+              '--card-index': index,
+            } as React.CSSProperties}
           >
-            {/* Gradient Icon Background */}
-            <div style={{
-              width: '56px',
-              height: '56px',
-              borderRadius: '14px',
-              background: button.gradient,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-              position: 'relative',
-            }}>
+            <div className="card-glass-layer"></div>
+            <div className="card-glow-effect"></div>
+            <div className="card-icon-container">
               <button.icon className="w-7 h-7 text-white" />
-              {/* Emoji Badge */}
-              <span style={{
-                position: 'absolute',
-                top: '-6px',
-                right: '-6px',
-                fontSize: '16px',
-                background: 'white',
-                borderRadius: '50%',
-                width: '24px',
-                height: '24px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-              }}>
-                {button.emoji}
-              </span>
             </div>
-
-            {/* Button Text */}
-            <span style={{
-              fontSize: '12px',
-              fontWeight: '600',
-              color: theme === 'dark' ? '#FFFFFF' : '#1F2937',
-              textAlign: 'center',
-              lineHeight: '1.2',
-            }}>
-              {button.title}
-            </span>
+            <p className="card-title">{button.title}</p>
+            <div className="card-shine"></div>
           </button>
         ))}
-      </div>
-
-      {/* Quick Stats Footer */}
-      <div style={{
-        padding: '0 20px 20px',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(2, 1fr)',
-        gap: '12px',
-      }}>
-        <div style={{
-          background: 'linear-gradient(135deg, #10B98120 0%, #059669 20 100%)',
-          borderRadius: '16px',
-          padding: '16px',
-          border: '1px solid rgba(16, 185, 129, 0.2)',
-        }}>
-          <p style={{ fontSize: '12px', color: '#059669', marginBottom: '4px', fontWeight: '600' }}>
-            Bugünkü Satış
-          </p>
-          <p style={{ fontSize: '24px', fontWeight: '700', color: '#10B981' }}>
-            ₺0,00
-          </p>
-        </div>
-        <div style={{
-          background: 'linear-gradient(135deg, #3F8EFC20 0%, #74C0FC20 100%)',
-          borderRadius: '16px',
-          padding: '16px',
-          border: '1px solid rgba(63, 142, 252, 0.2)',
-        }}>
-          <p style={{ fontSize: '12px', color: '#3F8EFC', marginBottom: '4px', fontWeight: '600' }}>
-            Bugünkü Sipariş
-          </p>
-          <p style={{ fontSize: '24px', fontWeight: '700', color: '#3F8EFC' }}>
-            0
-          </p>
-        </div>
       </div>
     </div>
   );
