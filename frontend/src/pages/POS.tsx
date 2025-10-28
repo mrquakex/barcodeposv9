@@ -196,7 +196,12 @@ const POS: React.FC = () => {
   // 📸 Start camera when modal opens
   useEffect(() => {
     if (showCameraModal && !isScanning) {
-      startCamera();
+      // Small delay to ensure modal visibility
+      const timer = setTimeout(() => {
+        startCamera();
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }
   }, [showCameraModal]);
 
@@ -963,14 +968,20 @@ const POS: React.FC = () => {
   // 🚀 EXTREME POWER MODE - Canvas-Based Aggressive Scanning
   const startCamera = async () => {
     try {
+      console.log('🎬 Starting camera...');
       setIsScanning(true);
-      await new Promise(resolve => setTimeout(resolve, 150));
       
       const videoElement = videoRef.current;
       const canvasElement = canvasRef.current;
       
-      if (!videoElement || !canvasElement) {
-        throw new Error('📷 Video/Canvas element bulunamadı!');
+      console.log('🔍 Camera elements - Video:', !!videoElement, 'Canvas:', !!canvasElement);
+      
+      if (!videoElement) {
+        throw new Error('📷 Video element bulunamadı! Lütfen sayfayı yenileyin.');
+      }
+      
+      if (!canvasElement) {
+        throw new Error('📷 Canvas element bulunamadı! Lütfen sayfayı yenileyin.');
       }
 
       // 🎯 Create ZXing reader with EXTREME hints
@@ -1120,24 +1131,32 @@ const POS: React.FC = () => {
       
       soundEffects.beep();
     } catch (error: any) {
-      console.error('Camera error:', error);
+      console.error('🔴 Camera error:', error);
+      console.error('Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      });
       
       // Detailed error message
       let errorMsg = 'Kamera başlatılamadı!';
       
       if (error.name === 'NotAllowedError' || error.message?.includes('Permission')) {
-        errorMsg = '📷 Kamera izni verilmedi! Lütfen tarayıcı ayarlarından izin verin.';
-      } else if (error.name === 'NotFoundError' || error.message?.includes('not found')) {
-        errorMsg = '📷 Kamera bulunamadı!';
+        errorMsg = '📷 Kamera izni verilmedi! Lütfen tarayıcı ayarlarından kamera iznini açın.';
+      } else if (error.name === 'NotFoundError' || error.message?.includes('not found') || error.message?.includes('bulunamadı')) {
+        errorMsg = '📷 Kamera bulunamadı! Cihazınızda kamera yok veya kullanılamıyor.';
       } else if (error.name === 'NotReadableError' || error.message?.includes('in use')) {
         errorMsg = '📷 Kamera kullanımda! Diğer uygulamaları kapatın.';
+      } else if (error.name === 'TypeError' || error.message?.includes('element')) {
+        errorMsg = '📷 Sayfa yüklenirken hata oluştu. Lütfen sayfayı yenileyin.';
       } else if (error.message) {
         errorMsg = error.message;
       }
       
-      toast.error(errorMsg);
+      toast.error(errorMsg, { duration: 5000 });
       soundEffects.error();
       setIsScanning(false);
+      setShowCameraModal(false);
     }
   };
 
@@ -2271,59 +2290,57 @@ const POS: React.FC = () => {
         shift={currentShift}
       />
 
-      {/* 📸 FULLSCREEN CAMERA MODAL */}
-      {showCameraModal && (
-        <div className="fixed inset-0 z-[9999] bg-black">
-          {/* Close Button */}
-          <button
-            onClick={async () => {
-              await stopCamera();
-              setShowCameraModal(false);
-            }}
-            className="absolute top-6 right-6 z-20 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-all backdrop-blur-sm"
-          >
-            <X className="w-7 h-7 text-white" />
-          </button>
+      {/* 📸 FULLSCREEN CAMERA MODAL - Always in DOM */}
+      <div className={`fixed inset-0 z-[9999] bg-black ${showCameraModal ? '' : 'hidden'}`}>
+        {/* Close Button */}
+        <button
+          onClick={async () => {
+            await stopCamera();
+            setShowCameraModal(false);
+          }}
+          className="absolute top-6 right-6 z-20 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-all backdrop-blur-sm"
+        >
+          <X className="w-7 h-7 text-white" />
+        </button>
 
-          {/* Video - SHARP & CLEAR */}
-          <video
-            ref={videoRef}
-            id="zxing-video-extreme"
-            className="w-full h-full object-contain"
-            style={{
-              imageRendering: 'crisp-edges',
-              filter: 'brightness(1.1) contrast(1.2)',
-            }}
-            autoPlay
-            playsInline
-            muted
-          />
+        {/* Video - SHARP & CLEAR */}
+        <video
+          ref={videoRef}
+          id="zxing-video-extreme"
+          className="w-full h-full object-contain"
+          style={{
+            imageRendering: 'crisp-edges',
+            filter: 'brightness(1.1) contrast(1.2)',
+          }}
+          autoPlay
+          playsInline
+          muted
+        />
 
-          {/* Hidden Canvas for Processing */}
-          <canvas
-            ref={canvasRef}
-            className="hidden"
-          />
+        {/* Hidden Canvas for Processing */}
+        <canvas
+          ref={canvasRef}
+          className="hidden"
+        />
+        
+        {/* Clean Target Frame */}
+        <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/35"></div>
           
-          {/* Clean Target Frame */}
-          <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/35"></div>
+          <div className="relative w-80 h-80 border-[5px] border-white/90 rounded-[2rem] shadow-2xl">
+            {/* Corners */}
+            <div className="absolute -top-3 -left-3 w-20 h-20 border-t-[7px] border-l-[7px] border-green-400 rounded-tl-[2rem] shadow-lg shadow-green-400/40"></div>
+            <div className="absolute -top-3 -right-3 w-20 h-20 border-t-[7px] border-r-[7px] border-green-400 rounded-tr-[2rem] shadow-lg shadow-green-400/40"></div>
+            <div className="absolute -bottom-3 -left-3 w-20 h-20 border-b-[7px] border-l-[7px] border-green-400 rounded-bl-[2rem] shadow-lg shadow-green-400/40"></div>
+            <div className="absolute -bottom-3 -right-3 w-20 h-20 border-b-[7px] border-r-[7px] border-green-400 rounded-br-[2rem] shadow-lg shadow-green-400/40"></div>
             
-            <div className="relative w-80 h-80 border-[5px] border-white/90 rounded-[2rem] shadow-2xl">
-              {/* Corners */}
-              <div className="absolute -top-3 -left-3 w-20 h-20 border-t-[7px] border-l-[7px] border-green-400 rounded-tl-[2rem] shadow-lg shadow-green-400/40"></div>
-              <div className="absolute -top-3 -right-3 w-20 h-20 border-t-[7px] border-r-[7px] border-green-400 rounded-tr-[2rem] shadow-lg shadow-green-400/40"></div>
-              <div className="absolute -bottom-3 -left-3 w-20 h-20 border-b-[7px] border-l-[7px] border-green-400 rounded-bl-[2rem] shadow-lg shadow-green-400/40"></div>
-              <div className="absolute -bottom-3 -right-3 w-20 h-20 border-b-[7px] border-r-[7px] border-green-400 rounded-br-[2rem] shadow-lg shadow-green-400/40"></div>
-              
-              {/* Scan Line */}
-              <div className="absolute inset-0 overflow-hidden rounded-[2rem]">
-                <div className="absolute w-full h-2 bg-gradient-to-r from-transparent via-green-400 to-transparent shadow-xl shadow-green-400/70 animate-scan"></div>
-              </div>
+            {/* Scan Line */}
+            <div className="absolute inset-0 overflow-hidden rounded-[2rem]">
+              <div className="absolute w-full h-2 bg-gradient-to-r from-transparent via-green-400 to-transparent shadow-xl shadow-green-400/70 animate-scan"></div>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
