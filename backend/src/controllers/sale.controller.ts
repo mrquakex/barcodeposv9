@@ -164,20 +164,40 @@ export const createSale = async (req: AuthRequest, res: Response) => {
 
       // Satış kalemlerini oluştur ve stokları düş
       for (const item of items) {
-        // Ürünü getir
-        const product = await tx.product.findUnique({
-          where: { id: item.productId },
-        });
+        // 💠 MUHTELIF (Miscellaneous) Item Handling
+        const isMuhtelifItem = item.productId.startsWith('muhtelif-');
+        
+        let productId = item.productId;
+        let product = null;
 
-        if (!product) {
-          throw new Error(`Ürün bulunamadı: ${item.productId}`);
+        if (isMuhtelifItem) {
+          // Muhtelif item için özel "Muhtelif Tutar" ürününü kullan
+          const muhtelifProduct = await tx.product.findUnique({
+            where: { barcode: 'MUHTELIF' },
+          });
+
+          if (!muhtelifProduct) {
+            throw new Error('Muhtelif ürünü bulunamadı. Lütfen seed işlemini tekrar çalıştırın.');
+          }
+
+          productId = muhtelifProduct.id;
+          product = muhtelifProduct;
+        } else {
+          // Normal ürün için ürünü getir
+          product = await tx.product.findUnique({
+            where: { id: item.productId },
+          });
+
+          if (!product) {
+            throw new Error(`Ürün bulunamadı: ${item.productId}`);
+          }
         }
 
         // Satış kalemi oluştur
         await tx.saleItem.create({
           data: {
             saleId: createdSale.id,
-            productId: item.productId,
+            productId: productId,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             taxRate: item.taxRate,
@@ -186,30 +206,33 @@ export const createSale = async (req: AuthRequest, res: Response) => {
           },
         });
 
-        // Stok düş
-        await tx.product.update({
-          where: { id: item.productId },
-          data: {
-            stock: {
-              decrement: item.quantity,
+        // Muhtelif item'lar için stok düşürme ve stok hareketi oluşturma
+        if (!isMuhtelifItem) {
+          // Stok düş
+          await tx.product.update({
+            where: { id: productId },
+            data: {
+              stock: {
+                decrement: item.quantity,
+              },
             },
-          },
-        });
+          });
 
-        // Stok hareketi oluştur
-        await tx.stockMovement.create({
-          data: {
-            productId: item.productId,
-            type: 'OUT',
-            quantity: item.quantity,
-            previousStock: product.stock,
-            newStock: product.stock - item.quantity,
-            referenceType: 'SALE',
-            referenceId: createdSale.id,
-            notes: `Satış - Fiş No: ${saleNumber}`,
-            userId: req.userId!,
-          },
-        });
+          // Stok hareketi oluştur
+          await tx.stockMovement.create({
+            data: {
+              productId: productId,
+              type: 'OUT',
+              quantity: item.quantity,
+              previousStock: product!.stock,
+              newStock: product!.stock - item.quantity,
+              referenceType: 'SALE',
+              referenceId: createdSale.id,
+              notes: `Satış - Fiş No: ${saleNumber}`,
+              userId: req.userId!,
+            },
+          });
+        }
       }
 
       // Veresiye satışta müşteri borcunu artır

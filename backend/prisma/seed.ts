@@ -53,6 +53,18 @@ async function main() {
   // 3. Create Sample Products
   const products = [
     {
+      barcode: 'MUHTELIF',
+      sku: 'SKU-MUHTELIF',
+      name: 'Muhtelif Tutar',
+      sellPrice: 0.0, // Dynamic price
+      buyPrice: 0.0,
+      stock: 9999, // Unlimited stock
+      minStock: 0,
+      unit: 'Adet',
+      taxRate: 18,
+      categoryId: createdCategories[0].id,
+    },
+    {
       barcode: '1234567890123',
       sku: 'SKU-COLA-330',
       name: 'Coca Cola 330ml',
