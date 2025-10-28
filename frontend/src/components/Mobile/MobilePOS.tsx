@@ -54,8 +54,8 @@ const MobilePOS: React.FC = () => {
   const scrollContainer = useRef<HTMLDivElement>(null);
 
   // 📱 APP VERSION (increment this with each APK release)
-  const CURRENT_VERSION: string = "1.0.4"; // This APK version
-  const LATEST_VERSION: string = "1.0.4"; // Server latest version (şu an en son versiyon)
+  const CURRENT_VERSION: string = "1.0.5"; // This APK version
+  const LATEST_VERSION: string = "1.0.5"; // Server latest version (şu an en son versiyon)
 
   // 🔄 Check for updates on app start
   useEffect(() => {
@@ -233,6 +233,11 @@ const MobilePOS: React.FC = () => {
     setIsTorchOn(false);
     setMultiScanMode(false);
     BarcodeScanner.stopScan();
+    
+    // Restore body background
+    document.body.style.background = '';
+    document.querySelector('html')?.style.removeProperty('background');
+    
     hapticFeedback.light();
   };
 
@@ -263,6 +268,10 @@ const MobilePOS: React.FC = () => {
       const status = await BarcodeScanner.checkPermission({ force: true });
       
       if (status.granted) {
+        // Make body transparent for native camera
+        document.body.style.background = 'transparent';
+        document.querySelector('html')?.style.setProperty('background', 'transparent');
+        
         soundEffects.beep();
         
         // 📳 Haptic: Scanning...

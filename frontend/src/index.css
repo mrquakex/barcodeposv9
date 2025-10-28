@@ -1022,6 +1022,226 @@ body.scanner-active .barcode-scanner-ui {
 }
 
 /* ============================================
+   📱 MOBILE DASHBOARD - Apple HIG+ Design
+   Efsane ana sayfa tasarımı
+   ============================================ */
+
+.mobile-dashboard {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #F0F4F8 0%, #E8EEF5 50%, #F5F7FA 100%);
+  padding: env(safe-area-inset-top) 0 calc(80px + env(safe-area-inset-bottom)) 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.dashboard-header {
+  padding: 24px 20px 16px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.dashboard-greeting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.greeting-title {
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #1C1C1C 0%, #4A4A4A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 4px;
+}
+
+.greeting-subtitle {
+  font-size: 14px;
+  color: var(--foreground-secondary);
+  display: flex;
+  align-items: center;
+}
+
+.theme-toggle-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.04);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.theme-toggle-btn:active {
+  transform: scale(0.9);
+  background: rgba(0, 0, 0, 0.08);
+}
+
+/* Quick Stats */
+.quick-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  padding: 16px 20px;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 20px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.04),
+    0 1px 4px rgba(0, 0, 0, 0.02);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0078D4 0%, #005FB7 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 120, 212, 0.25);
+}
+
+.stat-primary .stat-icon {
+  background: linear-gradient(135deg, #0078D4 0%, #005FB7 100%);
+}
+
+.stat-success .stat-icon {
+  background: linear-gradient(135deg, #00A86B 0%, #008A5A 100%);
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--foreground-secondary);
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+/* Dashboard Cards */
+.dashboard-cards {
+  padding: 8px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dashboard-card {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(40px) saturate(180%);
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.05),
+    0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.dashboard-card:active {
+  transform: scale(0.97);
+  box-shadow: 
+    0 2px 12px rgba(0, 0, 0, 0.08),
+    0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.card-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--card-gradient);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.15),
+    inset 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+.card-content {
+  flex: 1;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--foreground);
+  margin-bottom: 4px;
+}
+
+.card-subtitle {
+  font-size: 14px;
+  color: var(--foreground-secondary);
+}
+
+.card-arrow {
+  font-size: 28px;
+  color: var(--foreground-secondary);
+  font-weight: 300;
+}
+
+/* Dashboard FAB */
+.dashboard-fab {
+  position: fixed;
+  bottom: calc(88px + env(safe-area-inset-bottom));
+  right: 20px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0078D4 0%, #005FB7 100%);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 
+    0 8px 24px rgba(0, 120, 212, 0.35),
+    0 4px 12px rgba(0, 120, 212, 0.25),
+    inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 100;
+}
+
+.dashboard-fab:active {
+  transform: scale(0.9);
+  box-shadow: 
+    0 4px 16px rgba(0, 120, 212, 0.3),
+    0 2px 8px rgba(0, 120, 212, 0.2);
+}
+
+/* ============================================
    ⏳ LOADING SKELETONS - iOS/Facebook Style
    ============================================ */
 

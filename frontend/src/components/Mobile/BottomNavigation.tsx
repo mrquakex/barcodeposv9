@@ -15,9 +15,9 @@ const BottomNavigation: React.FC = () => {
   const location = useLocation();
 
   const navItems: NavItem[] = [
-    { icon: Home, label: 'POS', path: '/pos' },
+    { icon: Home, label: 'Ana Sayfa', path: '/dashboard' },
+    { icon: ShoppingCart, label: 'POS', path: '/pos' },
     { icon: Package, label: 'Ürünler', path: '/products' },
-    { icon: ShoppingCart, label: 'Satışlar', path: '/sales' },
     { icon: Users, label: 'Müşteriler', path: '/customers' },
     { icon: Settings, label: 'Ayarlar', path: '/settings' },
   ];
