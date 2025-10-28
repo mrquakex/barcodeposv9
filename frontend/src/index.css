@@ -549,14 +549,15 @@ body.scanner-active .barcode-scanner-ui {
 }
 
 /* ============================================
-   📱 NATIVE MOBILE APP STYLES
-   Microsoft Fluent Design for Mobile
+   📱 NATIVE MOBILE APP STYLES - iOS 17 + Material You Hybrid
+   Glassmorphism + Neumorphism + Spring Animations
    ============================================ */
 
-/* Mobile App Wrapper */
+/* 🎨 Mobile App Wrapper - Gradient Background (Material You) */
 .mobile-app-wrapper {
-  background: #F5F5F5;
+  background: linear-gradient(135deg, #F0F4F8 0%, #E8EEF5 50%, #F5F7FA 100%);
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 /* Safe Area Support (iOS Notch) */
@@ -572,64 +573,108 @@ body.scanner-active .barcode-scanner-ui {
   padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
 }
 
-/* Native App Card */
+/* 💎 Glassmorphism Card (iOS 17 Style) */
 .mobile-card {
-  background: #FFFFFF;
-  border-radius: 12px;
-  padding: 16px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-radius: 20px;
+  padding: 20px;
   margin: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 1px solid #E0E0E0;
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); /* Spring animation */
+  transform-origin: center;
 }
 
 .mobile-card:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
 }
 
-/* Floating Action Button (FAB) - Fluent Style */
+/* 🌈 Gradient FAB (Material You + iOS 17 Hybrid) */
 .fab {
   position: fixed;
   bottom: calc(80px + env(safe-area-inset-bottom));
-  right: 16px;
-  width: 56px;
-  height: 56px;
-  background: #0078D4;
-  border-radius: 28px;
+  right: 20px;
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #0078D4 0%, #005FB7 100%);
+  border-radius: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(0, 120, 212, 0.4);
+  box-shadow: 
+    0 12px 40px rgba(0, 120, 212, 0.35),
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
   color: white;
   z-index: 100;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); /* Spring physics */
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .fab:active {
-  transform: scale(0.95);
-  box-shadow: 0 2px 6px rgba(0, 120, 212, 0.3);
+  transform: scale(0.92);
+  box-shadow: 
+    0 6px 20px rgba(0, 120, 212, 0.3),
+    0 2px 6px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.fab::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 100%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.fab:hover::before {
+  opacity: 1;
 }
 
 .fab-mini {
-  width: 48px;
-  height: 48px;
-  border-radius: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 28px;
+  box-shadow: 
+    0 8px 24px rgba(16, 124, 16, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-/* Bottom Sheet - Fluent Style */
+.bg-success {
+  background: linear-gradient(135deg, #107C10 0%, #0E6B0E 100%);
+}
+
+/* 🎭 Glassmorphism Bottom Sheet (iOS 17 + Material You) */
 .bottom-sheet {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background: white;
-  border-radius: 20px 20px 0 0;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
+  border-radius: 28px 28px 0 0;
+  box-shadow: 
+    0 -8px 40px rgba(0, 0, 0, 0.12),
+    0 -2px 12px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
   z-index: 1000;
   transform: translateY(100%);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1); /* Spring animation */
   max-height: 90vh;
   overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-bottom: none;
 }
 
 .bottom-sheet.open {
@@ -637,11 +682,17 @@ body.scanner-active .barcode-scanner-ui {
 }
 
 .bottom-sheet-handle {
-  width: 36px;
-  height: 4px;
-  background: #D9D9D9;
-  border-radius: 2px;
-  margin: 12px auto 8px;
+  width: 40px;
+  height: 5px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+  margin: 16px auto 12px;
+  transition: all 0.3s;
+}
+
+.bottom-sheet-handle:active {
+  background: rgba(0, 0, 0, 0.25);
+  transform: scaleX(1.1);
 }
 
 /* Native-style List Item */
@@ -766,25 +817,32 @@ body.scanner-active .barcode-scanner-ui {
   }
 }
 
-/* Native App Header */
+/* 🏝️ Dynamic Island Inspired Header (iOS 17) */
 .mobile-header {
-  background: white;
-  border-bottom: 1px solid #E0E0E0;
-  padding: 12px 16px;
-  padding-top: calc(12px + env(safe-area-inset-top));
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 16px 20px;
+  padding-top: calc(16px + env(safe-area-inset-top));
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 50;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
 
 .mobile-header-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #201F1E;
+  font-size: 22px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #1C1C1C 0%, #4A4A4A 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   flex: 1;
+  letter-spacing: -0.5px;
 }
 
 /* Haptic Feedback Indicator */
@@ -801,15 +859,30 @@ body.scanner-active .barcode-scanner-ui {
   }
 }
 
-/* Native Search Bar */
+/* 🔍 Glassmorphism Search Bar (iOS 17 + Material You) */
 .mobile-search {
-  background: #F5F5F5;
-  border-radius: 10px;
-  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border-radius: 16px;
+  padding: 14px 18px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   margin: 12px;
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.mobile-search:focus-within {
+  transform: scale(1.02);
+  box-shadow: 
+    0 8px 24px rgba(0, 120, 212, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 120, 212, 0.3);
 }
 
 .mobile-search input {
@@ -817,12 +890,14 @@ body.scanner-active .barcode-scanner-ui {
   border: none;
   outline: none;
   flex: 1;
-  font-size: 16px;
-  color: #201F1E;
+  font-size: 17px;
+  font-weight: 500;
+  color: #1C1C1C;
 }
 
 .mobile-search input::placeholder {
   color: #8A8886;
+  font-weight: 400;
 }
 
 /* Segment Control (iOS style) - Fluent Colors */
@@ -866,37 +941,65 @@ body.scanner-active .barcode-scanner-ui {
   justify-content: center;
 }
 
-/* Native Button Styles */
+/* 🎨 Gradient Mobile Buttons (Material You Style) */
 .mobile-btn-primary {
-  background: #0078D4;
+  background: linear-gradient(135deg, #0078D4 0%, #005FB7 100%);
   color: white;
-  padding: 14px 24px;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
+  padding: 16px 28px;
+  border-radius: 16px;
+  font-size: 17px;
+  font-weight: 700;
   border: none;
   width: 100%;
-  transition: all 0.2s;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 
+    0 8px 24px rgba(0, 120, 212, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.mobile-btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s;
 }
 
 .mobile-btn-primary:active {
-  background: #106EBE;
-  transform: scale(0.98);
+  transform: scale(0.96);
+  box-shadow: 
+    0 4px 12px rgba(0, 120, 212, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.mobile-btn-primary:active::before {
+  opacity: 1;
 }
 
 .mobile-btn-secondary {
-  background: #F5F5F5;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   color: #0078D4;
-  padding: 14px 24px;
-  border-radius: 8px;
-  font-size: 16px;
+  padding: 16px 28px;
+  border-radius: 16px;
+  font-size: 17px;
   font-weight: 600;
-  border: 1px solid #0078D4;
+  border: 1px solid rgba(0, 120, 212, 0.2);
   width: 100%;
-  transition: all 0.2s;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
 }
 
 .mobile-btn-secondary:active {
-  background: #E0E0E0;
-  transform: scale(0.98);
+  background: rgba(245, 245, 245, 0.9);
+  transform: scale(0.96);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
