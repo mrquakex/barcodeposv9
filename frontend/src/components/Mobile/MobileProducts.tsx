@@ -41,6 +41,8 @@ const MobileProducts: React.FC = () => {
   // Swipe states
   const [swipedProduct, setSwipedProduct] = useState<string | null>(null);
   const [longPressProduct, setLongPressProduct] = useState<string | null>(null);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [editForm, setEditForm] = useState({ name: '', sellPrice: '', stock: '' });
   const touchStartX = useRef<number>(0);
   const touchStartY = useRef<number>(0);
   const longPressTimer = useRef<any>();
@@ -206,9 +208,18 @@ const MobileProducts: React.FC = () => {
 
   // Quick Actions Menu
   const handleQuickAction = (action: string, productId: string) => {
+    const product = products.find(p => p.id === productId);
+    
     switch (action) {
       case 'edit':
-        navigate(`/products/edit/${productId}`);
+        if (product) {
+          setEditingProduct(product);
+          setEditForm({
+            name: product.name,
+            sellPrice: product.sellPrice.toString(),
+            stock: product.stock?.toString() || '0',
+          });
+        }
         break;
       case 'addToPos':
         toast.success('POS\'a eklendi!');
@@ -218,8 +229,11 @@ const MobileProducts: React.FC = () => {
         toggleFavorite(productId);
         break;
       case 'stock':
-        // TODO: Open stock adjustment modal
-        toast('Stok güncelleme özelliği yakında!');
+        // Quick stock adjustment
+        const newStock = prompt('Yeni stok miktarı:', product?.stock?.toString() || '0');
+        if (newStock !== null) {
+          updateProductStock(productId, parseInt(newStock));
+        }
         break;
       case 'delete':
         handleSwipeLeft(productId);
@@ -228,6 +242,49 @@ const MobileProducts: React.FC = () => {
     setLongPressProduct(null);
     soundEffects.tap();
     hapticFeedback();
+  };
+
+  const updateProductStock = async (productId: string, newStock: number) => {
+    try {
+      await api.patch(`/products/${productId}`, { stock: newStock });
+      setProducts(prev => prev.map(p =>
+        p.id === productId ? { ...p, stock: newStock } : p
+      ));
+      toast.success('Stok güncellendi!');
+      soundEffects.success();
+      hapticFeedback(ImpactStyle.Medium);
+    } catch (error) {
+      console.error('Stock update error:', error);
+      toast.error('Stok güncellenemedi!');
+      soundEffects.error();
+    }
+  };
+
+  const saveProductEdit = async () => {
+    if (!editingProduct) return;
+
+    try {
+      await api.patch(`/products/${editingProduct.id}`, {
+        name: editForm.name,
+        sellPrice: parseFloat(editForm.sellPrice),
+        stock: parseInt(editForm.stock),
+      });
+
+      setProducts(prev => prev.map(p =>
+        p.id === editingProduct.id
+          ? { ...p, name: editForm.name, sellPrice: parseFloat(editForm.sellPrice), stock: parseInt(editForm.stock) }
+          : p
+      ));
+
+      toast.success('Ürün güncellendi!');
+      soundEffects.success();
+      hapticFeedback(ImpactStyle.Medium);
+      setEditingProduct(null);
+    } catch (error) {
+      console.error('Product update error:', error);
+      toast.error('Ürün güncellenemedi!');
+      soundEffects.error();
+    }
   };
 
   const toggleFavorite = (productId: string) => {
@@ -523,6 +580,58 @@ const MobileProducts: React.FC = () => {
           ))
         )}
       </div>
+
+      {/* Edit Modal */}
+      {editingProduct && (
+        <div className="quick-menu-overlay" onClick={() => setEditingProduct(null)}>
+          <div className="edit-modal-ultra" onClick={(e) => e.stopPropagation()}>
+            <div className="edit-modal-header">
+              <h3>Ürün Düzenle</h3>
+              <button onClick={() => setEditingProduct(null)} className="close-btn">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="edit-modal-body">
+              <div className="form-group-ultra">
+                <label>Ürün Adı</label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  placeholder="Ürün adı"
+                />
+              </div>
+              <div className="form-group-ultra">
+                <label>Satış Fiyatı (₺)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={editForm.sellPrice}
+                  onChange={(e) => setEditForm({ ...editForm, sellPrice: e.target.value })}
+                  placeholder="0.00"
+                />
+              </div>
+              <div className="form-group-ultra">
+                <label>Stok Miktarı</label>
+                <input
+                  type="number"
+                  value={editForm.stock}
+                  onChange={(e) => setEditForm({ ...editForm, stock: e.target.value })}
+                  placeholder="0"
+                />
+              </div>
+            </div>
+            <div className="edit-modal-footer">
+              <button onClick={() => setEditingProduct(null)} className="cancel-btn-ultra">
+                İptal
+              </button>
+              <button onClick={saveProductEdit} className="save-btn-ultra">
+                Kaydet
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Long Press Quick Menu */}
       {longPressProduct && (
