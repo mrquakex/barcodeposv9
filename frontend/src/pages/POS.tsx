@@ -16,8 +16,7 @@ import ZReportDialog from '../components/POS/ZReportDialog';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { BrowserMultiFormatReader } from '@zxing/browser';
-import { NotFoundException, DecodeHintType, BarcodeFormat } from '@zxing/library';
+import Quagga from '@ericblade/quagga2';
 import { cn } from '../lib/utils';
 import { useKeyboardShortcuts, POSShortcuts } from '../hooks/useKeyboardShortcuts';
 import { soundEffects } from '../lib/sound-effects';
@@ -147,8 +146,8 @@ const POS: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [lastReceipt, setLastReceipt] = useState<any>(null);
   
-  const scannerRef = useRef<BrowserMultiFormatReader | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const isQuaggaInitialized = useRef(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<number | null>(null);
@@ -963,114 +962,112 @@ const POS: React.FC = () => {
     setCalculatorChange(change);
   };
 
-  // 🚀 MOBILE-OPTIMIZED BARCODE SCANNER
+  // 🔥 QUAGGA BARCODE SCANNER - Best for EAN-13!
   const startCamera = async () => {
     try {
-      console.log('🎬 Starting camera...');
+      console.log('🎬 Starting Quagga scanner...');
       console.log('📱 User Agent:', navigator.userAgent);
-      console.log('🔒 Is Secure Context (HTTPS):', window.isSecureContext);
+      console.log('🔒 HTTPS:', window.isSecureContext);
       
       setIsScanning(true);
       
       const videoElement = videoRef.current;
       
-      console.log('🔍 Elements - Video:', !!videoElement);
-      
       if (!videoElement) {
-        throw new Error('📷 Video element hazır değil. Lütfen sayfayı yenileyin.');
+        throw new Error('Video element bulunamadı!');
       }
 
-      // 🔐 Check camera permission first
-      try {
-        const permissionStatus = await navigator.permissions.query({ name: 'camera' as PermissionName });
-        console.log('📷 Kamera izni durumu:', permissionStatus.state);
-        
-        if (permissionStatus.state === 'denied') {
-          throw new Error('📷 Kamera izni reddedildi! Lütfen tarayıcı ayarlarından kamera iznini açın.');
-        }
-      } catch (permErr) {
-        console.warn('Permission API not supported:', permErr);
+      // Stop if already initialized
+      if (isQuaggaInitialized.current) {
+        Quagga.stop();
+        isQuaggaInitialized.current = false;
       }
 
-      // 🎯 ZXing reader with optimized hints
-      const hints = new Map();
-      hints.set(DecodeHintType.TRY_HARDER, true);
-      hints.set(DecodeHintType.POSSIBLE_FORMATS, [
-        BarcodeFormat.EAN_13, BarcodeFormat.EAN_8, BarcodeFormat.UPC_A, BarcodeFormat.UPC_E,
-        BarcodeFormat.CODE_128, BarcodeFormat.CODE_39, BarcodeFormat.CODE_93,
-        BarcodeFormat.ITF, BarcodeFormat.CODABAR, BarcodeFormat.QR_CODE,
-        BarcodeFormat.DATA_MATRIX, BarcodeFormat.AZTEC,
-      ]);
-      hints.set(DecodeHintType.CHARACTER_SET, 'UTF-8');
-      
-      const codeReader = new BrowserMultiFormatReader(hints);
-      scannerRef.current = codeReader;
-
-      // 🎬 MOBILE-FIRST constraints (simpler = more compatible)
-      const constraints: MediaStreamConstraints = {
-        video: {
-          facingMode: { ideal: 'environment' },
-          width: { ideal: 1280, min: 640 },
-          height: { ideal: 720, min: 480 },
-        }
-      };
-
-      // 📹 Get available cameras
-      const devices = await BrowserMultiFormatReader.listVideoInputDevices();
-      console.log('📷 Available cameras:', devices.length);
-      
-      if (devices.length === 0) {
-        throw new Error('Kamera bulunamadı!');
-      }
-
-      // 🎥 Select back camera
-      let selectedDeviceId = devices[0].deviceId;
-      const backCamera = devices.find(device => 
-        device.label.toLowerCase().includes('back') ||
-        device.label.toLowerCase().includes('rear') ||
-        device.label.toLowerCase().includes('environment') ||
-        device.label.toLowerCase().includes('arka')
-      );
-      if (backCamera) {
-        selectedDeviceId = backCamera.deviceId;
-        console.log('✅ Arka kamera seçildi:', backCamera.label);
-      } else {
-        console.log('⚠️ Arka kamera bulunamadı, ilk kamera kullanılıyor:', devices[0].label);
-      }
-
-      // ⚡ MOST RELIABLE METHOD - decodeFromVideoDevice
-      console.log('🎯 Starting ZXing scan...');
-      
-      await codeReader.decodeFromVideoDevice(
-        selectedDeviceId,
-        videoElement,
-        (result, error) => {
-          if (result) {
-            const barcode = result.getText();
-            console.log('✅ BARKOD OKUNDU:', barcode);
-            
-            // 📳 Strong vibration
-            if (navigator.vibrate) {
-              navigator.vibrate([200, 100, 200, 100, 200]);
-            }
-            
-            // Show success toast
-            toast.success(`📦 ${barcode}`, { duration: 2000 });
-            
-            // Handle scan
-            handleCameraScan(barcode);
+      // 🎯 QUAGGA CONFIGURATION - Optimized for Mobile EAN-13
+      Quagga.init(
+        {
+          inputStream: {
+            name: 'Live',
+            type: 'LiveStream',
+            target: videoElement,
+            constraints: {
+              width: { ideal: 1280 },
+              height: { ideal: 720 },
+              facingMode: 'environment', // Back camera
+            },
+          },
+          decoder: {
+            readers: [
+              'ean_reader',        // EAN-13 & EAN-8
+              'code_128_reader',   // CODE-128
+              'code_39_reader',    // CODE-39
+              'upc_reader',        // UPC-A & UPC-E
+              'ean_8_reader',      // EAN-8
+            ],
+            debug: {
+              drawBoundingBox: false,
+              showFrequency: false,
+              drawScanline: false,
+              showPattern: false,
+            },
+          },
+          locate: true, // Auto-detect barcode location
+          locator: {
+            patchSize: 'large',
+            halfSample: false,
+          },
+          numOfWorkers: navigator.hardwareConcurrency || 4,
+          frequency: 10, // Scan 10 times per second
+        },
+        (err) => {
+          if (err) {
+            console.error('❌ Quagga init error:', err);
+            throw new Error('Kamera başlatılamadı: ' + err.message);
           }
           
-          // Don't log NotFoundException (normal when no barcode in view)
-          if (error && !(error instanceof NotFoundException)) {
-            console.warn('⚠️ Scan error:', error.message);
-          }
+          console.log('✅ Quagga initialized successfully!');
+          
+          // Handle detected barcode
+          Quagga.onDetected((result) => {
+            if (result.codeResult && result.codeResult.code) {
+              const barcode = result.codeResult.code;
+              const confidence = result.codeResult.decodedCodes
+                .reduce((sum:number, code:any) => sum + (code.error || 0), 0) / result.codeResult.decodedCodes.length;
+              
+              console.log('📦 Barcode detected:', barcode, 'Confidence:', confidence);
+              
+              // Only accept high-confidence reads
+              if (confidence < 0.15) { // Lower error = higher confidence
+                console.log('✅ HIGH CONFIDENCE BARCODE:', barcode);
+                
+                // Vibrate
+                if (navigator.vibrate) {
+                  navigator.vibrate([200, 100, 200]);
+                }
+                
+                // Show toast
+                toast.success(`📦 ${barcode}`, { duration: 2000 });
+                
+                // Handle scan
+                handleCameraScan(barcode);
+                
+                // Stop after successful scan
+                setTimeout(() => {
+                  stopCamera();
+                  setShowCameraModal(false);
+                }, 500);
+              }
+            }
+          });
+          
+          // Start scanning
+          Quagga.start();
+          isQuaggaInitialized.current = true;
+          
+          console.log('🎯 Quagga scanning started! Point at barcode...');
+          soundEffects.beep();
         }
       );
-      
-      console.log('✅ ZXing tarama başlatıldı! Barkodu kareye getirin...');
-      
-      soundEffects.beep();
     } catch (error: any) {
       console.error('🔴 Camera error:', error);
       console.error('📋 Error details:', {
@@ -1128,16 +1125,13 @@ const POS: React.FC = () => {
 
   const stopCamera = async () => {
     try {
-      // Clear scanner reference
-      if (scannerRef.current) {
-        scannerRef.current = null;
-      }
-
-      // Stop video stream
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach(track => track.stop());
-        videoRef.current.srcObject = null;
+      console.log('🛑 Stopping Quagga scanner...');
+      
+      // Stop Quagga
+      if (isQuaggaInitialized.current) {
+        Quagga.offDetected();
+        Quagga.stop();
+        isQuaggaInitialized.current = false;
       }
       
       setIsScanning(false);
