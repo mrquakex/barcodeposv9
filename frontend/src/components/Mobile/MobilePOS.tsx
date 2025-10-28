@@ -192,7 +192,10 @@ const MobilePOS: React.FC = () => {
       
       if (acceleration > 15 && Date.now() - lastShake > 1000) {
         lastShake = Date.now();
-        if (cartItems.length > 0) {
+        if (cartItems.length > 0 && actionHistory.length > 0) {
+          // Güçlü titreşim!
+          hapticFeedback(ImpactStyle.Heavy);
+          soundEffects.tap();
           undoLastAction();
         }
       }
@@ -395,6 +398,8 @@ const MobilePOS: React.FC = () => {
       hapticFeedback(ImpactStyle.Medium);
       
       const paymentNames = { CASH: 'Nakit', CARD: 'Kart', CREDIT: 'Veresiye' };
+      console.log('🔥 Satış başlatılıyor:', paymentMethod, paymentNames[paymentMethod]);
+      
       toast.loading(`${paymentNames[paymentMethod]} ile ödeme yapılıyor...`, { duration: 1000 });
 
       const saleData = {
@@ -408,7 +413,11 @@ const MobilePOS: React.FC = () => {
         total
       };
 
-      await api.post('/sales', saleData);
+      console.log('📦 Gönderilen veri:', JSON.stringify(saleData, null, 2));
+
+      const response = await api.post('/sales', saleData);
+      
+      console.log('✅ API yanıtı:', response.data);
       
       setLastSaleTotal(total);
       setShowSuccess(true);
@@ -424,10 +433,18 @@ const MobilePOS: React.FC = () => {
         setShowReceiptShare(true);
       }, 2000);
       
+      toast.success('Satış tamamlandı! 🎉', { duration: 2000 });
+      
     } catch (error: any) {
-      console.error('Sale error:', error);
-      toast.error('Satış kaydedilemedi!');
+      console.error('❌ Satış hatası:', error);
+      console.error('❌ Error response:', error.response?.data);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error status:', error.response?.status);
+      
+      const errorMsg = error.response?.data?.message || error.message || 'Satış kaydedilemedi!';
+      toast.error(`Hata: ${errorMsg}`, { duration: 4000 });
       soundEffects.error();
+      hapticFeedback(ImpactStyle.Heavy);
     }
   };
 
