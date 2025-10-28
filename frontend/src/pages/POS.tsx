@@ -16,7 +16,8 @@ import ZReportDialog from '../components/POS/ZReportDialog';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { BrowserMultiFormatReader, NotFoundException, BarcodeFormat } from '@zxing/browser';
+import { BrowserMultiFormatReader, BarcodeFormat } from '@zxing/browser';
+import { NotFoundException } from '@zxing/library';
 import { cn } from '../lib/utils';
 import { useKeyboardShortcuts, POSShortcuts } from '../hooks/useKeyboardShortcuts';
 import { soundEffects } from '../lib/sound-effects';
@@ -1075,10 +1076,17 @@ const POS: React.FC = () => {
     try {
       console.log('🛑 Stopping ZXing scanner...');
       
-      // Stop ZXing
+      // Stop ZXing - No reset() method, just set to null
       if (scannerRef.current) {
-        scannerRef.current.reset();
+        // ZXing automatically stops when component unmounts
         scannerRef.current = null;
+      }
+      
+      // Stop video stream manually
+      if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach(track => track.stop());
+        videoRef.current.srcObject = null;
       }
       
       setIsScanning(false);
