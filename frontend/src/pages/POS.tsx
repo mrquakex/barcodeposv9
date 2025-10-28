@@ -958,18 +958,22 @@ const POS: React.FC = () => {
     setCalculatorChange(change);
   };
 
-  // 📸 ZXing - Simple & Powerful Barcode Scanner
+  // 🚀 ULTRA POWER MODE - Maximum Performance Barcode Scanner
   const startCamera = async () => {
     try {
       // Set scanning state first to render video element
       setIsScanning(true);
       
       // Wait for video element to be in DOM
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 150));
       
-      // 🎯 Create ZXing reader with optimized hints
+      // 🎯 ULTRA HINTS - Maximum detection power
       const hints = new Map();
+      
+      // 💪 TRY_HARDER: Maximum effort for difficult barcodes
       hints.set(DecodeHintType.TRY_HARDER, true);
+      
+      // 📐 ALL FORMATS: Support every barcode type
       hints.set(DecodeHintType.POSSIBLE_FORMATS, [
         BarcodeFormat.EAN_13,
         BarcodeFormat.EAN_8,
@@ -977,8 +981,16 @@ const POS: React.FC = () => {
         BarcodeFormat.UPC_E,
         BarcodeFormat.CODE_128,
         BarcodeFormat.CODE_39,
+        BarcodeFormat.CODE_93,
+        BarcodeFormat.ITF,
+        BarcodeFormat.CODABAR,
         BarcodeFormat.QR_CODE,
+        BarcodeFormat.DATA_MATRIX,
+        BarcodeFormat.AZTEC,
       ]);
+      
+      // 🔍 Character set
+      hints.set(DecodeHintType.CHARACTER_SET, 'UTF-8');
       
       const codeReader = new BrowserMultiFormatReader(hints);
       scannerRef.current = codeReader;
@@ -989,14 +1001,14 @@ const POS: React.FC = () => {
         throw new Error('📷 Video element bulunamadı!');
       }
 
-      // Get video devices and select back camera
+      // 📹 Get video devices
       const videoInputDevices = await BrowserMultiFormatReader.listVideoInputDevices();
       
       if (!videoInputDevices || videoInputDevices.length === 0) {
         throw new Error('📷 Kamera bulunamadı!');
       }
 
-      // Prefer back camera (environment)
+      // 🎥 Select back camera (environment)
       let selectedDeviceId = videoInputDevices[0].deviceId;
       const backCamera = videoInputDevices.find(device => 
         device.label.toLowerCase().includes('back') ||
@@ -1008,20 +1020,71 @@ const POS: React.FC = () => {
         selectedDeviceId = backCamera.deviceId;
       }
 
-      // ⚡ Start scanning with continuous decode
-      await codeReader.decodeFromVideoDevice(
-        selectedDeviceId,
-        videoElement,
-        async (result, error) => {
-          if (result) {
-            const barcode = result.getText();
-            console.log('Barkod okundu:', barcode);
-            await handleCameraScan(barcode);
+      // 🎬 Request HIGH QUALITY video stream
+      const constraints = {
+        video: {
+          deviceId: selectedDeviceId,
+          width: { ideal: 1920 },      // Full HD width
+          height: { ideal: 1080 },     // Full HD height
+          frameRate: { ideal: 60 },    // 60 FPS for fast capture
+          focusMode: { ideal: 'continuous' },  // Auto-focus
+          exposureMode: { ideal: 'continuous' }, // Auto-exposure
+          whiteBalanceMode: { ideal: 'continuous' },
+        }
+      };
+
+      // Start video stream with high quality
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      videoElement.srcObject = stream;
+      await videoElement.play();
+
+      // 💡 Auto-flash in dark environments
+      const track = stream.getVideoTracks()[0];
+      const capabilities = track.getCapabilities() as any;
+      
+      // Check light level and enable torch if dark
+      if (capabilities.torch) {
+        const settings = track.getSettings() as any;
+        if (settings.brightness && settings.brightness < 50) {
+          try {
+            await track.applyConstraints({
+              advanced: [{ torch: true } as any]
+            });
+          } catch (e) {
+            console.log('Torch not available');
           }
         }
-      );
+      }
 
-      toast.success('📸 Kamera aktif', { duration: 1500 });
+      // ⚡ ULTRA FAST CONTINUOUS SCANNING
+      const scanInterval = setInterval(async () => {
+        if (!scannerRef.current || !videoElement) {
+          clearInterval(scanInterval);
+          return;
+        }
+
+        try {
+          const result = await codeReader.decodeFromVideoElement(videoElement);
+          if (result) {
+            clearInterval(scanInterval);
+            const barcode = result.getText();
+            console.log('🎯 Barkod okundu:', barcode);
+            
+            // 📳 Strong vibration
+            if (navigator.vibrate) {
+              navigator.vibrate([100, 50, 100, 50, 100]);
+            }
+            
+            await handleCameraScan(barcode);
+          }
+        } catch (error) {
+          // Continue scanning
+        }
+      }, 100); // Scan every 100ms = 10 times per second
+
+      // Store interval reference for cleanup
+      (scannerRef.current as any).scanInterval = scanInterval;
+
       soundEffects.beep();
     } catch (error: any) {
       console.error('Camera error:', error);
@@ -1047,6 +1110,11 @@ const POS: React.FC = () => {
 
   const stopCamera = async () => {
     try {
+      // ⚡ Clear scan interval
+      if (scannerRef.current && (scannerRef.current as any).scanInterval) {
+        clearInterval((scannerRef.current as any).scanInterval);
+      }
+
       // Stop video stream
       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream;
@@ -2172,74 +2240,44 @@ const POS: React.FC = () => {
       {/* 📸 FULLSCREEN CAMERA MODAL */}
       {showCameraModal && (
         <div className="fixed inset-0 z-[9999] bg-black">
-          {/* Header */}
-          <div className="absolute top-0 left-0 right-0 z-10 p-4 bg-gradient-to-b from-black/80 to-transparent">
-            <div className="flex items-center justify-between">
-              <h2 className="text-white text-xl font-semibold flex items-center gap-2">
-                <Camera className="w-6 h-6" />
-                Barkod Tarayıcı
-              </h2>
-              <button
-                onClick={async () => {
-                  await stopCamera();
-                  setShowCameraModal(false);
-                }}
-                className="p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
-              >
-                <X className="w-6 h-6 text-white" />
-              </button>
-            </div>
-          </div>
+          {/* Close Button Only - Top Right */}
+          <button
+            onClick={async () => {
+              await stopCamera();
+              setShowCameraModal(false);
+            }}
+            className="absolute top-6 right-6 z-20 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-all backdrop-blur-sm"
+          >
+            <X className="w-7 h-7 text-white" />
+          </button>
 
-          {/* Video Container */}
-          <div className="absolute inset-0">
-            <video
-              ref={videoRef}
-              id="zxing-video-fullscreen"
-              className="w-full h-full object-cover"
-              autoPlay
-              playsInline
-              muted
-            />
+          {/* Full Screen Video */}
+          <video
+            ref={videoRef}
+            id="zxing-video-fullscreen"
+            className="w-full h-full object-cover"
+            autoPlay
+            playsInline
+            muted
+          />
+          
+          {/* Minimal Visual Target - No Text */}
+          <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+            {/* Semi-dark overlay */}
+            <div className="absolute inset-0 bg-black/40"></div>
             
-            {/* Scan Guide Overlay */}
-            <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-              {/* Dark overlay with cutout */}
-              <div className="absolute inset-0 bg-black/50"></div>
+            {/* Target Frame - Clean & Modern */}
+            <div className="relative w-80 h-80 border-[5px] border-white/90 rounded-[2rem] shadow-2xl">
+              {/* Corner Highlights */}
+              <div className="absolute -top-3 -left-3 w-20 h-20 border-t-[7px] border-l-[7px] border-primary rounded-tl-[2rem] shadow-lg shadow-primary/30"></div>
+              <div className="absolute -top-3 -right-3 w-20 h-20 border-t-[7px] border-r-[7px] border-primary rounded-tr-[2rem] shadow-lg shadow-primary/30"></div>
+              <div className="absolute -bottom-3 -left-3 w-20 h-20 border-b-[7px] border-l-[7px] border-primary rounded-bl-[2rem] shadow-lg shadow-primary/30"></div>
+              <div className="absolute -bottom-3 -right-3 w-20 h-20 border-b-[7px] border-r-[7px] border-primary rounded-br-[2rem] shadow-lg shadow-primary/30"></div>
               
-              {/* Scan area */}
-              <div className="relative w-72 h-72 border-4 border-white rounded-2xl shadow-2xl">
-                {/* Corner indicators */}
-                <div className="absolute -top-2 -left-2 w-12 h-12 border-t-4 border-l-4 border-primary rounded-tl-2xl"></div>
-                <div className="absolute -top-2 -right-2 w-12 h-12 border-t-4 border-r-4 border-primary rounded-tr-2xl"></div>
-                <div className="absolute -bottom-2 -left-2 w-12 h-12 border-b-4 border-l-4 border-primary rounded-bl-2xl"></div>
-                <div className="absolute -bottom-2 -right-2 w-12 h-12 border-b-4 border-r-4 border-primary rounded-br-2xl"></div>
-                
-                {/* Scanning line animation */}
-                <div className="absolute inset-0 overflow-hidden rounded-2xl">
-                  <div className="absolute w-full h-1 bg-primary/50 animate-scan"></div>
-                </div>
+              {/* Animated Scan Line */}
+              <div className="absolute inset-0 overflow-hidden rounded-[2rem]">
+                <div className="absolute w-full h-2 bg-gradient-to-r from-transparent via-primary to-transparent shadow-xl shadow-primary/60 animate-scan"></div>
               </div>
-            </div>
-          </div>
-
-          {/* Bottom Instructions */}
-          <div className="absolute bottom-0 left-0 right-0 z-10 p-6 bg-gradient-to-t from-black/80 to-transparent">
-            <div className="text-center">
-              <p className="text-white text-xl font-medium mb-2">
-                🎯 Barkodu beyaz kare içine getirin
-              </p>
-              <p className="text-white/80 text-base mb-4">
-                Otomatik okuma yapılacak
-              </p>
-              
-              {/* Status */}
-              {isScanning && (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                  <p className="text-green-400 font-medium text-lg">Tarama aktif...</p>
-                </div>
-              )}
             </div>
           </div>
         </div>
