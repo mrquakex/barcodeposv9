@@ -941,65 +941,49 @@ const POS: React.FC = () => {
       const scanner = new Html5Qrcode('qr-reader');
       scannerRef.current = scanner;
 
-      // Get available cameras
-      const devices = await Html5Qrcode.getCameras();
-      
-      if (devices && devices.length > 0) {
-        // Select camera: rear camera preferred for mobile
-        let cameraId = devices[0].id;
-        
-        // Try to find rear camera (environment facing)
-        const rearCamera = devices.find(device => 
-          device.label.toLowerCase().includes('back') || 
-          device.label.toLowerCase().includes('rear') ||
-          device.label.toLowerCase().includes('environment')
-        );
-        
-        if (rearCamera && !useFrontCamera) {
-          cameraId = rearCamera.id;
-        } else if (useFrontCamera) {
-          const frontCamera = devices.find(device => 
-            device.label.toLowerCase().includes('front') || 
-            device.label.toLowerCase().includes('user')
-          );
-          if (frontCamera) {
-            cameraId = frontCamera.id;
-          }
+      // 📱 Simplified camera configuration for maximum compatibility
+      const config = {
+        fps: 10,
+        qrbox: { width: 250, height: 250 },
+        aspectRatio: 1.0
+      };
+
+      // Use facingMode for camera selection (more reliable)
+      const cameraFacingMode = useFrontCamera ? 'user' : 'environment';
+
+      await scanner.start(
+        { facingMode: cameraFacingMode },
+        config,
+        async (decodedText) => {
+          // Scan successful
+          await handleCameraScan(decodedText);
+          // Don't stop camera, keep scanning
+        },
+        (errorMessage) => {
+          // Scan error (expected during scanning)
+          // console.log('Scanning...', errorMessage);
         }
+      );
 
-        // 📱 Mobile-optimized configuration
-        const config = {
-          fps: 30, // Higher FPS for faster scanning
-          qrbox: { width: 300, height: 300 }, // Larger scan area
-          aspectRatio: 1.0,
-          disableFlip: false,
-          experimentalFeatures: {
-            useBarCodeDetectorIfSupported: true
-          }
-        };
-
-        await scanner.start(
-          cameraId,
-          config,
-          async (decodedText) => {
-            // Scan successful
-            await handleCameraScan(decodedText);
-            // Don't stop camera, keep scanning
-          },
-          (errorMessage) => {
-            // Scan error (expected during scanning)
-            // console.log('Scanning...', errorMessage);
-          }
-        );
-
-        setIsScanning(true);
-        toast.success('Kamera aktif - Barkodu tarayın');
-      } else {
-        toast.error('Kamera bulunamadı!');
-      }
+      setIsScanning(true);
+      toast.success('Kamera aktif - Barkodu tarayın');
     } catch (error: any) {
       console.error('Camera error:', error);
-      toast.error(error?.message || 'Kamera başlatılamadı!');
+      
+      // Detailed error message
+      let errorMsg = 'Kamera başlatılamadı!';
+      
+      if (error.name === 'NotAllowedError') {
+        errorMsg = 'Kamera izni verilmedi! Lütfen tarayıcı ayarlarından izin verin.';
+      } else if (error.name === 'NotFoundError') {
+        errorMsg = 'Kamera bulunamadı!';
+      } else if (error.name === 'NotReadableError') {
+        errorMsg = 'Kamera kullanımda! Diğer uygulamaları kapatın.';
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+      
+      toast.error(errorMsg);
       setIsScanning(false);
     }
   };
