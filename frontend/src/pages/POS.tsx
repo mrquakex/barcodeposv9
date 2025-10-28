@@ -996,7 +996,8 @@ const POS: React.FC = () => {
       }
       
       // Show detailed error in alert for mobile debugging
-      const debugInfo = `Hata Detayı:\n\nTip: ${error.name || 'Bilinmiyor'}\nMesaj: ${error.message || 'Yok'}\n\nTelefon: ${navigator.userAgent.includes('Android') ? 'Android' : navigator.userAgent.includes('iPhone') ? 'iPhone' : 'Diğer'}`;
+      const errorString = typeof error === 'string' ? error : JSON.stringify(error, null, 2);
+      const debugInfo = `Hata Detayı:\n\nTip: ${error.name || 'Bilinmiyor'}\nMesaj: ${error.message || 'Yok'}\nTam Hata: ${errorString}\n\nTelefon: ${navigator.userAgent.includes('Android') ? 'Android' : navigator.userAgent.includes('iPhone') ? 'iPhone' : 'Diğer'}\nHTTPS: ${window.location.protocol === 'https:' ? 'Evet' : 'Hayır'}`;
       
       alert(debugInfo);
       toast.error(errorMsg);
