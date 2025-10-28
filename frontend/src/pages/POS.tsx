@@ -16,7 +16,7 @@ import ZReportDialog from '../components/POS/ZReportDialog';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
-import { Html5Qrcode, Html5QrcodeScannerState } from 'html5-qrcode';
+import { BrowserMultiFormatReader, NotFoundException } from '@zxing/browser';
 import { cn } from '../lib/utils';
 import { useKeyboardShortcuts, POSShortcuts } from '../hooks/useKeyboardShortcuts';
 import { soundEffects } from '../lib/sound-effects';
@@ -146,7 +146,8 @@ const POS: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [lastReceipt, setLastReceipt] = useState<any>(null);
   
-  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const scannerRef = useRef<BrowserMultiFormatReader | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const searchDropdownRef = useRef<HTMLDivElement>(null);
   const searchTimeoutRef = useRef<number | null>(null);
@@ -521,7 +522,7 @@ const POS: React.FC = () => {
     if (existing) {
       existing.quantity += 1;
       existing.total = existing.quantity * (existing.sellPrice || 0);
-    } else {
+      } else {
       newCart.push({
         ...product,
         quantity: 1,
@@ -936,71 +937,88 @@ const POS: React.FC = () => {
     setCalculatorChange(change);
   };
 
+  // 📸 ZXing - Modern & Fast Barcode Scanner
   const startCamera = async () => {
     try {
-      const scanner = new Html5Qrcode('qr-reader');
-      scannerRef.current = scanner;
+      // Create ZXing reader
+      const codeReader = new BrowserMultiFormatReader();
+      scannerRef.current = codeReader;
 
-      // 📱 Simplified camera configuration for maximum compatibility
-      const config = {
-        fps: 10,
-        qrbox: { width: 250, height: 250 }
-      };
+      // Get video devices
+      const videoInputDevices = await codeReader.listVideoInputDevices();
+      
+      if (!videoInputDevices || videoInputDevices.length === 0) {
+        throw new Error('Kamera bulunamadı!');
+      }
 
-      const onScanSuccess = async (decodedText: string) => {
-        await handleCameraScan(decodedText);
-      };
-
-      const onScanError = (errorMessage: string) => {
-        // Expected during scanning
-      };
-
-      // Try facingMode first
-      try {
-        const cameraFacingMode = useFrontCamera ? 'user' : 'environment';
-        await scanner.start(
-          { facingMode: cameraFacingMode },
-          config,
-          onScanSuccess,
-          onScanError
+      // Select camera: prefer back camera (environment)
+      let selectedDeviceId = videoInputDevices[0].deviceId;
+      
+      if (!useFrontCamera) {
+        const backCamera = videoInputDevices.find(device => 
+          device.label.toLowerCase().includes('back') ||
+          device.label.toLowerCase().includes('rear') ||
+          device.label.toLowerCase().includes('environment') ||
+          device.label.toLowerCase().includes('arka')
         );
-      } catch (facingModeError) {
-        // Fallback: Try with camera ID
-        console.log('FacingMode failed, trying camera list...', facingModeError);
-        
-        const devices = await Html5Qrcode.getCameras();
-        if (devices && devices.length > 0) {
-          const cameraId = devices[0].id;
-          await scanner.start(cameraId, config, onScanSuccess, onScanError);
-        } else {
-          throw new Error('Kamera bulunamadı');
+        if (backCamera) {
+          selectedDeviceId = backCamera.deviceId;
+        }
+      } else {
+        const frontCamera = videoInputDevices.find(device => 
+          device.label.toLowerCase().includes('front') ||
+          device.label.toLowerCase().includes('user') ||
+          device.label.toLowerCase().includes('ön')
+        );
+        if (frontCamera) {
+          selectedDeviceId = frontCamera.deviceId;
         }
       }
 
+      // Get video element
+      const videoElement = videoRef.current;
+      if (!videoElement) {
+        throw new Error('Video element bulunamadı!');
+      }
+
+      // Start scanning
+      await codeReader.decodeFromVideoDevice(
+        selectedDeviceId,
+        videoElement,
+        async (result, error) => {
+          if (result) {
+            // Barcode detected!
+            const barcode = result.getText();
+            await handleCameraScan(barcode);
+          }
+          
+          if (error && !(error instanceof NotFoundException)) {
+            console.error('Scan error:', error);
+          }
+        }
+      );
+
       setIsScanning(true);
-      toast.success('Kamera aktif - Barkodu tarayın');
+      toast.success('🎯 Kamera aktif - Barkodu tarayın');
+      soundEffects.beep();
     } catch (error: any) {
       console.error('Camera error:', error);
       
       // Detailed error message
       let errorMsg = 'Kamera başlatılamadı!';
       
-      if (error.name === 'NotAllowedError') {
-        errorMsg = 'Kamera izni verilmedi! Lütfen tarayıcı ayarlarından izin verin.';
-      } else if (error.name === 'NotFoundError') {
-        errorMsg = 'Kamera bulunamadı!';
-      } else if (error.name === 'NotReadableError') {
-        errorMsg = 'Kamera kullanımda! Diğer uygulamaları kapatın.';
+      if (error.name === 'NotAllowedError' || error.message?.includes('Permission')) {
+        errorMsg = '📷 Kamera izni verilmedi! Lütfen tarayıcı ayarlarından izin verin.';
+      } else if (error.name === 'NotFoundError' || error.message?.includes('not found')) {
+        errorMsg = '📷 Kamera bulunamadı!';
+      } else if (error.name === 'NotReadableError' || error.message?.includes('in use')) {
+        errorMsg = '📷 Kamera kullanımda! Diğer uygulamaları kapatın.';
       } else if (error.message) {
         errorMsg = error.message;
       }
       
-      // Show detailed error in alert for mobile debugging
-      const errorString = typeof error === 'string' ? error : JSON.stringify(error, null, 2);
-      const debugInfo = `Hata Detayı:\n\nTip: ${error.name || 'Bilinmiyor'}\nMesaj: ${error.message || 'Yok'}\nTam Hata: ${errorString}\n\nTelefon: ${navigator.userAgent.includes('Android') ? 'Android' : navigator.userAgent.includes('iPhone') ? 'iPhone' : 'Diğer'}\nHTTPS: ${window.location.protocol === 'https:' ? 'Evet' : 'Hayır'}`;
-      
-      alert(debugInfo);
       toast.error(errorMsg);
+      soundEffects.error();
       setIsScanning(false);
     }
   };
@@ -1008,13 +1026,17 @@ const POS: React.FC = () => {
   const stopCamera = async () => {
     try {
       if (scannerRef.current) {
-        const state = scannerRef.current.getState();
-        if (state === Html5QrcodeScannerState.SCANNING) {
-          await scannerRef.current.stop();
-        }
-        scannerRef.current.clear();
+        scannerRef.current.reset();
         scannerRef.current = null;
       }
+      
+      // Stop video stream
+      if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject as MediaStream;
+        stream.getTracks().forEach(track => track.stop());
+        videoRef.current.srcObject = null;
+      }
+      
       setIsScanning(false);
       toast.success('Kamera kapatıldı');
     } catch (error) {
@@ -1029,8 +1051,7 @@ const POS: React.FC = () => {
     setUseFlash(newFlashState);
     
     try {
-      // Access video element created by Html5Qrcode
-      const videoElement = document.querySelector('#qr-reader video') as HTMLVideoElement;
+      const videoElement = videoRef.current;
       
       if (videoElement && videoElement.srcObject) {
         const stream = videoElement.srcObject as MediaStream;
@@ -1044,7 +1065,7 @@ const POS: React.FC = () => {
               advanced: [{ torch: newFlashState } as any]
             });
             toast.success(newFlashState ? '💡 Flaş açık' : 'Flaş kapalı');
-          } else {
+    } else {
             toast.error('Flaş desteklenmiyor');
             setUseFlash(false);
           }
@@ -1619,22 +1640,29 @@ const POS: React.FC = () => {
               </div>
             </div>
 
-            {/* 📸 Camera Scanner UI */}
+            {/* 📸 ZXing Camera Scanner UI */}
             {isScanning && (
               <div className="mt-4 relative">
                 {/* Scanner Instructions */}
                 <div className="mb-3 p-3 bg-primary/10 border-2 border-primary/30 rounded-lg">
                   <p className="fluent-body-small text-center font-medium text-primary">
-                    📸 Barkodu kamera ile tarayın
+                    ⚡ ZXing Hızlı Tarayıcı
                   </p>
                   <p className="fluent-caption text-center text-foreground-secondary mt-1">
-                    Barkod okununca otomatik sepete eklenecek
+                    Tüm barkod türleri desteklenir • Anlık okuma
                   </p>
                 </div>
                 
                 {/* Camera Container */}
                 <div className="relative rounded-lg overflow-hidden shadow-lg border-4 border-primary/20">
-                  <div id="qr-reader" className="w-full"></div>
+                  {/* Video element for ZXing */}
+                  <video
+                    ref={videoRef}
+                    className="w-full h-auto"
+                    autoPlay
+                    playsInline
+                    muted
+                  />
                   
                   {/* Scan Guide Overlay */}
                   <div className="absolute inset-0 pointer-events-none">
@@ -1651,7 +1679,7 @@ const POS: React.FC = () => {
                 {/* Status Indicator */}
                 <div className="mt-3 flex items-center justify-center gap-2">
                   <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
-                  <p className="fluent-caption text-success font-medium">Tarama Aktif</p>
+                  <p className="fluent-caption text-success font-medium">⚡ Tarama Aktif</p>
                 </div>
               </div>
             )}
