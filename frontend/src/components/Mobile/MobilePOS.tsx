@@ -400,16 +400,35 @@ const MobilePOS: React.FC = () => {
       const paymentNames = { CASH: 'Nakit', CARD: 'Kart', CREDIT: 'Veresiye' };
       console.log('🔥 Satış başlatılıyor:', paymentMethod, paymentNames[paymentMethod]);
       
-      toast.loading(`${paymentNames[paymentMethod]} ile ödeme yapılıyor...`, { duration: 1000 });
+      // TOKEN KONTROLÜ
+      const token = localStorage.getItem('token');
+      console.log('🔑 Token var mı?', token ? 'EVET ✅' : 'HAYIR ❌');
+      console.log('🌐 Backend URL:', 'https://api.barcodepos.trade/api/sales');
+      
+      if (!token) {
+        toast.error('❌ TOKEN YOK! Lütfen önce giriş yapın!', { duration: 4000 });
+        soundEffects.error();
+        hapticFeedback(ImpactStyle.Heavy);
+        setTimeout(() => navigate('/login'), 1000);
+        return;
+      }
+      
+      toast.success(`✅ Token OK! Satış başlıyor...`, { duration: 1000 });
+      
+      setTimeout(() => {
+        toast.loading(`${paymentNames[paymentMethod]} ile ödeme yapılıyor...`, { duration: 2000 });
+      }, 100);
 
       const saleData = {
         items: cartItems.map(item => ({
           productId: item.id,
           quantity: item.quantity,
-          price: item.price,
-          note: item.note
+          unitPrice: item.price,  // ✅ Backend unitPrice bekliyor!
+          taxRate: 0,  // ✅ Vergi oranı (şimdilik 0)
         })),
         paymentMethod,
+        subtotal: total,  // ✅ Backend subtotal bekliyor
+        taxAmount: 0,  // ✅ Vergi tutarı (şimdilik 0)
         total
       };
 
