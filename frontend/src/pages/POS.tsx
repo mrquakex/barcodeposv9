@@ -944,26 +944,38 @@ const POS: React.FC = () => {
       // 📱 Simplified camera configuration for maximum compatibility
       const config = {
         fps: 10,
-        qrbox: { width: 250, height: 250 },
-        aspectRatio: 1.0
+        qrbox: { width: 250, height: 250 }
       };
 
-      // Use facingMode for camera selection (more reliable)
-      const cameraFacingMode = useFrontCamera ? 'user' : 'environment';
+      const onScanSuccess = async (decodedText: string) => {
+        await handleCameraScan(decodedText);
+      };
 
-      await scanner.start(
-        { facingMode: cameraFacingMode },
-        config,
-        async (decodedText) => {
-          // Scan successful
-          await handleCameraScan(decodedText);
-          // Don't stop camera, keep scanning
-        },
-        (errorMessage) => {
-          // Scan error (expected during scanning)
-          // console.log('Scanning...', errorMessage);
+      const onScanError = (errorMessage: string) => {
+        // Expected during scanning
+      };
+
+      // Try facingMode first
+      try {
+        const cameraFacingMode = useFrontCamera ? 'user' : 'environment';
+        await scanner.start(
+          { facingMode: cameraFacingMode },
+          config,
+          onScanSuccess,
+          onScanError
+        );
+      } catch (facingModeError) {
+        // Fallback: Try with camera ID
+        console.log('FacingMode failed, trying camera list...', facingModeError);
+        
+        const devices = await Html5Qrcode.getCameras();
+        if (devices && devices.length > 0) {
+          const cameraId = devices[0].id;
+          await scanner.start(cameraId, config, onScanSuccess, onScanError);
+        } else {
+          throw new Error('Kamera bulunamadı');
         }
-      );
+      }
 
       setIsScanning(true);
       toast.success('Kamera aktif - Barkodu tarayın');
@@ -983,6 +995,10 @@ const POS: React.FC = () => {
         errorMsg = error.message;
       }
       
+      // Show detailed error in alert for mobile debugging
+      const debugInfo = `Hata Detayı:\n\nTip: ${error.name || 'Bilinmiyor'}\nMesaj: ${error.message || 'Yok'}\n\nTelefon: ${navigator.userAgent.includes('Android') ? 'Android' : navigator.userAgent.includes('iPhone') ? 'iPhone' : 'Diğer'}`;
+      
+      alert(debugInfo);
       toast.error(errorMsg);
       setIsScanning(false);
     }
