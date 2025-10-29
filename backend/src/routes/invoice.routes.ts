@@ -15,9 +15,9 @@ router.use(authenticate);
 
 router.get('/', getAllInvoices);
 router.get('/:id', getInvoiceById);
-router.post('/', authorize(['ADMIN', 'MANAGER']), createInvoice);
-router.put('/:id/status', authorize(['ADMIN', 'MANAGER']), updateInvoiceStatus);
-router.delete('/:id', authorize(['ADMIN']), deleteInvoice);
-router.post('/:id/send-to-gib', authorize(['ADMIN', 'MANAGER']), sendToGIB);
+router.post('/', authorize('ADMIN', 'MANAGER'), createInvoice);
+router.put('/:id/status', authorize('ADMIN', 'MANAGER'), updateInvoiceStatus);
+router.delete('/:id', authorize('ADMIN'), deleteInvoice);
+router.post('/:id/send-to-gib', authorize('ADMIN', 'MANAGER'), sendToGIB);
 
 export default router;

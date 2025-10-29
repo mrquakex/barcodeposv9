@@ -15,9 +15,9 @@ router.use(authenticate);
 
 router.get('/', getAllReturns);
 router.get('/:id', getReturnById);
-router.post('/', authorize(['ADMIN', 'MANAGER']), createReturn);
-router.put('/:id/status', authorize(['ADMIN', 'MANAGER']), updateReturnStatus);
-router.post('/:id/complete', authorize(['ADMIN', 'MANAGER']), completeReturn);
-router.delete('/:id', authorize(['ADMIN']), deleteReturn);
+router.post('/', authorize('ADMIN', 'MANAGER'), createReturn);
+router.put('/:id/status', authorize('ADMIN', 'MANAGER'), updateReturnStatus);
+router.post('/:id/complete', authorize('ADMIN', 'MANAGER'), completeReturn);
+router.delete('/:id', authorize('ADMIN'), deleteReturn);
 
 export default router;

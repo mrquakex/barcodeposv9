@@ -15,9 +15,9 @@ router.use(authenticate);
 
 router.get('/', getAllPurchaseOrders);
 router.get('/:id', getPurchaseOrderById);
-router.post('/', authorize(['ADMIN', 'MANAGER']), createPurchaseOrder);
-router.put('/:id/status', authorize(['ADMIN', 'MANAGER']), updatePurchaseOrderStatus);
-router.post('/:id/receive', authorize(['ADMIN', 'MANAGER']), receivePurchaseOrder);
-router.delete('/:id', authorize(['ADMIN']), deletePurchaseOrder);
+router.post('/', authorize('ADMIN', 'MANAGER'), createPurchaseOrder);
+router.put('/:id/status', authorize('ADMIN', 'MANAGER'), updatePurchaseOrderStatus);
+router.post('/:id/receive', authorize('ADMIN', 'MANAGER'), receivePurchaseOrder);
+router.delete('/:id', authorize('ADMIN'), deletePurchaseOrder);
 
 export default router;

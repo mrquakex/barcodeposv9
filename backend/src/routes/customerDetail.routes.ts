@@ -20,9 +20,9 @@ router.use(authenticate);
 router.get('/:id/detail', getCustomerDetail);
 
 // Finansal
-router.post('/:id/debt', authorize(['ADMIN', 'MANAGER']), addDebt);
-router.delete('/:id/debts/:debtId', authorize(['ADMIN', 'MANAGER']), deleteDebt);
-router.post('/:id/payment', authorize(['ADMIN', 'MANAGER']), addPayment);
+router.post('/:id/debt', authorize('ADMIN', 'MANAGER'), addDebt);
+router.delete('/:id/debts/:debtId', authorize('ADMIN', 'MANAGER'), deleteDebt);
+router.post('/:id/payment', authorize('ADMIN', 'MANAGER'), addPayment);
 router.get('/:id/transactions', getTransactions);
 router.get('/:id/financial-summary', getFinancialSummary);
 
