@@ -77,9 +77,10 @@ export const getDashboardStats = async (req: Request, res: Response) => {
           where: { id: item.productId },
         });
         return {
-          product,
-          totalQuantity: item._sum.quantity,
-          totalRevenue: item._sum.total,
+          productId: item.productId,
+          name: product?.name || 'Bilinmeyen Ürün',
+          quantity: item._sum.quantity || 0,
+          totalRevenue: item._sum.total || 0,
         };
       })
     );

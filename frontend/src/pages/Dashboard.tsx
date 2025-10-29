@@ -111,10 +111,28 @@ const Dashboard: React.FC = () => {
   
   // 🆕 SALES ANALYTICS HUB - TAB STATE
   const [activeTab, setActiveTab] = useState<'today' | '7days' | '30days' | '6months' | 'goal'>('today');
+  
+  // 🆕 COMMAND BAR STATES
+  const [dateFilter, setDateFilter] = useState<string>('Bu Ay');
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
+
+  // 🆕 SEARCH HANDLER
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    // TODO: Implement global search across products, customers, sales
+    console.log('🔍 [SEARCH] Query:', e.target.value);
+  };
+
+  // 🆕 DATE FILTER HANDLER
+  const handleDateFilter = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setDateFilter(e.target.value);
+    // TODO: Implement date-based filtering
+    console.log('📅 [FILTER] Date:', e.target.value);
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -330,7 +348,11 @@ const Dashboard: React.FC = () => {
             {/* Right: Actions */}
             <div className="flex items-center gap-3">
               {/* Date Picker */}
-              <select className="px-3 py-1.5 text-sm bg-background border border-border/50 rounded-md hover:border-border transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20">
+              <select 
+                value={dateFilter}
+                onChange={handleDateFilter}
+                className="px-3 py-1.5 text-sm bg-background border border-border/50 rounded-md hover:border-border transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
+              >
                 <option>Bu Ay</option>
                 <option>Bugün</option>
                 <option>Bu Hafta</option>
@@ -342,20 +364,32 @@ const Dashboard: React.FC = () => {
                 <input
                   type="text"
                   placeholder="Ara..."
+                  value={searchQuery}
+                  onChange={handleSearch}
                   className="w-64 px-3 py-1.5 pl-9 text-sm bg-background border border-border/50 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                 />
                 <TrendingUp className="absolute left-2.5 top-2 w-4 h-4 text-foreground-secondary/40" />
               </div>
 
               {/* Settings */}
-              <button className="p-2 hover:bg-background-alt rounded-md transition-colors">
+              <button 
+                onClick={() => navigate('/settings')}
+                className="p-2 hover:bg-background-alt rounded-md transition-colors"
+                title="Ayarlar"
+              >
                 <TrendingUp className="w-4 h-4 text-foreground-secondary" />
               </button>
 
               {/* Notifications */}
-              <button className="p-2 hover:bg-background-alt rounded-md transition-colors relative">
+              <button 
+                onClick={() => console.log('🔔 Notifications clicked')}
+                className="p-2 hover:bg-background-alt rounded-md transition-colors relative"
+                title="Bildirimler"
+              >
                 <Calendar className="w-4 h-4 text-foreground-secondary" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full" />
+                {stockAlerts.length > 0 && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full" />
+                )}
               </button>
             </div>
           </div>
