@@ -36,6 +36,7 @@ import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import StockMovements from './pages/StockMovements';
 import StockCount from './pages/StockCount';
+import StockCountDetail from './pages/StockCountDetail';
 import StockTransfer from './pages/StockTransfer';
 import PurchaseOrders from './pages/PurchaseOrders';
 import Returns from './pages/Returns';
@@ -140,6 +141,7 @@ const App: React.FC = () => {
           )}
           <Route path="/stock-movements" element={<StockMovements />} />
           <Route path="/stock-count" element={<StockCount />} />
+          <Route path="/stock-count/:id" element={<StockCountDetail />} />
           <Route path="/stock-transfer" element={<StockTransfer />} />
           <Route path="/purchase-orders" element={<PurchaseOrders />} />
           <Route path="/returns" element={<Returns />} />

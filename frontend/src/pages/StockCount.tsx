@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Eye, CheckCircle, ClipboardList } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Search, Eye, CheckCircle, ClipboardList, XCircle, Clock, Package } from 'lucide-react';
 import FluentCard from '../components/fluent/FluentCard';
 import FluentInput from '../components/fluent/FluentInput';
 import FluentButton from '../components/fluent/FluentButton';
@@ -7,7 +8,6 @@ import FluentBadge from '../components/fluent/FluentBadge';
 import FluentDialog from '../components/fluent/FluentDialog';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
-import { useTranslation } from 'react-i18next';
 
 interface StockCount {
   id: string;
@@ -21,14 +21,20 @@ interface StockCount {
 }
 
 const StockCount: React.FC = () => {
-  const { t } = useTranslation();
+  const navigate = useNavigate();
   const [counts, setCounts] = useState<StockCount[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const [showDialog, setShowDialog] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [formData, setFormData] = useState({ type: 'FULL' });
+  const [searchTerm, setSearchTerm] = useState('');
+  const [formData, setFormData] = useState({ 
+    type: 'FULL',
+    categoryId: '',
+  });
 
   useEffect(() => {
     fetchCounts();
+    fetchCategories();
   }, []);
 
   const fetchCounts = async () => {
@@ -36,29 +42,57 @@ const StockCount: React.FC = () => {
       const response = await api.get('/stock-counts');
       setCounts(response.data.counts || response.data || []);
     } catch (error) {
-      toast.error(t('stockCount.fetchError'));
+      toast.error('Stok sayımları yüklenemedi');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCreate = async () => {
+  const fetchCategories = async () => {
     try {
-      await api.post('/stock-counts', formData);
-      toast.success(t('stockCount.startCount'));
-      fetchCounts();
-      setShowDialog(false);
+      const response = await api.get('/categories');
+      setCategories(response.data.categories || []);
     } catch (error) {
-      toast.error(t('stockCount.fetchError'));
+      console.error('Categories fetch error:', error);
     }
   };
+
+  const handleCreate = async () => {
+    try {
+      const payload: any = { type: formData.type };
+      if (formData.type === 'CATEGORY' && formData.categoryId) {
+        payload.categoryId = formData.categoryId;
+      }
+
+      const response = await api.post('/stock-counts/start', payload);
+      toast.success(response.data.message || 'Stok sayımı başlatıldı');
+      fetchCounts();
+      setShowDialog(false);
+      setFormData({ type: 'FULL', categoryId: '' });
+      
+      if (response.data.stockCount?.id) {
+        navigate(`/stock-count/${response.data.stockCount.id}`);
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Sayım başlatılamadı');
+    }
+  };
+
+  const handleView = (countId: string) => {
+    navigate(`/stock-count/${countId}`);
+  };
+
+  const filteredCounts = counts.filter((count) =>
+    count.countNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    count.user.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="mt-4 text-foreground-secondary">Loading...</p>
+          <p className="mt-4 text-foreground-secondary">Yükleniyor...</p>
         </div>
       </div>
     );
@@ -68,82 +102,178 @@ const StockCount: React.FC = () => {
     <div className="p-4 md:p-6 space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="fluent-title text-foreground">Stock Count</h1>
-          <p className="fluent-body text-foreground-secondary mt-1">{counts.length} counts</p>
+          <h1 className="text-2xl font-semibold text-foreground flex items-center gap-2">
+            <ClipboardList className="w-7 h-7" />
+            Stok Sayımı
+          </h1>
+          <p className="text-sm text-foreground-secondary mt-1">{counts.length} sayım kaydı</p>
         </div>
         <FluentButton
           appearance="primary"
           icon={<Plus className="w-4 h-4" />}
           onClick={() => setShowDialog(true)}
         >
-          New Count
+          Yeni Sayım
         </FluentButton>
       </div>
 
+      <FluentCard depth="depth-4" className="p-4">
+        <FluentInput
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Sayım ara..."
+          icon={<Search className="w-4 h-4" />}
+        />
+      </FluentCard>
+
       <div className="space-y-3">
-        {counts.map((count) => (
-          <FluentCard key={count.id} depth="depth-4" hoverable className="p-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
-                <ClipboardList className="w-6 h-6 text-primary" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h4 className="fluent-body font-medium text-foreground">{count.countNumber}</h4>
-                  <FluentBadge
-                    appearance={count.status === 'COMPLETED' ? 'success' : 'warning'}
-                    size="small"
-                  >
-                    {count.status}
-                  </FluentBadge>
-                  <FluentBadge appearance="info" size="small">
-                    {count.type}
-                  </FluentBadge>
-                </div>
-                <div className="flex gap-4 text-sm text-foreground-secondary">
-                  <span>By: {count.user.name}</span>
-                  <span>Items: {count._count?.items || 0}</span>
-                  <span>
-                    {new Date(count.startedAt).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                    })}
-                  </span>
-                </div>
-              </div>
-              <FluentButton appearance="subtle" size="small" icon={<Eye className="w-4 h-4" />}>
-                View
-              </FluentButton>
-            </div>
+        {filteredCounts.length === 0 ? (
+          <FluentCard depth="depth-4" className="p-8 text-center">
+            <Package className="w-16 h-16 mx-auto text-foreground-secondary mb-4" />
+            <h3 className="text-lg font-medium text-foreground mb-2">Henüz sayım yok</h3>
+            <p className="text-sm text-foreground-secondary mb-4">
+              Stok sayımı başlatarak ürünlerinizi sayabilirsiniz
+            </p>
+            <FluentButton
+              appearance="primary"
+              icon={<Plus className="w-4 h-4" />}
+              onClick={() => setShowDialog(true)}
+            >
+              Yeni Sayım Başlat
+            </FluentButton>
           </FluentCard>
-        ))}
+        ) : (
+          filteredCounts.map((count) => (
+            <FluentCard key={count.id} depth="depth-4" hoverable className="p-4">
+              <div className="flex items-center gap-4">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  count.status === 'IN_PROGRESS'
+                    ? 'bg-warning/10'
+                    : count.status === 'COMPLETED'
+                    ? 'bg-success/10'
+                    : 'bg-error/10'
+                }`}>
+                  {count.status === 'IN_PROGRESS' ? (
+                    <Clock className="w-6 h-6 text-warning" />
+                  ) : count.status === 'COMPLETED' ? (
+                    <CheckCircle className="w-6 h-6 text-success" />
+                  ) : (
+                    <XCircle className="w-6 h-6 text-error" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h4 className="text-sm font-medium text-foreground">{count.countNumber}</h4>
+                    <FluentBadge
+                      appearance={
+                        count.status === 'IN_PROGRESS'
+                          ? 'warning'
+                          : count.status === 'COMPLETED'
+                          ? 'success'
+                          : 'error'
+                      }
+                      size="small"
+                    >
+                      {count.status === 'IN_PROGRESS'
+                        ? 'Devam Ediyor'
+                        : count.status === 'COMPLETED'
+                        ? 'Tamamlandı'
+                        : 'İptal'}
+                    </FluentBadge>
+                    <FluentBadge appearance="default" size="small">
+                      {count.type === 'FULL'
+                        ? 'Tam Sayım'
+                        : count.type === 'CATEGORY'
+                        ? 'Kategori'
+                        : 'Düşük Stok'}
+                    </FluentBadge>
+                  </div>
+                  <div className="flex gap-4 text-xs text-foreground-secondary">
+                    <span>{count._count?.items || 0} ürün</span>
+                    <span>{count.user.name}</span>
+                    <span>
+                      {new Date(count.startedAt).toLocaleDateString('tr-TR', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}
+                    </span>
+                  </div>
+                </div>
+                <FluentButton
+                  appearance="subtle"
+                  size="small"
+                  icon={<Eye className="w-4 h-4" />}
+                  onClick={() => handleView(count.id)}
+                >
+                  Detay
+                </FluentButton>
+              </div>
+            </FluentCard>
+          ))
+        )}
       </div>
 
       <FluentDialog
-        open={showDialog}
+        isOpen={showDialog}
         onClose={() => setShowDialog(false)}
-        title={t('stockCount.newCount') || 'Yeni Sayım'}
-        size="small"
+        title="Yeni Stok Sayımı"
+        maxWidth="md"
       >
         <div className="space-y-4">
           <div>
-            <label className="fluent-body-small text-foreground-secondary block mb-2">Type</label>
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Sayım Türü
+            </label>
             <select
               value={formData.type}
-              onChange={(e) => setFormData({ type: e.target.value })}
-              className="w-full h-10 px-3 bg-input border border-border rounded text-foreground fluent-body focus:outline-none focus:ring-2 focus:ring-primary"
+              onChange={(e) => setFormData({ ...formData, type: e.target.value, categoryId: '' })}
+              className="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground"
             >
-              <option value="FULL">{t('stockCount.fullCount') || 'Tam Sayım'}</option>
-              <option value="PARTIAL">{t('stockCount.partialCount') || 'Kısmi Sayım'}</option>
-              <option value="CATEGORY">By Category</option>
+              <option value="FULL">Tam Sayım (Tüm Ürünler)</option>
+              <option value="CATEGORY">Kategori Bazlı Sayım</option>
+              <option value="LOW_STOCK">Düşük Stok Sayımı</option>
             </select>
           </div>
-          <div className="flex gap-2">
-            <FluentButton appearance="subtle" className="flex-1" onClick={() => setShowDialog(false)}>
-              Cancel
+
+          {formData.type === 'CATEGORY' && (
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Kategori Seçin
+              </label>
+              <select
+                value={formData.categoryId}
+                onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                className="w-full px-3 py-2 border border-border rounded-md bg-input text-foreground"
+              >
+                <option value="">Kategori seçin...</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          <div className="bg-info/10 border border-info/20 rounded-lg p-3">
+            <p className="text-xs text-foreground-secondary">
+              {formData.type === 'FULL' && 'Tüm aktif ürünler sayıma dahil edilecek'}
+              {formData.type === 'CATEGORY' && 'Seçilen kategorideki ürünler sayıma dahil edilecek'}
+              {formData.type === 'LOW_STOCK' && 'Minimum stok seviyesinin altındaki ürünler sayıma dahil edilecek'}
+            </p>
+          </div>
+
+          <div className="flex gap-2 justify-end pt-2">
+            <FluentButton appearance="subtle" onClick={() => setShowDialog(false)}>
+              İptal
             </FluentButton>
-            <FluentButton appearance="primary" className="flex-1" onClick={handleCreate}>
-              Create
+            <FluentButton 
+              appearance="primary" 
+              onClick={handleCreate}
+              disabled={formData.type === 'CATEGORY' && !formData.categoryId}
+            >
+              Sayımı Başlat
             </FluentButton>
           </div>
         </div>
@@ -153,4 +283,3 @@ const StockCount: React.FC = () => {
 };
 
 export default StockCount;
-
