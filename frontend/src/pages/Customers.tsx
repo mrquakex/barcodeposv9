@@ -217,7 +217,7 @@ const Customers: React.FC = () => {
       'Loyal': { appearance: 'info' as const, icon: TrendingUp },
       'Potential': { appearance: 'warning' as const, icon: User },
       'At Risk': { appearance: 'error' as const, icon: Banknote },
-      'Lost': { appearance: 'neutral' as const, icon: User },
+      'Lost': { appearance: 'default' as const, icon: User },
     };
 
     const { appearance, icon: Icon } = config[segment as keyof typeof config] || config['Lost'];

@@ -234,7 +234,7 @@ const Invoices: React.FC = () => {
                         ? 'info'
                         : invoice.status === 'REJECTED' || invoice.status === 'CANCELLED'
                         ? 'error'
-                        : 'neutral'
+                        : 'default'
                     }
                     size="small"
                   >
@@ -381,7 +381,7 @@ const Invoices: React.FC = () => {
                   appearance={
                     selectedInvoice.status === 'APPROVED' ? 'success' :
                     selectedInvoice.status === 'SENT' ? 'info' :
-                    selectedInvoice.status === 'REJECTED' ? 'error' : 'neutral'
+                    selectedInvoice.status === 'REJECTED' ? 'error' : 'default'
                   }
                 >
                   {selectedInvoice.status}
