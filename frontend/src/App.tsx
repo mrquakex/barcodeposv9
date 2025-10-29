@@ -27,6 +27,7 @@ import Dashboard from './pages/Dashboard';
 import POS from './pages/POS';
 import Products from './pages/Products';
 import Customers from './pages/Customers';
+import CustomerDetail from './pages/CustomerDetail';
 import Categories from './pages/Categories';
 import Suppliers from './pages/Suppliers';
 import Sales from './pages/Sales';
@@ -127,6 +128,7 @@ const App: React.FC = () => {
           {!isNativeApp && (
             <>
               <Route path="/customers" element={<Customers />} />
+              <Route path="/customers/:id" element={<CustomerDetail />} />
               <Route path="/categories" element={<Categories />} />
               <Route path="/suppliers" element={<Suppliers />} />
               <Route path="/sales" element={<Sales />} />

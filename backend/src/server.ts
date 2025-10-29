@@ -43,6 +43,7 @@ import purchaseOrderRoutes from './routes/purchaseOrder.routes';
 import returnRoutes from './routes/return.routes';
 import reportsRoutes from './routes/reports.routes';
 import employeeRoutes from './routes/employee.routes';
+import customerDetailRoutes from './routes/customerDetail.routes';
 import prisma from './lib/prisma';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -195,6 +196,7 @@ app.use('/api/purchase-orders', purchaseOrderRoutes);
 app.use('/api/returns', returnRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/employees', employeeRoutes);
+app.use('/api/customers', customerDetailRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Edit, Trash2, User, Mail, Phone, MapPin, Banknote, TrendingUp, ShoppingCart, Award, Eye } from 'lucide-react';
 import FluentButton from '../components/fluent/FluentButton';
 import FluentCard from '../components/fluent/FluentCard';
@@ -67,6 +68,7 @@ interface CustomerDetail extends Customer {
 
 const Customers: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [customerAnalytics, setCustomerAnalytics] = useState<CustomerAnalytics[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -150,34 +152,8 @@ const Customers: React.FC = () => {
     setShowDialog(true);
   };
 
-  const handleViewDetail = async (customerId: string) => {
-    try {
-      // Get customer details
-      const customerResponse = await api.get(`/customers/${customerId}`);
-      const customer = customerResponse.data.customer;
-
-      // Get customer sales
-      const salesResponse = await api.get(`/sales?customerId=${customerId}`);
-      const sales = salesResponse.data.sales || [];
-
-      // Get analytics
-      const analytics = customerAnalytics.find(c => c.id === customerId);
-
-      setSelectedCustomer({
-        ...customer,
-        sales,
-        segment: analytics?.segment,
-        rfmScore: analytics?.rfmScore,
-        frequency: analytics?.frequency,
-        recency: analytics?.recency,
-        lastPurchaseDate: analytics?.lastPurchaseDate,
-        averageOrderValue: analytics?.averageOrderValue,
-      });
-      setActiveTab('info');
-      setShowDetailDialog(true);
-    } catch (error) {
-      toast.error('Müşteri detayı yüklenemedi');
-    }
+  const handleViewDetail = (customerId: string) => {
+    navigate(`/customers/${customerId}`);
   };
 
   const handleCloseDialog = () => {

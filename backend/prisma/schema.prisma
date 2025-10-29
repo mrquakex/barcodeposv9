@@ -22,18 +22,23 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  branch           Branch?           @relation(fields: [branchId], references: [id])
-  sales            Sale[]
-  shifts           Shift[]
-  stockMovements   StockMovement[]
-  expenses         Expense[]
-  activityLogs     ActivityLog[]
-  conversations    Conversation[]
-  scheduledTasks   ScheduledTask[]
-  stockCounts      StockCount[]
-  stockTransfers   StockTransfer[]
-  cashTransactions CashTransaction[]
-  returns          Return[]
+  branch              Branch?           @relation(fields: [branchId], references: [id])
+  sales               Sale[]
+  shifts              Shift[]
+  stockMovements      StockMovement[]
+  expenses            Expense[]
+  activityLogs        ActivityLog[]
+  conversations       Conversation[]
+  scheduledTasks      ScheduledTask[]
+  stockCounts         StockCount[]
+  stockTransfers      StockTransfer[]
+  cashTransactions    CashTransaction[]
+  returns             Return[]
+  customerTransactions CustomerTransaction[] @relation("CustomerTransactions")
+  customerDebts       CustomerDebt[]        @relation("CustomerDebts")
+  debtPayments        DebtPayment[]         @relation("DebtPayments")
+  customerNotes       CustomerNote[]        @relation("CustomerNotes")
+  customerDocuments   CustomerDocument[]    @relation("CustomerDocuments")
   
   @@map("users")
 }
@@ -307,6 +312,10 @@ model Customer {
   sales           Sale[]
   invoices        Invoice[]
   customerPoints  CustomerPoints[]
+  transactions    CustomerTransaction[]
+  debts           CustomerDebt[]
+  notes           CustomerNote[]
+  documents       CustomerDocument[]
   
   @@map("customers")
 }
@@ -660,4 +669,100 @@ model ScheduledTask {
   @@index([isActive])
   @@index([nextRun])
   @@map("scheduled_tasks")
+}
+
+// ============================================
+// CUSTOMER FINANCIAL & DOCUMENT MODELS
+// ============================================
+
+model CustomerTransaction {
+  id              String   @id @default(uuid())
+  customerId      String
+  type            String   // SALE, DEBT, PAYMENT, REFUND
+  amount          Float
+  description     String?
+  referenceType   String?  // Sale, Debt, Payment
+  referenceId     String?
+  userId          String?
+  createdAt       DateTime @default(now())
+  
+  customer        Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  user            User?    @relation("CustomerTransactions", fields: [userId], references: [id])
+  
+  @@index([customerId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("customer_transactions")
+}
+
+model CustomerDebt {
+  id              String    @id @default(uuid())
+  customerId      String
+  amount          Float
+  paidAmount      Float     @default(0)
+  status          String    @default("OPEN") // OPEN, PARTIAL, PAID, OVERDUE
+  description     String?
+  dueDate         DateTime?
+  paidDate        DateTime?
+  userId          String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  
+  customer        Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  user            User      @relation("CustomerDebts", fields: [userId], references: [id])
+  payments        DebtPayment[]
+  
+  @@index([customerId])
+  @@index([status])
+  @@map("customer_debts")
+}
+
+model DebtPayment {
+  id              String   @id @default(uuid())
+  debtId          String
+  amount          Float
+  paymentMethod   String   // CASH, CARD, BANK_TRANSFER
+  notes           String?
+  userId          String
+  createdAt       DateTime @default(now())
+  
+  debt            CustomerDebt @relation(fields: [debtId], references: [id], onDelete: Cascade)
+  user            User     @relation("DebtPayments", fields: [userId], references: [id])
+  
+  @@index([debtId])
+  @@map("debt_payments")
+}
+
+model CustomerNote {
+  id              String   @id @default(uuid())
+  customerId      String
+  note            String
+  isPinned        Boolean  @default(false)
+  userId          String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  customer        Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  user            User     @relation("CustomerNotes", fields: [userId], references: [id])
+  
+  @@index([customerId])
+  @@map("customer_notes")
+}
+
+model CustomerDocument {
+  id              String   @id @default(uuid())
+  customerId      String
+  fileName        String
+  fileUrl         String
+  fileSize        Int
+  fileType        String
+  description     String?
+  userId          String
+  createdAt       DateTime @default(now())
+  
+  customer        Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  user            User     @relation("CustomerDocuments", fields: [userId], references: [id])
+  
+  @@index([customerId])
+  @@map("customer_documents")
 }
