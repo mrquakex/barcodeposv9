@@ -376,7 +376,7 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
         {/* 🆕 RECENT ACTIVITIES WIDGET */}
-          <FluentCard depth="depth-4" className="p-6">
+        <FluentCard depth="depth-4" className="p-6">
             <div className="flex items-center gap-2 mb-4">
               <Activity className="w-5 h-5 text-blue-500" />
               <h3 className="text-lg font-semibold text-foreground">Son Aktiviteler</h3>
@@ -419,10 +419,10 @@ const Dashboard: React.FC = () => {
                 ))}
               </div>
             )}
-          </FluentCard>
+        </FluentCard>
 
-          {/* 🆕 STOCK ALERTS WIDGET */}
-          <FluentCard depth="depth-4" className="p-6">
+        {/* 🆕 STOCK ALERTS WIDGET */}
+        <FluentCard depth="depth-4" className="p-6">
             <div className="flex items-center gap-2 mb-4">
               <AlertCircle className="w-5 h-5 text-orange-500" />
               <h3 className="text-lg font-semibold text-foreground">Stok Uyarıları</h3>
@@ -486,10 +486,10 @@ const Dashboard: React.FC = () => {
                 Tümünü Gör →
               </FluentButton>
             )}
-          </FluentCard>
+        </FluentCard>
 
-          {/* 🆕 QUICK ACTIONS */}
-          <FluentCard depth="depth-4" className="p-6">
+        {/* 🆕 QUICK ACTIONS */}
+        <FluentCard depth="depth-4" className="p-6">
             <div className="flex items-center gap-2 mb-4">
               <Zap className="w-5 h-5 text-purple-500" />
               <h3 className="text-lg font-semibold text-foreground">Hızlı İşlemler</h3>
@@ -533,9 +533,7 @@ const Dashboard: React.FC = () => {
                 Raporlar
               </FluentButton>
             </div>
-          </FluentCard>
-
-        </div>
+        </FluentCard>
 
       </div>
 
