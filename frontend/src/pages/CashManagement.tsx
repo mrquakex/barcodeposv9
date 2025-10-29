@@ -402,10 +402,10 @@ const CashManagement: React.FC = () => {
 
       {/* Start Shift Dialog */}
       <FluentDialog
-        isOpen={showStartShiftDialog}
+        open={showStartShiftDialog}
         onClose={() => setShowStartShiftDialog(false)}
         title="Vardiya Başlat"
-        maxWidth="md"
+        size="medium"
       >
         <form onSubmit={handleStartShift} className="space-y-4">
           <FluentInput
@@ -435,10 +435,10 @@ const CashManagement: React.FC = () => {
 
       {/* End Shift Dialog */}
       <FluentDialog
-        isOpen={showEndShiftDialog}
+        open={showEndShiftDialog}
         onClose={() => setShowEndShiftDialog(false)}
         title="Vardiya Kapat"
-        maxWidth="md"
+        size="medium"
       >
         <form onSubmit={handleEndShift} className="space-y-4">
           {activeShift && (
@@ -483,10 +483,10 @@ const CashManagement: React.FC = () => {
 
       {/* Add Transaction Dialog */}
       <FluentDialog
-        isOpen={showTransactionDialog}
+        open={showTransactionDialog}
         onClose={() => setShowTransactionDialog(false)}
         title={transactionType === 'IN' ? 'Nakit Girişi' : 'Nakit Çıkışı'}
-        maxWidth="md"
+        size="medium"
       >
         <form onSubmit={handleAddTransaction} className="space-y-4">
           <FluentInput

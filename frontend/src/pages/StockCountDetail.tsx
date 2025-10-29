@@ -352,10 +352,10 @@ const StockCountDetail: React.FC = () => {
 
       {/* Complete Dialog */}
       <FluentDialog
-        isOpen={showCompleteDialog}
+        open={showCompleteDialog}
         onClose={() => setShowCompleteDialog(false)}
         title="Stok Sayımını Tamamla"
-        maxWidth="md"
+        size="medium"
       >
         <div className="space-y-4">
           <div className="bg-info/10 border border-info/20 rounded-lg p-4">

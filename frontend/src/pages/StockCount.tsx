@@ -215,10 +215,10 @@ const StockCount: React.FC = () => {
       </div>
 
       <FluentDialog
-        isOpen={showDialog}
+        open={showDialog}
         onClose={() => setShowDialog(false)}
         title="Yeni Stok Sayımı"
-        maxWidth="md"
+        size="medium"
       >
         <div className="space-y-4">
           <div>
