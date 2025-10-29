@@ -6,14 +6,17 @@ import * as XLSX from 'xlsx';
 export const getAllProducts = async (req: Request, res: Response) => {
   try {
     const { search, categoryId, isActive } = req.query;
+    
+    console.log('🔍 [PRODUCT-SEARCH] Query params:', { search, categoryId, isActive });
 
     const where: any = {};
 
     if (search) {
       where.OR = [
-        { name: { contains: search as string } },
-        { barcode: { contains: search as string } },
+        { name: { contains: search as string, mode: 'insensitive' } },
+        { barcode: { contains: search as string, mode: 'insensitive' } },
       ];
+      console.log('🔍 [PRODUCT-SEARCH] Search query:', search);
     }
 
     if (categoryId) {
