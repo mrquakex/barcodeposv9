@@ -57,9 +57,7 @@ const FluentSidebar: React.FC<FluentSidebarProps> = ({ isMobileOpen = false, onM
       children: [
         { icon: Package, label: t('nav.products'), path: '/products' },
         { icon: FolderOpen, label: t('nav.categories'), path: '/categories' },
-        { icon: TrendingUp, label: t('nav.stockMovements'), path: '/stock-movements' },
-        { icon: ClipboardList, label: t('nav.stockCount'), path: '/stock-count' },
-        { icon: ShoppingBag, label: t('nav.stockTransfer'), path: '/stock-transfer' },
+        { icon: TrendingUp, label: 'Stok Yönetimi', path: '/stock-management' },
         { icon: FileText, label: t('nav.purchaseOrders'), path: '/purchase-orders' },
         { icon: Building2, label: t('nav.suppliers'), path: '/suppliers' },
       ]
@@ -81,8 +79,7 @@ const FluentSidebar: React.FC<FluentSidebarProps> = ({ isMobileOpen = false, onM
       roles: ['ADMIN', 'MANAGER'],
       children: [
         { icon: Wallet, label: 'Kasa Yönetimi', path: '/cash-management' },
-        { icon: Banknote, label: t('nav.expenses'), path: '/expenses' },
-        { icon: BarChart3, label: t('nav.profitLoss'), path: '/profit-loss' },
+        { icon: BarChart3, label: 'Finansal Raporlar', path: '/financial-reports' },
       ]
     },
     { icon: BarChart3, label: t('nav.reports'), path: '/reports', roles: ['ADMIN', 'MANAGER'] },

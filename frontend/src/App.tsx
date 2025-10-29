@@ -34,6 +34,7 @@ import Sales from './pages/Sales';
 import SalesDetail from './pages/SalesDetail';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
+import StockManagement from './pages/StockManagement';
 import StockMovements from './pages/StockMovements';
 import StockCount from './pages/StockCount';
 import StockCountDetail from './pages/StockCountDetail';
@@ -43,6 +44,7 @@ import Returns from './pages/Returns';
 import Invoices from './pages/Invoices';
 import Expenses from './pages/Expenses';
 import ProfitLoss from './pages/ProfitLoss';
+import FinancialReports from './pages/FinancialReports';
 import CashManagement from './pages/CashManagement';
 import CashRegister from './pages/CashRegister';
 import Shifts from './pages/Shifts';
@@ -139,6 +141,7 @@ const App: React.FC = () => {
               <Route path="/settings" element={<Settings />} />
             </>
           )}
+          <Route path="/stock-management" element={<StockManagement />} />
           <Route path="/stock-movements" element={<StockMovements />} />
           <Route path="/stock-count" element={<StockCount />} />
           <Route path="/stock-count/:id" element={<StockCountDetail />} />
@@ -146,6 +149,7 @@ const App: React.FC = () => {
           <Route path="/purchase-orders" element={<PurchaseOrders />} />
           <Route path="/returns" element={<Returns />} />
           <Route path="/invoices" element={<Invoices />} />
+          <Route path="/financial-reports" element={<FinancialReports />} />
           {!isNativeApp && <Route path="/expenses" element={<Expenses />} />}
           <Route path="/profit-loss" element={<ProfitLoss />} />
           <Route path="/cash-management" element={<CashManagement />} />
