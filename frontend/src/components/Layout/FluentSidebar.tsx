@@ -80,9 +80,9 @@ const FluentSidebar: React.FC<FluentSidebarProps> = ({ isMobileOpen = false, onM
       label: t('nav.finance'),
       roles: ['ADMIN', 'MANAGER'],
       children: [
+        { icon: Wallet, label: 'Kasa Yönetimi', path: '/cash-management' },
         { icon: Banknote, label: t('nav.expenses'), path: '/expenses' },
         { icon: BarChart3, label: t('nav.profitLoss'), path: '/profit-loss' },
-        { icon: Wallet, label: t('nav.cashRegister'), path: '/cash-register' },
       ]
     },
     { icon: BarChart3, label: t('nav.reports'), path: '/reports', roles: ['ADMIN', 'MANAGER'] },

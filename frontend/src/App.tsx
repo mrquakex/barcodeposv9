@@ -42,6 +42,7 @@ import Returns from './pages/Returns';
 import Invoices from './pages/Invoices';
 import Expenses from './pages/Expenses';
 import ProfitLoss from './pages/ProfitLoss';
+import CashManagement from './pages/CashManagement';
 import CashRegister from './pages/CashRegister';
 import Shifts from './pages/Shifts';
 import Branches from './pages/Branches';
@@ -145,6 +146,7 @@ const App: React.FC = () => {
           <Route path="/invoices" element={<Invoices />} />
           {!isNativeApp && <Route path="/expenses" element={<Expenses />} />}
           <Route path="/profit-loss" element={<ProfitLoss />} />
+          <Route path="/cash-management" element={<CashManagement />} />
           <Route path="/cash-register" element={<CashRegister />} />
           <Route path="/shifts" element={<Shifts />} />
           {!isNativeApp && <Route path="/branches" element={<Branches />} />}
