@@ -41,6 +41,8 @@ import stockTransferRoutes from './routes/stockTransfer.routes';
 import stockMovementRoutes from './routes/stockMovement.routes';
 import purchaseOrderRoutes from './routes/purchaseOrder.routes';
 import returnRoutes from './routes/return.routes';
+import reportsRoutes from './routes/reports.routes';
+import employeeRoutes from './routes/employee.routes';
 import prisma from './lib/prisma';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -191,6 +193,8 @@ app.use('/api/stock-transfers', stockTransferRoutes);
 app.use('/api/stock-movements', stockMovementRoutes);
 app.use('/api/purchase-orders', purchaseOrderRoutes);
 app.use('/api/returns', returnRoutes);
+app.use('/api/reports', reportsRoutes);
+app.use('/api/employees', employeeRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
