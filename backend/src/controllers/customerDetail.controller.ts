@@ -319,6 +319,56 @@ export const deleteNote = async (req: AuthRequest, res: Response) => {
   }
 };
 
+// Borç Sil
+export const deleteDebt = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id, debtId } = req.params;
+
+    // Önce borcu bul
+    const debt = await prisma.customerDebt.findUnique({
+      where: { id: debtId },
+    });
+
+    if (!debt) {
+      return res.status(404).json({ error: 'Borç bulunamadı' });
+    }
+
+    // Eğer ödeme yapılmışsa silme
+    if (debt.paidAmount > 0) {
+      return res.status(400).json({ error: 'Ödeme yapılmış borç silinemez' });
+    }
+
+    // Borcu sil
+    await prisma.customerDebt.delete({
+      where: { id: debtId },
+    });
+
+    // Müşterinin borç tutarını güncelle
+    await prisma.customer.update({
+      where: { id },
+      data: {
+        debt: {
+          decrement: debt.amount,
+        },
+      },
+    });
+
+    // İşlem kaydını sil (varsa)
+    await prisma.customerTransaction.deleteMany({
+      where: {
+        customerId: id,
+        referenceType: 'Debt',
+        referenceId: debtId,
+      },
+    });
+
+    res.json({ message: 'Borç silindi' });
+  } catch (error) {
+    console.error('Delete debt error:', error);
+    res.status(500).json({ error: 'Borç silinemedi' });
+  }
+};
+
 // Finansal Özet
 export const getFinancialSummary = async (req: AuthRequest, res: Response) => {
   try {

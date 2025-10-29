@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft, Mail, Phone, MapPin, DollarSign, TrendingUp, ShoppingCart, Award,
-  Plus, CreditCard, FileText, Calendar, User, Package, Edit, X, Check,
+  Plus, CreditCard, FileText, Calendar, User, Package, Edit, X, Check, Trash2,
+  Clock, CreditCard as PaymentIcon, Banknote, Building2, Info, AlertCircle,
+  CheckCircle, XCircle, Receipt, Activity,
 } from 'lucide-react';
 import FluentCard from '../components/fluent/FluentCard';
 import FluentButton from '../components/fluent/FluentButton';
@@ -40,6 +42,7 @@ const CustomerDetail: React.FC = () => {
   const [showDebtModal, setShowDebtModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showNoteModal, setShowNoteModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   // Debt Form
   const [debtForm, setDebtForm] = useState({
@@ -61,6 +64,14 @@ const CustomerDetail: React.FC = () => {
     isPinned: false,
   });
 
+  // Edit Form
+  const [editForm, setEditForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+  });
+
   useEffect(() => {
     if (id) {
       fetchCustomerDetail();
@@ -78,6 +89,33 @@ const CustomerDetail: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleEditCustomer = async () => {
+    if (!editForm.name.trim()) {
+      toast.error('İsim boş olamaz');
+      return;
+    }
+
+    try {
+      await api.put(`/customers/${id}`, editForm);
+      toast.success('Müşteri güncellendi');
+      setShowEditModal(false);
+      fetchCustomerDetail();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Güncelleme başarısız');
+    }
+  };
+
+  const handleOpenEditModal = () => {
+    if (!customer) return;
+    setEditForm({
+      name: customer.name,
+      email: customer.email || '',
+      phone: customer.phone || '',
+      address: customer.address || '',
+    });
+    setShowEditModal(true);
   };
 
   const handleAddDebt = async () => {
@@ -99,6 +137,18 @@ const CustomerDetail: React.FC = () => {
       fetchCustomerDetail();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Borç eklenemedi');
+    }
+  };
+
+  const handleDeleteDebt = async (debtId: string) => {
+    if (!confirm('Bu borç kaydını silmek istediğinizden emin misiniz?')) return;
+
+    try {
+      await api.delete(`/customers/${id}/debts/${debtId}`);
+      toast.success('Borç silindi');
+      fetchCustomerDetail();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Borç silinemedi');
     }
   };
 
@@ -171,12 +221,24 @@ const CustomerDetail: React.FC = () => {
                        rfmScore === 'Sadık' ? 'info' :
                        rfmScore === 'Potansiyel' ? 'warning' : 'default';
 
+    const Icon = rfmScore === 'Şampiyon' ? Award : User;
+
     return (
       <FluentBadge appearance={appearance} size="small">
-        {rfmScore === 'Şampiyon' && '🏆 '}{rfmScore} Müşteri
+        <Icon className="w-3 h-3 inline mr-1" />
+        {rfmScore} Müşteri
       </FluentBadge>
     );
   };
+
+  const tabs = [
+    { key: 'genel', label: 'Genel Bilgiler', icon: Info },
+    { key: 'finansal', label: 'Finansal', icon: DollarSign },
+    { key: 'satislar', label: 'Satışlar', icon: ShoppingCart },
+    { key: 'islemler', label: 'İşlem Geçmişi', icon: Activity },
+    { key: 'analizler', label: 'Analizler', icon: TrendingUp },
+    { key: 'notlar', label: 'Notlar', icon: FileText },
+  ];
 
   if (isLoading) {
     return (
@@ -209,7 +271,11 @@ const CustomerDetail: React.FC = () => {
           Müşterilere Dön
         </FluentButton>
         <div className="flex gap-2">
-          <FluentButton appearance="subtle" icon={<Edit className="w-4 h-4" />}>
+          <FluentButton 
+            appearance="subtle" 
+            icon={<Edit className="w-4 h-4" />}
+            onClick={handleOpenEditModal}
+          >
             Düzenle
           </FluentButton>
         </div>
@@ -258,33 +324,61 @@ const CustomerDetail: React.FC = () => {
 
         {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6 pt-6 border-t border-border">
-          <div className="text-center p-4 bg-green-50 dark:bg-green-900/10 rounded-lg">
-            <p className="text-sm text-foreground-secondary mb-1">💰 Toplam Harcama</p>
-            <p className="text-2xl font-bold text-green-600">₺{Number(customer.totalSpent).toFixed(2)}</p>
-            <p className="text-xs text-foreground-secondary mt-1">{customer.sales.length} satış</p>
-          </div>
+          <FluentCard depth="depth-8" className="p-4 bg-background hover:bg-background-alt transition-colors">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-success/10 rounded-lg flex items-center justify-center">
+                <DollarSign className="w-5 h-5 text-success" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-foreground-secondary">Toplam Harcama</p>
+                <p className="text-xl font-bold text-success">₺{Number(customer.totalSpent).toFixed(2)}</p>
+              </div>
+            </div>
+            <p className="text-xs text-foreground-secondary">{customer.sales.length} satış</p>
+          </FluentCard>
 
-          <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/10 rounded-lg">
-            <p className="text-sm text-foreground-secondary mb-1">💳 Ödeme Yapılmış</p>
-            <p className="text-2xl font-bold text-blue-600">
-              ₺{Number(customer.totalSpent - customer.debt).toFixed(2)}
-            </p>
-            <p className="text-xs text-foreground-secondary mt-1">Nakit akışı</p>
-          </div>
+          <FluentCard depth="depth-8" className="p-4 bg-background hover:bg-background-alt transition-colors">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-info/10 rounded-lg flex items-center justify-center">
+                <CheckCircle className="w-5 h-5 text-info" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-foreground-secondary">Ödeme Yapılmış</p>
+                <p className="text-xl font-bold text-info">
+                  ₺{Number(customer.totalSpent - customer.debt).toFixed(2)}
+                </p>
+              </div>
+            </div>
+            <p className="text-xs text-foreground-secondary">Nakit akışı</p>
+          </FluentCard>
 
-          <div className="text-center p-4 bg-red-50 dark:bg-red-900/10 rounded-lg">
-            <p className="text-sm text-foreground-secondary mb-1">⚠️ Borç Kalan</p>
-            <p className="text-2xl font-bold text-red-600">₺{Number(customer.debt).toFixed(2)}</p>
-            <p className="text-xs text-foreground-secondary mt-1">
+          <FluentCard depth="depth-8" className="p-4 bg-background hover:bg-background-alt transition-colors">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-error/10 rounded-lg flex items-center justify-center">
+                <AlertCircle className="w-5 h-5 text-error" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-foreground-secondary">Borç Kalan</p>
+                <p className="text-xl font-bold text-error">₺{Number(customer.debt).toFixed(2)}</p>
+              </div>
+            </div>
+            <p className="text-xs text-foreground-secondary">
               {customer.debts.filter((d: any) => d.status !== 'PAID').length} açık borç
             </p>
-          </div>
+          </FluentCard>
 
-          <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/10 rounded-lg">
-            <p className="text-sm text-foreground-secondary mb-1">⭐ Puan</p>
-            <p className="text-2xl font-bold text-purple-600">{customer.loyaltyPoints}</p>
-            <p className="text-xs text-foreground-secondary mt-1">Sadakat puanı</p>
-          </div>
+          <FluentCard depth="depth-8" className="p-4 bg-background hover:bg-background-alt transition-colors">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center">
+                <Award className="w-5 h-5 text-accent" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-foreground-secondary">Puan</p>
+                <p className="text-xl font-bold text-accent">{customer.loyaltyPoints}</p>
+              </div>
+            </div>
+            <p className="text-xs text-foreground-secondary">Sadakat puanı</p>
+          </FluentCard>
         </div>
 
         {/* Action Buttons */}
@@ -315,26 +409,23 @@ const CustomerDetail: React.FC = () => {
 
       {/* Tabs */}
       <div className="flex gap-2 border-b border-border overflow-x-auto">
-        {[
-          { key: 'genel', label: '📋 Genel Bilgiler' },
-          { key: 'finansal', label: '💰 Finansal' },
-          { key: 'satislar', label: '📦 Satışlar' },
-          { key: 'islemler', label: '🔄 İşlem Geçmişi' },
-          { key: 'analizler', label: '📊 Analizler' },
-          { key: 'notlar', label: '📝 Notlar' },
-        ].map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key as any)}
-            className={`px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
-              activeTab === tab.key
-                ? 'text-primary border-b-2 border-primary'
-                : 'text-foreground-secondary hover:text-foreground'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+        {tabs.map((tab) => {
+          const TabIcon = tab.icon;
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key as any)}
+              className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-colors ${
+                activeTab === tab.key
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-foreground-secondary hover:text-foreground hover:bg-background-alt'
+              }`}
+            >
+              <TabIcon className="w-4 h-4" />
+              {tab.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Tab Content */}
@@ -409,6 +500,7 @@ const CustomerDetail: React.FC = () => {
                         <th className="text-right py-2 px-3 text-sm font-medium text-foreground-secondary">Ödenen</th>
                         <th className="text-right py-2 px-3 text-sm font-medium text-foreground-secondary">Kalan</th>
                         <th className="text-center py-2 px-3 text-sm font-medium text-foreground-secondary">Durum</th>
+                        <th className="text-center py-2 px-3 text-sm font-medium text-foreground-secondary">İşlem</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -423,10 +515,10 @@ const CustomerDetail: React.FC = () => {
                             <td className="py-2 px-3 text-sm text-right text-foreground">
                               ₺{Number(debt.amount).toFixed(2)}
                             </td>
-                            <td className="py-2 px-3 text-sm text-right text-green-600">
+                            <td className="py-2 px-3 text-sm text-right text-success">
                               ₺{Number(debt.paidAmount).toFixed(2)}
                             </td>
-                            <td className="py-2 px-3 text-sm text-right text-red-600 font-medium">
+                            <td className="py-2 px-3 text-sm text-right text-error font-medium">
                               ₺{Number(debt.amount - debt.paidAmount).toFixed(2)}
                             </td>
                             <td className="py-2 px-3 text-center">
@@ -438,8 +530,16 @@ const CustomerDetail: React.FC = () => {
                                 size="small"
                               >
                                 {debt.status === 'OPEN' ? 'Açık' :
-                                 debt.status === 'PARTIAL' ? 'Kısmi Ödendi' : 'Ödendi'}
+                                 debt.status === 'PARTIAL' ? 'Kısmi' : 'Ödendi'}
                               </FluentBadge>
+                            </td>
+                            <td className="py-2 px-3 text-center">
+                              <FluentButton
+                                appearance="subtle"
+                                size="small"
+                                icon={<Trash2 className="w-3 h-3" />}
+                                onClick={() => handleDeleteDebt(debt.id)}
+                              />
                             </td>
                           </tr>
                         ))}
@@ -457,21 +557,42 @@ const CustomerDetail: React.FC = () => {
                 <div className="space-y-2">
                   {customer.debts.map((debt: any) => (
                     <div key={debt.id} className="p-3 bg-background-alt rounded flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-foreground">₺{Number(debt.amount).toFixed(2)}</p>
-                        <p className="text-xs text-foreground-secondary">
-                          {new Date(debt.createdAt).toLocaleDateString('tr-TR')} - {debt.user?.name}
-                        </p>
-                        {debt.description && (
-                          <p className="text-xs text-foreground-secondary mt-1">{debt.description}</p>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                          debt.status === 'PAID' ? 'bg-success/10' : 'bg-error/10'
+                        }`}>
+                          {debt.status === 'PAID' ? (
+                            <CheckCircle className="w-5 h-5 text-success" />
+                          ) : (
+                            <AlertCircle className="w-5 h-5 text-error" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground">₺{Number(debt.amount).toFixed(2)}</p>
+                          <p className="text-xs text-foreground-secondary">
+                            {new Date(debt.createdAt).toLocaleDateString('tr-TR')} - {debt.user?.name}
+                          </p>
+                          {debt.description && (
+                            <p className="text-xs text-foreground-secondary mt-1">{debt.description}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <FluentBadge
+                          appearance={debt.status === 'PAID' ? 'success' : 'error'}
+                          size="small"
+                        >
+                          {debt.status === 'PAID' ? 'Ödendi' : 'Açık'}
+                        </FluentBadge>
+                        {debt.status !== 'PAID' && (
+                          <FluentButton
+                            appearance="subtle"
+                            size="small"
+                            icon={<Trash2 className="w-3 h-3" />}
+                            onClick={() => handleDeleteDebt(debt.id)}
+                          />
                         )}
                       </div>
-                      <FluentBadge
-                        appearance={debt.status === 'PAID' ? 'success' : 'error'}
-                        size="small"
-                      >
-                        {debt.status === 'PAID' ? '✓ Ödendi' : 'Açık'}
-                      </FluentBadge>
                     </div>
                   ))}
                 </div>
@@ -495,13 +616,18 @@ const CustomerDetail: React.FC = () => {
             ) : (
               <div className="space-y-3">
                 {customer.sales.slice(0, 10).map((sale: any) => (
-                  <div key={sale.id} className="p-4 bg-background-alt rounded hover:bg-background-alt/70 transition-colors">
+                  <div key={sale.id} className="p-4 bg-background-alt rounded hover:bg-background transition-colors">
                     <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <p className="font-medium text-foreground">{sale.saleNumber}</p>
-                        <p className="text-xs text-foreground-secondary">
-                          {new Date(sale.createdAt).toLocaleString('tr-TR')}
-                        </p>
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                          <Receipt className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground">{sale.saleNumber}</p>
+                          <p className="text-xs text-foreground-secondary">
+                            {new Date(sale.createdAt).toLocaleString('tr-TR')}
+                          </p>
+                        </div>
                       </div>
                       <p className="text-lg font-bold text-primary">₺{Number(sale.total).toFixed(2)}</p>
                     </div>
@@ -527,50 +653,51 @@ const CustomerDetail: React.FC = () => {
               <p className="text-center text-foreground-secondary py-8">İşlem geçmişi yok</p>
             ) : (
               <div className="space-y-3">
-                {customer.transactions.map((transaction: any) => (
-                  <div key={transaction.id} className="p-4 bg-background-alt rounded">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-3">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                          transaction.type === 'SALE' ? 'bg-green-100 dark:bg-green-900/20' :
-                          transaction.type === 'PAYMENT' ? 'bg-blue-100 dark:bg-blue-900/20' :
-                          transaction.type === 'DEBT' ? 'bg-red-100 dark:bg-red-900/20' :
-                          'bg-gray-100 dark:bg-gray-900/20'
+                {customer.transactions.map((transaction: any) => {
+                  const isPositive = transaction.type === 'PAYMENT' || transaction.type === 'REFUND';
+                  const isNegative = transaction.type === 'DEBT';
+                  
+                  return (
+                    <div key={transaction.id} className="p-4 bg-background-alt rounded">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start gap-3">
+                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                            transaction.type === 'SALE' ? 'bg-primary/10' :
+                            transaction.type === 'PAYMENT' ? 'bg-success/10' :
+                            transaction.type === 'DEBT' ? 'bg-error/10' :
+                            'bg-info/10'
+                          }`}>
+                            {transaction.type === 'SALE' && <ShoppingCart className="w-5 h-5 text-primary" />}
+                            {transaction.type === 'PAYMENT' && <PaymentIcon className="w-5 h-5 text-success" />}
+                            {transaction.type === 'DEBT' && <AlertCircle className="w-5 h-5 text-error" />}
+                            {transaction.type === 'REFUND' && <TrendingUp className="w-5 h-5 text-info" />}
+                          </div>
+                          <div>
+                            <p className="font-medium text-foreground">
+                              {transaction.type === 'SALE' && 'Satış'}
+                              {transaction.type === 'PAYMENT' && 'Ödeme'}
+                              {transaction.type === 'DEBT' && 'Borç'}
+                              {transaction.type === 'REFUND' && 'İade'}
+                            </p>
+                            <p className="text-sm text-foreground-secondary mt-1">
+                              {transaction.description || '-'}
+                            </p>
+                            <p className="text-xs text-foreground-secondary mt-1">
+                              {new Date(transaction.createdAt).toLocaleString('tr-TR')}
+                              {transaction.user && ` • ${transaction.user.name}`}
+                            </p>
+                          </div>
+                        </div>
+                        <p className={`text-lg font-bold ${
+                          isPositive ? 'text-success' : isNegative ? 'text-error' : 'text-primary'
                         }`}>
-                          {transaction.type === 'SALE' && <ShoppingCart className="w-5 h-5 text-green-600" />}
-                          {transaction.type === 'PAYMENT' && <CreditCard className="w-5 h-5 text-blue-600" />}
-                          {transaction.type === 'DEBT' && <DollarSign className="w-5 h-5 text-red-600" />}
-                          {transaction.type === 'REFUND' && <TrendingUp className="w-5 h-5 text-gray-600" />}
-                        </div>
-                        <div>
-                          <p className="font-medium text-foreground">
-                            {transaction.type === 'SALE' && '🛒 Satış'}
-                            {transaction.type === 'PAYMENT' && '💳 Ödeme'}
-                            {transaction.type === 'DEBT' && '⚠️ Borç'}
-                            {transaction.type === 'REFUND' && '🔄 İade'}
-                          </p>
-                          <p className="text-sm text-foreground-secondary mt-1">
-                            {transaction.description || '-'}
-                          </p>
-                          <p className="text-xs text-foreground-secondary mt-1">
-                            {new Date(transaction.createdAt).toLocaleString('tr-TR')}
-                            {transaction.user && ` • ${transaction.user.name}`}
-                          </p>
-                        </div>
+                          {isPositive ? '-' : '+'}
+                          ₺{Math.abs(Number(transaction.amount)).toFixed(2)}
+                        </p>
                       </div>
-                      <p className={`text-lg font-bold ${
-                        transaction.type === 'PAYMENT' || transaction.type === 'REFUND'
-                          ? 'text-green-600'
-                          : transaction.type === 'DEBT'
-                          ? 'text-red-600'
-                          : 'text-primary'
-                      }`}>
-                        {transaction.type === 'PAYMENT' || transaction.type === 'REFUND' ? '-' : '+'}
-                        ₺{Math.abs(Number(transaction.amount)).toFixed(2)}
-                      </p>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </FluentCard>
@@ -582,29 +709,38 @@ const CustomerDetail: React.FC = () => {
             <h3 className="text-lg font-semibold text-foreground mb-4">Müşteri Analizi</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="text-center p-6 bg-blue-50 dark:bg-blue-900/10 rounded-lg">
+              <FluentCard depth="depth-8" className="p-6 text-center bg-background">
+                <div className="w-12 h-12 bg-info/10 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <Activity className="w-6 h-6 text-info" />
+                </div>
                 <p className="text-sm text-foreground-secondary mb-2">Alışveriş Sıklığı</p>
-                <p className="text-3xl font-bold text-blue-600">{customer.sales.length}</p>
+                <p className="text-3xl font-bold text-info">{customer.sales.length}</p>
                 <p className="text-xs text-foreground-secondary mt-2">Toplam satış</p>
-              </div>
+              </FluentCard>
 
-              <div className="text-center p-6 bg-green-50 dark:bg-green-900/10 rounded-lg">
+              <FluentCard depth="depth-8" className="p-6 text-center bg-background">
+                <div className="w-12 h-12 bg-success/10 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <ShoppingCart className="w-6 h-6 text-success" />
+                </div>
                 <p className="text-sm text-foreground-secondary mb-2">Ortalama Sepet</p>
-                <p className="text-3xl font-bold text-green-600">
+                <p className="text-3xl font-bold text-success">
                   ₺{customer.sales.length > 0 ? (customer.totalSpent / customer.sales.length).toFixed(0) : '0'}
                 </p>
                 <p className="text-xs text-foreground-secondary mt-2">Her alışverişte</p>
-              </div>
+              </FluentCard>
 
-              <div className="text-center p-6 bg-purple-50 dark:bg-purple-900/10 rounded-lg">
+              <FluentCard depth="depth-8" className="p-6 text-center bg-background">
+                <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-3">
+                  <Package className="w-6 h-6 text-accent" />
+                </div>
                 <p className="text-sm text-foreground-secondary mb-2">Toplam Ürün</p>
-                <p className="text-3xl font-bold text-purple-600">
+                <p className="text-3xl font-bold text-accent">
                   {customer.sales.reduce((sum: number, sale: any) => 
                     sum + (sale.items?.length || 0), 0
                   )}
                 </p>
                 <p className="text-xs text-foreground-secondary mt-2">Satın alındı</p>
-              </div>
+              </FluentCard>
             </div>
 
             <div className="mt-6 p-6 bg-background-alt rounded-lg">
@@ -647,7 +783,8 @@ const CustomerDetail: React.FC = () => {
                       <div className="flex-1">
                         {note.isPinned && (
                           <FluentBadge appearance="info" size="small" className="mb-2">
-                            📌 Sabitlenmiş
+                            <Clock className="w-3 h-3 inline mr-1" />
+                            Sabitlenmiş
                           </FluentBadge>
                         )}
                         <p className="text-foreground">{note.note}</p>
@@ -670,6 +807,56 @@ const CustomerDetail: React.FC = () => {
           </FluentCard>
         )}
       </div>
+
+      {/* Müşteri Düzenle Modal */}
+      <FluentDialog
+        open={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        title="Müşteri Düzenle"
+        size="medium"
+      >
+        <div className="space-y-4">
+          <FluentInput
+            label="İsim *"
+            value={editForm.name}
+            onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+            required
+          />
+          <FluentInput
+            label="E-posta"
+            type="email"
+            value={editForm.email}
+            onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+          />
+          <FluentInput
+            label="Telefon"
+            value={editForm.phone}
+            onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+          />
+          <FluentInput
+            label="Adres"
+            value={editForm.address}
+            onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+          />
+          <div className="flex gap-2 pt-4">
+            <FluentButton
+              appearance="subtle"
+              className="flex-1"
+              onClick={() => setShowEditModal(false)}
+            >
+              İptal
+            </FluentButton>
+            <FluentButton
+              appearance="primary"
+              className="flex-1"
+              icon={<Check className="w-4 h-4" />}
+              onClick={handleEditCustomer}
+            >
+              Güncelle
+            </FluentButton>
+          </div>
+        </div>
+      </FluentDialog>
 
       {/* Borç Ekle Modal */}
       <FluentDialog
@@ -696,7 +883,7 @@ const CustomerDetail: React.FC = () => {
             <textarea
               value={debtForm.description}
               onChange={(e) => setDebtForm({ ...debtForm, description: e.target.value })}
-              className="w-full h-20 px-3 py-2 bg-input border border-border rounded text-foreground resize-none"
+              className="w-full h-20 px-3 py-2 bg-input border border-border rounded text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="Borç açıklaması..."
             />
           </div>
@@ -763,22 +950,26 @@ const CustomerDetail: React.FC = () => {
             </label>
             <div className="grid grid-cols-3 gap-2">
               {[
-                { value: 'CASH', label: '💵 Nakit' },
-                { value: 'CARD', label: '💳 Kart' },
-                { value: 'BANK_TRANSFER', label: '🏦 Havale' },
-              ].map((method) => (
-                <button
-                  key={method.value}
-                  onClick={() => setPaymentForm({ ...paymentForm, paymentMethod: method.value })}
-                  className={`p-3 rounded border transition-colors ${
-                    paymentForm.paymentMethod === method.value
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-border bg-background hover:bg-background-alt text-foreground'
-                  }`}
-                >
-                  {method.label}
-                </button>
-              ))}
+                { value: 'CASH', label: 'Nakit', icon: Banknote },
+                { value: 'CARD', label: 'Kart', icon: CreditCard },
+                { value: 'BANK_TRANSFER', label: 'Havale', icon: Building2 },
+              ].map((method) => {
+                const MethodIcon = method.icon;
+                return (
+                  <button
+                    key={method.value}
+                    onClick={() => setPaymentForm({ ...paymentForm, paymentMethod: method.value })}
+                    className={`p-3 rounded border transition-colors flex flex-col items-center gap-2 ${
+                      paymentForm.paymentMethod === method.value
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border bg-background hover:bg-background-alt text-foreground'
+                    }`}
+                  >
+                    <MethodIcon className="w-5 h-5" />
+                    <span className="text-sm">{method.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -789,14 +980,14 @@ const CustomerDetail: React.FC = () => {
             <textarea
               value={paymentForm.notes}
               onChange={(e) => setPaymentForm({ ...paymentForm, notes: e.target.value })}
-              className="w-full h-20 px-3 py-2 bg-input border border-border rounded text-foreground resize-none"
+              className="w-full h-20 px-3 py-2 bg-input border border-border rounded text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="Ödeme notu..."
             />
           </div>
 
           {paymentForm.amount && (
-            <div className="p-3 bg-blue-50 dark:bg-blue-900/10 rounded">
-              <p className="text-sm text-blue-900 dark:text-blue-100">
+            <div className="p-3 bg-info/10 rounded">
+              <p className="text-sm text-info">
                 Kalan Borç: ₺{Math.max(0, customer.debt - parseFloat(paymentForm.amount)).toFixed(2)}
               </p>
             </div>
@@ -837,7 +1028,7 @@ const CustomerDetail: React.FC = () => {
             <textarea
               value={noteForm.note}
               onChange={(e) => setNoteForm({ ...noteForm, note: e.target.value })}
-              className="w-full h-32 px-3 py-2 bg-input border border-border rounded text-foreground resize-none"
+              className="w-full h-32 px-3 py-2 bg-input border border-border rounded text-foreground resize-none focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="Müşteri notu..."
             />
           </div>
@@ -847,9 +1038,10 @@ const CustomerDetail: React.FC = () => {
               type="checkbox"
               checked={noteForm.isPinned}
               onChange={(e) => setNoteForm({ ...noteForm, isPinned: e.target.checked })}
-              className="w-4 h-4"
+              className="w-4 h-4 rounded border-border focus:ring-2 focus:ring-primary"
             />
-            <span className="text-sm text-foreground">📌 Sabitle (üstte göster)</span>
+            <Clock className="w-4 h-4 text-foreground-secondary" />
+            <span className="text-sm text-foreground">Sabitle (üstte göster)</span>
           </label>
 
           <div className="flex gap-2 pt-4">
@@ -876,4 +1068,3 @@ const CustomerDetail: React.FC = () => {
 };
 
 export default CustomerDetail;
-
