@@ -314,11 +314,11 @@ const Customers: React.FC = () => {
 
       {/* Gelişmiş Filtreler */}
       {showFilters && (
-        <FluentCard depth="depth-4" className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-              <Filter className="w-5 h-5" />
-              Gelişmiş Filtreler
+        <FluentCard depth="depth-4" className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-normal text-foreground flex items-center gap-2">
+              <Filter className="w-4 h-4" />
+              Filtreler
             </h3>
             {hasActiveFilters && (
               <FluentButton
@@ -326,19 +326,17 @@ const Customers: React.FC = () => {
                 size="small"
                 icon={<X className="w-3 h-3" />}
                 onClick={clearFilters}
-              >
-                Filtreleri Temizle
-              </FluentButton>
+              />
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {/* Borç Durumu */}
             <div>
-              <label className="block text-sm font-medium text-foreground-secondary mb-2">
+              <label className="block text-xs font-normal text-foreground-secondary mb-1.5">
                 Borç Durumu
               </label>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {[
                   { value: 'all', label: 'Tümü', count: customers.length },
                   { value: 'with-debt', label: 'Borçlu', count: customers.filter(c => c.debt > 0).length },
@@ -347,14 +345,13 @@ const Customers: React.FC = () => {
                   <button
                     key={option.value}
                     onClick={() => setFilters({ ...filters, debtStatus: option.value as any })}
-                    className={`text-left px-3 py-2 rounded border transition-colors ${
+                    className={`text-xs px-2 py-1 rounded border transition-colors ${
                       filters.debtStatus === option.value
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-border bg-background hover:bg-background-alt text-foreground'
+                        ? 'border-primary bg-primary/10 text-primary font-normal'
+                        : 'border-border bg-background hover:bg-background-alt text-foreground font-normal'
                     }`}
                   >
-                    <span className="font-medium">{option.label}</span>
-                    <span className="text-xs text-foreground-secondary ml-2">({option.count})</span>
+                    {option.label} <span className="text-foreground-secondary">({option.count})</span>
                   </button>
                 ))}
               </div>
@@ -362,26 +359,25 @@ const Customers: React.FC = () => {
 
             {/* Müşteri Segmenti */}
             <div>
-              <label className="block text-sm font-medium text-foreground-secondary mb-2">
-                Müşteri Segmenti
+              <label className="block text-xs font-normal text-foreground-secondary mb-1.5">
+                Segment
               </label>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {[
                   { value: 'all', label: 'Tümü', count: customers.length },
-                  { value: 'vip', label: 'VIP (5000₺+)', count: customers.filter(c => c.totalSpent > 5000).length },
-                  { value: 'normal', label: 'Normal (<5000₺)', count: customers.filter(c => c.totalSpent <= 5000).length },
+                  { value: 'vip', label: 'VIP', count: customers.filter(c => c.totalSpent > 5000).length },
+                  { value: 'normal', label: 'Normal', count: customers.filter(c => c.totalSpent <= 5000).length },
                 ].map((option) => (
                   <button
                     key={option.value}
                     onClick={() => setFilters({ ...filters, segment: option.value as any })}
-                    className={`text-left px-3 py-2 rounded border transition-colors ${
+                    className={`text-xs px-2 py-1 rounded border transition-colors ${
                       filters.segment === option.value
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-border bg-background hover:bg-background-alt text-foreground'
+                        ? 'border-primary bg-primary/10 text-primary font-normal'
+                        : 'border-border bg-background hover:bg-background-alt text-foreground font-normal'
                     }`}
                   >
-                    <span className="font-medium">{option.label}</span>
-                    <span className="text-xs text-foreground-secondary ml-2">({option.count})</span>
+                    {option.label} <span className="text-foreground-secondary">({option.count})</span>
                   </button>
                 ))}
               </div>
@@ -389,27 +385,26 @@ const Customers: React.FC = () => {
 
             {/* Harcama Aralığı */}
             <div>
-              <label className="block text-sm font-medium text-foreground-secondary mb-2">
-                Harcama Aralığı
+              <label className="block text-xs font-normal text-foreground-secondary mb-1.5">
+                Harcama
               </label>
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {[
                   { value: 'all', label: 'Tümü', count: customers.length },
-                  { value: 'low', label: 'Düşük (<1000₺)', count: customers.filter(c => c.totalSpent < 1000).length },
-                  { value: 'medium', label: 'Orta (1000-5000₺)', count: customers.filter(c => c.totalSpent >= 1000 && c.totalSpent <= 5000).length },
-                  { value: 'high', label: 'Yüksek (>5000₺)', count: customers.filter(c => c.totalSpent > 5000).length },
+                  { value: 'low', label: '<1K', count: customers.filter(c => c.totalSpent < 1000).length },
+                  { value: 'medium', label: '1-5K', count: customers.filter(c => c.totalSpent >= 1000 && c.totalSpent <= 5000).length },
+                  { value: 'high', label: '>5K', count: customers.filter(c => c.totalSpent > 5000).length },
                 ].map((option) => (
                   <button
                     key={option.value}
                     onClick={() => setFilters({ ...filters, spendingRange: option.value as any })}
-                    className={`text-left px-3 py-2 rounded border transition-colors ${
+                    className={`text-xs px-2 py-1 rounded border transition-colors ${
                       filters.spendingRange === option.value
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-border bg-background hover:bg-background-alt text-foreground'
+                        ? 'border-primary bg-primary/10 text-primary font-normal'
+                        : 'border-border bg-background hover:bg-background-alt text-foreground font-normal'
                     }`}
                   >
-                    <span className="font-medium">{option.label}</span>
-                    <span className="text-xs text-foreground-secondary ml-2">({option.count})</span>
+                    {option.label} <span className="text-foreground-secondary">({option.count})</span>
                   </button>
                 ))}
               </div>
@@ -418,25 +413,21 @@ const Customers: React.FC = () => {
 
           {/* Active Filters */}
           {hasActiveFilters && (
-            <div className="mt-4 pt-4 border-t border-border">
-              <p className="text-sm text-foreground-secondary mb-2">Aktif Filtreler:</p>
-              <div className="flex flex-wrap gap-2">
+            <div className="mt-3 pt-3 border-t border-border">
+              <div className="flex flex-wrap gap-1.5">
                 {filters.debtStatus !== 'all' && (
                   <FluentBadge appearance="info" size="small">
-                    <AlertCircle className="w-3 h-3 inline mr-1" />
                     {filters.debtStatus === 'with-debt' ? 'Borçlu' : 'Borçsuz'}
                   </FluentBadge>
                 )}
                 {filters.segment !== 'all' && (
                   <FluentBadge appearance="success" size="small">
-                    <Award className="w-3 h-3 inline mr-1" />
                     {filters.segment === 'vip' ? 'VIP' : 'Normal'}
                   </FluentBadge>
                 )}
                 {filters.spendingRange !== 'all' && (
                   <FluentBadge appearance="warning" size="small">
-                    <TrendingUp className="w-3 h-3 inline mr-1" />
-                    {filters.spendingRange === 'low' ? 'Düşük' : filters.spendingRange === 'medium' ? 'Orta' : 'Yüksek'}
+                    {filters.spendingRange === 'low' ? '<1K' : filters.spendingRange === 'medium' ? '1-5K' : '>5K'}
                   </FluentBadge>
                 )}
               </div>
