@@ -120,9 +120,9 @@ const Dashboard: React.FC = () => {
     fetchDashboardData();
   }, []);
 
-  // 🆕 Re-fetch when date filter changes
+  // 🆕 Re-fetch when date filter changes (skip initial render)
   useEffect(() => {
-    if (dateFilter) {
+    if (dateFilter && dateFilter !== 'Bu Ay') {
       fetchDashboardData();
     }
   }, [dateFilter]);
