@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Edit, Trash2, User, Mail, Phone, Eye, LayoutGrid, List, DollarSign, Award } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, User, Mail, Phone, Eye, LayoutGrid, List, DollarSign, Award, Users, AlertCircle, TrendingUp } from 'lucide-react';
 import FluentButton from '../components/fluent/FluentButton';
 import FluentCard from '../components/fluent/FluentCard';
 import FluentInput from '../components/fluent/FluentInput';
@@ -120,6 +120,16 @@ const Customers: React.FC = () => {
     return matchesSearch;
   });
 
+  // İstatistikler
+  const stats = {
+    total: customers.length,
+    vip: customers.filter(c => c.totalSpent > 5000).length,
+    withDebt: customers.filter(c => c.debt > 0).length,
+    avgSpending: customers.length > 0 
+      ? customers.reduce((sum, c) => sum + c.totalSpent, 0) / customers.length 
+      : 0,
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -174,15 +184,91 @@ const Customers: React.FC = () => {
         </div>
       </div>
 
-      {/* Search */}
-      <FluentCard depth="depth-4" className="p-4">
-        <FluentInput
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Müşteri ara..."
-          icon={<Search className="w-4 h-4" />}
-        />
-      </FluentCard>
+      {/* Search & Stats */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        {/* Search Box */}
+        <div className="lg:col-span-4">
+          <FluentCard depth="depth-4" className="p-4 h-full">
+            <FluentInput
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Müşteri ara..."
+              icon={<Search className="w-4 h-4" />}
+            />
+          </FluentCard>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="lg:col-span-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+          {/* Toplam Müşteri */}
+          <FluentCard 
+            depth="depth-4" 
+            hoverable 
+            className="p-4 cursor-pointer hover:scale-105 transition-transform"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
+                <Users className="w-6 h-6 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-2xl font-bold text-primary">{stats.total}</p>
+                <p className="text-xs text-foreground-secondary truncate">Toplam</p>
+              </div>
+            </div>
+          </FluentCard>
+
+          {/* VIP Müşteriler */}
+          <FluentCard 
+            depth="depth-4" 
+            hoverable 
+            className="p-4 cursor-pointer hover:scale-105 transition-transform"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-success/10 rounded-lg flex items-center justify-center shrink-0">
+                <Award className="w-6 h-6 text-success" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-2xl font-bold text-success">{stats.vip}</p>
+                <p className="text-xs text-foreground-secondary truncate">VIP</p>
+              </div>
+            </div>
+          </FluentCard>
+
+          {/* Borçlu Müşteriler */}
+          <FluentCard 
+            depth="depth-4" 
+            hoverable 
+            className="p-4 cursor-pointer hover:scale-105 transition-transform"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-error/10 rounded-lg flex items-center justify-center shrink-0">
+                <AlertCircle className="w-6 h-6 text-error" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-2xl font-bold text-error">{stats.withDebt}</p>
+                <p className="text-xs text-foreground-secondary truncate">Borçlu</p>
+              </div>
+            </div>
+          </FluentCard>
+
+          {/* Ortalama Harcama */}
+          <FluentCard 
+            depth="depth-4" 
+            hoverable 
+            className="p-4 cursor-pointer hover:scale-105 transition-transform"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-info/10 rounded-lg flex items-center justify-center shrink-0">
+                <TrendingUp className="w-6 h-6 text-info" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-2xl font-bold text-info">₺{stats.avgSpending.toFixed(0)}</p>
+                <p className="text-xs text-foreground-secondary truncate">Ortalama</p>
+              </div>
+            </div>
+          </FluentCard>
+        </div>
+      </div>
 
       {/* Customers Grid View */}
       {viewMode === 'grid' && (
