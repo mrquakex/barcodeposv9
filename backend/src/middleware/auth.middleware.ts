@@ -4,6 +4,12 @@ import jwt from 'jsonwebtoken';
 export interface AuthRequest extends Request {
   userId?: string;
   userRole?: string;
+  user?: {
+    id: string;
+    role: string;
+    name?: string;
+    email?: string;
+  };
 }
 
 export const authenticate = (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -17,6 +23,7 @@ export const authenticate = (req: AuthRequest, res: Response, next: NextFunction
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string; role: string };
     req.userId = decoded.userId;
     req.userRole = decoded.role;
+    req.user = { id: decoded.userId, role: decoded.role };
     next();
   } catch (error) {
     return res.status(401).json({ error: 'Geçersiz token' });

@@ -179,7 +179,11 @@ export const receivePurchaseOrder = async (req: AuthRequest, res: Response) => {
           productId: orderItem.productId,
           type: 'IN',
           quantity: receivedItem.receivedQty,
-          reason: `Satın alma siparişi teslim alındı: ${order.orderNumber}`,
+          previousStock: orderItem.product.stock,
+          newStock: orderItem.product.stock + receivedItem.receivedQty,
+          referenceType: 'PURCHASE',
+          referenceId: order.id,
+          notes: `Satın alma siparişi teslim alındı: ${order.orderNumber}`,
           userId: req.user!.id,
         },
       });

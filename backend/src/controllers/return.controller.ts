@@ -188,7 +188,11 @@ export const completeReturn = async (req: AuthRequest, res: Response) => {
           productId: item.productId,
           type: 'IN',
           quantity: item.quantity,
-          reason: `İade: ${returnRecord.returnNumber}`,
+          previousStock: item.product.stock,
+          newStock: item.product.stock + item.quantity,
+          referenceType: 'RETURN',
+          referenceId: returnRecord.id,
+          notes: `İade: ${returnRecord.returnNumber}`,
           userId: req.user!.id,
         },
       });
