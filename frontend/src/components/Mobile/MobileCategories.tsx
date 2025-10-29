@@ -56,10 +56,20 @@ const MobileCategories: React.FC = () => {
 
   const handleTouchMove = (e: React.TouchEvent, categoryId: string) => {
     const touchX = e.touches[0].clientX;
+    const touchY = e.touches[0].clientY;
     const deltaX = touchX - touchStartX.current;
+    const deltaY = touchY - touchStartY.current;
 
-    if (Math.abs(deltaX) > 50) {
-      setSwipedCategory(categoryId);
+    // Only swipe if horizontal movement is dominant
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      if (deltaX < -50) {
+        // Swipe LEFT → Open edit/delete actions
+        setSwipedCategory(categoryId);
+      } else if (deltaX > 50 && swipedCategory === categoryId) {
+        // Swipe RIGHT → Close actions (return to normal)
+        setSwipedCategory(null);
+        hapticFeedback(ImpactStyle.Light);
+      }
     }
   };
 
@@ -123,9 +133,10 @@ const MobileCategories: React.FC = () => {
     category.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Apple HIG Minimal - Monochrome shades
   const categoryColors = [
-    '#007AFF', '#34C759', '#FF9500', '#FF3B30', '#5856D6', 
-    '#AF52DE', '#FF2D55', '#A2845E'
+    '#D1D1D6', '#E5E5EA', '#C7C7CC', '#AEAEB2', 
+    '#8E8E93', '#636366', '#48484A', '#3A3A3C'
   ];
 
   return (

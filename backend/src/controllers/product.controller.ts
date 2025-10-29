@@ -206,11 +206,35 @@ export const deleteProduct = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    await prisma.product.delete({
-      where: { id },
-    });
-
-    res.json({ message: 'Ürün başarıyla silindi' });
+    // Check if product has ANY related records
+    const saleItems = await prisma.saleItem.count({ where: { productId: id } });
+    const stockCountItems = await prisma.stockCountItem.count({ where: { productId: id } });
+    const stockMovements = await prisma.stockMovement.count({ where: { productId: id } });
+    const productVariants = await prisma.productVariant.count({ where: { productId: id } });
+    const purchaseOrderItems = await prisma.purchaseOrderItem.count({ where: { productId: id } });
+    
+    const hasRelations = saleItems > 0 || stockCountItems > 0 || stockMovements > 0 || 
+                        productVariants > 0 || purchaseOrderItems > 0;
+    
+    if (hasRelations) {
+      // Soft delete: Just deactivate the product instead of deleting
+      await prisma.product.update({
+        where: { id },
+        data: { isActive: false },
+      });
+      
+      res.json({ 
+        message: 'Ürün devre dışı bırakıldı (ilişkili kayıtlar olduğu için silinemez)', 
+        softDelete: true 
+      });
+    } else {
+      // No related records, safe to delete
+      await prisma.product.delete({
+        where: { id },
+      });
+      
+      res.json({ message: 'Ürün başarıyla silindi' });
+    }
   } catch (error) {
     console.error('Delete product error:', error);
     res.status(500).json({ error: 'Ürün silinemedi' });

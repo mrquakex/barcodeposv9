@@ -149,7 +149,7 @@ const MobileDashboard: React.FC = () => {
   const menuButtons: MenuButton[] = [
     { icon: ShoppingCart, title: 'Satış Yap', path: '/pos' },
     { icon: Package, title: 'Ürünler', path: '/products', badge: stats.totalProducts > 0 ? stats.totalProducts.toString() : undefined },
-    { icon: PlusCircle, title: 'Ürün Ekle', path: '/products/add' },
+    { icon: PlusCircle, title: 'Ürün Ekle/Güncelle', path: '/products/add' },
     { icon: Users, title: 'Müşteriler', path: '/customers' },
     { icon: Building2, title: 'Tedarikçiler', path: '/suppliers' },
     { icon: BarChart3, title: 'Satışlar', path: '/sales' },

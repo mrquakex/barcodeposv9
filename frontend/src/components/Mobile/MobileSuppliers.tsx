@@ -31,6 +31,7 @@ const MobileSuppliers: React.FC = () => {
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', address: '' });
   
   const touchStartX = useRef<number>(0);
+  const touchStartY = useRef<number>(0);
   const longPressTimer = useRef<any>();
 
   const hapticFeedback = async (style: ImpactStyle = ImpactStyle.Light) => {
@@ -57,6 +58,7 @@ const MobileSuppliers: React.FC = () => {
   // Touch handlers
   const handleTouchStart = (e: React.TouchEvent, supplierId: string) => {
     touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
     
     longPressTimer.current = setTimeout(() => {
       setLongPressSupplier(supplierId);
@@ -71,10 +73,20 @@ const MobileSuppliers: React.FC = () => {
     }
 
     const touchX = e.touches[0].clientX;
+    const touchY = e.touches[0].clientY;
     const deltaX = touchX - touchStartX.current;
+    const deltaY = touchY - touchStartY.current;
 
-    if (Math.abs(deltaX) > 50) {
-      setSwipedSupplier(supplierId);
+    // Only swipe if horizontal movement is dominant
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      if (deltaX < -50) {
+        // Swipe LEFT → Open edit/delete actions
+        setSwipedSupplier(supplierId);
+      } else if (deltaX > 50 && swipedSupplier === supplierId) {
+        // Swipe RIGHT → Close actions (return to normal)
+        setSwipedSupplier(null);
+        hapticFeedback(ImpactStyle.Light);
+      }
     }
   };
 

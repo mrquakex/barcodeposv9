@@ -32,9 +32,23 @@ const Returns: React.FC = () => {
 
   const fetchReturns = async () => {
     try {
+      console.log('🔍 [RETURNS-WEB] Fetching returns...');
       const response = await api.get('/returns');
-      setReturns(response.data.returns || response.data || []);
+      console.log('📦 [RETURNS-WEB] Full response:', response);
+      console.log('📦 [RETURNS-WEB] Response data:', response.data);
+      console.log('📦 [RETURNS-WEB] response.data.returns:', response.data.returns);
+      
+      // Backend can return either {returns: [...]} or direct array
+      const returnsData = Array.isArray(response.data) 
+        ? response.data 
+        : (response.data.returns || []);
+      
+      console.log('✅ [RETURNS-WEB] Parsed returns:', returnsData);
+      console.log('✅ [RETURNS-WEB] Count:', returnsData.length);
+      
+      setReturns(returnsData);
     } catch (error) {
+      console.error('❌ [RETURNS-WEB] Fetch error:', error);
       toast.error(t('returns.fetchError'));
     } finally {
       setIsLoading(false);

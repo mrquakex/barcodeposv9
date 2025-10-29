@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import { Capacitor } from '@capacitor/core';
@@ -31,6 +32,7 @@ interface QuickProduct {
   price: number;
   stock: number;
   icon: string;
+  gradient?: string;
 }
 
 type PaymentMode = 'simple' | 'smart-change' | 'split' | 'multiple';
@@ -52,6 +54,16 @@ const MobilePOS: React.FC = () => {
   const [splitPeople, setSplitPeople] = useState(2);
   const [multiplePayments, setMultiplePayments] = useState<{method: string; amount: number}[]>([]);
   
+  // 🆕 Discount System
+  const [discountType, setDiscountType] = useState<'none' | 'percent' | 'amount'>('none');
+  const [discountValue, setDiscountValue] = useState('');
+  const [showDiscountModal, setShowDiscountModal] = useState(false);
+
+  // 🆕 Refund System
+  const [showRefundModal, setShowRefundModal] = useState(false);
+  const [refundSaleId, setRefundSaleId] = useState<string | null>(null);
+  const [refundItems, setRefundItems] = useState<{saleItemId: string; quantity: number}[]>([]);
+  
   // Note system
   const [editingNote, setEditingNote] = useState<string | null>(null);
   const [noteText, setNoteText] = useState('');
@@ -59,13 +71,29 @@ const MobilePOS: React.FC = () => {
   // Receipt sharing
   const [showReceiptShare, setShowReceiptShare] = useState(false);
 
+  // Customer selection for credit sales
+  const [showCustomerModal, setShowCustomerModal] = useState(false);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+
   // Gesture handling
   const containerRef = useRef<HTMLDivElement>(null);
   const [touchStart, setTouchStart] = useState<{ x: number; y: number; time: number } | null>(null);
   const [lastTap, setLastTap] = useState<number>(0);
   const [actionHistory, setActionHistory] = useState<Array<{ type: string; data: any }>>([]);
 
-  const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  // Calculate subtotal
+  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  
+  // Calculate discount amount
+  const discountAmount = discountType === 'percent' 
+    ? (subtotal * (parseFloat(discountValue) || 0)) / 100
+    : discountType === 'amount'
+    ? parseFloat(discountValue) || 0
+    : 0;
+  
+  // Calculate final total
+  const total = Math.max(0, subtotal - discountAmount);
   const change = receivedAmount ? parseFloat(receivedAmount) - total : 0;
 
   const hapticFeedback = async (style: ImpactStyle = ImpactStyle.Light) => {
@@ -217,20 +245,61 @@ const MobilePOS: React.FC = () => {
     loadQuickProducts();
   }, []);
 
+  // Check for pending items from Products page
+  useEffect(() => {
+    const checkPendingItems = () => {
+      const pending = localStorage.getItem('pos_pending_items');
+      if (pending) {
+        try {
+          const items = JSON.parse(pending);
+          items.forEach((item: any) => {
+            addToCart(item);
+          });
+          localStorage.removeItem('pos_pending_items');
+          toast.success(`${items.length} ürün sepete eklendi!`);
+          hapticFeedback(ImpactStyle.Medium);
+        } catch (error) {
+          console.error('Pending items error:', error);
+        }
+      }
+    };
+    
+    checkPendingItems();
+  }, []);
+
+  // Load customers for credit sales
+  useEffect(() => {
+    const loadCustomers = async () => {
+      try {
+        console.log('💳 [VERESIYE] Loading customers from API...');
+        const response = await api.get('/customers');
+        console.log('💳 [VERESIYE] API response:', response.data);
+        const customerList = response.data.customers || response.data || [];
+        console.log('💳 [VERESIYE] Loaded customers:', customerList.length);
+        setCustomers(customerList);
+      } catch (error) {
+        console.error('💳 [VERESIYE] Failed to load customers:', error);
+        setCustomers([]);
+      }
+    };
+    loadCustomers();
+  }, []);
+
   const loadQuickProducts = async () => {
     try {
       // Load real products from API (first 8 products)
       const response = await api.get('/products');
       const products = response.data.products || [];
       
-      // Map to quick products format with emoji
+      // Map to quick products format with initials and gradient
       const quickProds: QuickProduct[] = products.slice(0, 8).map((p: any) => ({
         id: p.id, // ✅ Real UUID from database!
         barcode: p.barcode,
         name: p.name,
         price: p.sellPrice,
         stock: p.stock,
-        icon: getCategoryEmoji(p.category?.name)
+        icon: getInitials(p.name), // Initials instead of emoji
+        gradient: getCategoryGradient(p.category?.name) // Monochrome gradient
       }));
       
       setQuickProducts(quickProds);
@@ -241,18 +310,61 @@ const MobilePOS: React.FC = () => {
     }
   };
 
-  // Get emoji based on category name
-  const getCategoryEmoji = (categoryName?: string): string => {
+  // Get initials for avatar (first 2 letters)
+  const getInitials = (name: string): string => {
+    const cleaned = name.trim().toUpperCase();
+    if (cleaned.length === 0) return 'PR';
+    if (cleaned.length === 1) return cleaned;
+    return cleaned.substring(0, 2);
+  };
+
+  // Shorten product name intelligently
+  const shortenName = (name: string): string => {
+    if (name.length <= 12) return name;
+    
+    // Remove common suffixes
+    const cleaned = name
+      .replace(/\.TRSPF/g, '')
+      .replace(/\.COM/g, '')
+      .replace(/OKEURLÇCOM/g, '')
+      .trim();
+    
+    if (cleaned.length <= 12) return cleaned;
+    
+    // Truncate with ellipsis
+    return cleaned.substring(0, 10) + '...';
+  };
+
+  // Get monochrome gradient based on category (Apple HIG compliant)
+  const getCategoryGradient = (categoryName?: string): string => {
     const name = categoryName?.toLowerCase() || '';
-    if (name.includes('içecek') || name.includes('drink')) return '🥤';
-    if (name.includes('gıda') || name.includes('food')) return '🍞';
-    if (name.includes('süt') || name.includes('milk')) return '🥛';
-    if (name.includes('çikolata') || name.includes('chocolate')) return '🍫';
-    if (name.includes('çay') || name.includes('tea')) return '☕';
-    if (name.includes('kahve') || name.includes('coffee')) return '☕';
-    if (name.includes('su') || name.includes('water')) return '💧';
-    if (name.includes('meyve') || name.includes('fruit')) return '🍊';
-    return '📦'; // Default
+    const isDark = document.documentElement.classList.contains('dark');
+    
+    if (isDark) {
+      // Dark mode monochrome gradients
+      if (name.includes('içecek') || name.includes('drink')) return 'linear-gradient(135deg, #2C2C2E, #3A3A3C)';
+      if (name.includes('gıda') || name.includes('food')) return 'linear-gradient(135deg, #3A3A3C, #48484A)';
+      if (name.includes('süt') || name.includes('milk')) return 'linear-gradient(135deg, #1C1C1E, #2C2C2E)';
+      if (name.includes('çikolata') || name.includes('chocolate')) return 'linear-gradient(135deg, #48484A, #636366)';
+      if (name.includes('sigara') || name.includes('cigarette')) return 'linear-gradient(135deg, #636366, #8E8E93)';
+      if (name.includes('çay') || name.includes('tea')) return 'linear-gradient(135deg, #2C2C2E, #3A3A3C)';
+      if (name.includes('kahve') || name.includes('coffee')) return 'linear-gradient(135deg, #3A3A3C, #48484A)';
+      if (name.includes('su') || name.includes('water')) return 'linear-gradient(135deg, #1C1C1E, #2C2C2E)';
+      
+      return 'linear-gradient(135deg, #2C2C2E, #3A3A3C)';
+    } else {
+      // Light mode monochrome gradients
+      if (name.includes('içecek') || name.includes('drink')) return 'linear-gradient(135deg, #E5E5EA, #D1D1D6)';
+      if (name.includes('gıda') || name.includes('food')) return 'linear-gradient(135deg, #C7C7CC, #AEAEB2)';
+      if (name.includes('süt') || name.includes('milk')) return 'linear-gradient(135deg, #F2F2F7, #E5E5EA)';
+      if (name.includes('çikolata') || name.includes('chocolate')) return 'linear-gradient(135deg, #8E8E93, #636366)';
+      if (name.includes('sigara') || name.includes('cigarette')) return 'linear-gradient(135deg, #636366, #48484A)';
+      if (name.includes('çay') || name.includes('tea')) return 'linear-gradient(135deg, #D1D1D6, #C7C7CC)';
+      if (name.includes('kahve') || name.includes('coffee')) return 'linear-gradient(135deg, #AEAEB2, #8E8E93)';
+      if (name.includes('su') || name.includes('water')) return 'linear-gradient(135deg, #F2F2F7, #D1D1D6)';
+      
+      return 'linear-gradient(135deg, #D1D1D6, #AEAEB2)';
+    }
   };
 
   const startScan = async () => {
@@ -414,7 +526,7 @@ const MobilePOS: React.FC = () => {
     hapticFeedback();
   };
 
-  const completeSale = async (paymentMethod: 'CASH' | 'CARD' | 'CREDIT') => {
+  const completeSale = async (paymentMethod: 'CASH' | 'CARD' | 'CREDIT', customerForSale?: any) => {
     if (cartItems.length === 0) {
       toast.error('Sepet boş!');
       soundEffects.error();
@@ -446,7 +558,7 @@ const MobilePOS: React.FC = () => {
         toast.loading(`${paymentNames[paymentMethod]} ile ödeme yapılıyor...`, { duration: 2000 });
       }, 100);
 
-      const saleData = {
+      const saleData: any = {
         items: cartItems.map(item => ({
           productId: item.id,
           quantity: item.quantity,
@@ -454,10 +566,29 @@ const MobilePOS: React.FC = () => {
           taxRate: 0,  // ✅ Vergi oranı (şimdilik 0)
         })),
         paymentMethod,
-        subtotal: total,  // ✅ Backend subtotal bekliyor
+        subtotal: subtotal,  // ✅ İndirim öncesi tutar
+        discountAmount: discountAmount,  // 🆕 İndirim tutarı
         taxAmount: 0,  // ✅ Vergi tutarı (şimdilik 0)
-        total
+        total: total  // ✅ İndirim sonrası final tutar
       };
+
+      // Add customerId for credit sales - USE DIRECT PARAMETER!
+      if (paymentMethod === 'CREDIT') {
+        const customer = customerForSale || selectedCustomer;
+        console.log('💳 [COMPLETE-SALE] Customer from param:', customerForSale);
+        console.log('💳 [COMPLETE-SALE] Customer from state:', selectedCustomer);
+        console.log('💳 [COMPLETE-SALE] Using customer:', customer);
+        
+        if (customer && customer.id) {
+          saleData.customerId = customer.id;
+          console.log('✅ [COMPLETE-SALE] CustomerId set:', customer.id);
+        } else {
+          console.error('❌ [COMPLETE-SALE] No customer for credit sale!');
+          toast.error('Veresiye satış için müşteri seçilmeli');
+          soundEffects.error();
+          return;
+        }
+      }
 
       console.log('📦 Gönderilen veri:', JSON.stringify(saleData, null, 2));
 
@@ -472,8 +603,12 @@ const MobilePOS: React.FC = () => {
       hapticFeedback(ImpactStyle.Heavy);
       
       setCartItems([]);
+      setSelectedCustomer(null); // Clear selected customer
       setReceivedAmount('');
       setPaymentMode('simple');
+      setDiscountType('none'); // 🆕 Clear discount
+      setDiscountValue('');
+      setMultiplePayments([]); // 🆕 Clear multiple payments
       
       setTimeout(() => {
         setShowReceiptShare(true);
@@ -492,6 +627,75 @@ const MobilePOS: React.FC = () => {
       soundEffects.error();
       hapticFeedback(ImpactStyle.Heavy);
     }
+  };
+
+  // 🆕 DISCOUNT FUNCTIONS
+  const applyDiscount = () => {
+    if (!discountValue || parseFloat(discountValue) <= 0) {
+      toast.error('Geçerli bir indirim miktarı girin');
+      return;
+    }
+
+    if (discountType === 'percent' && parseFloat(discountValue) > 100) {
+      toast.error('İndirim yüzdesi 100\'den büyük olamaz');
+      return;
+    }
+
+    setShowDiscountModal(false);
+    
+    const discountText = discountType === 'percent' 
+      ? `%${discountValue} indirim` 
+      : `₺${discountValue} indirim`;
+    
+    toast.success(`✅ ${discountText} uygulandı!`);
+    hapticFeedback(ImpactStyle.Medium);
+    soundEffects.tap();
+  };
+
+  const clearDiscount = () => {
+    setDiscountType('none');
+    setDiscountValue('');
+    setShowDiscountModal(false);
+    toast.success('İndirim kaldırıldı');
+    hapticFeedback();
+  };
+
+  // 🆕 MULTIPLE PAYMENT FUNCTIONS
+  const addMultiplePayment = (method: string, amount: number) => {
+    if (amount <= 0) {
+      toast.error('Geçerli bir tutar girin');
+      return;
+    }
+
+    const currentTotal = multiplePayments.reduce((sum, p) => sum + p.amount, 0);
+    const remaining = total - currentTotal;
+
+    if (amount > remaining) {
+      toast.error(`Kalan tutar: ₺${remaining.toFixed(2)}`);
+      return;
+    }
+
+    setMultiplePayments(prev => [...prev, { method, amount }]);
+    toast.success(`${method}: ₺${amount.toFixed(2)} eklendi`);
+    hapticFeedback();
+  };
+
+  const removeMultiplePayment = (index: number) => {
+    setMultiplePayments(prev => prev.filter((_, i) => i !== index));
+    toast.success('Ödeme kaldırıldı');
+    hapticFeedback();
+  };
+
+  const completeMultiplePayment = async () => {
+    const paymentTotal = multiplePayments.reduce((sum, p) => sum + p.amount, 0);
+    
+    if (Math.abs(paymentTotal - total) > 0.01) {
+      toast.error(`Toplam ödeme tutarı ₺${total.toFixed(2)} olmalı!`);
+      return;
+    }
+
+    // For simplicity, record as mixed payment (CARD)
+    await completeSale('CARD');
   };
 
   // Smart change calculation
@@ -544,10 +748,99 @@ Teşekkür ederiz! 🙏
     }
   };
 
+  // Render Customer Modal Component (extracted for reuse)
+  const renderCustomerModal = () => {
+    if (!showCustomerModal) return null;
+    
+    console.log('💳 [MODAL] Rendering customer modal globally!');
+    
+    return (
+      <div 
+        className="customer-modal-overlay" 
+        style={{ 
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 999999,
+          display: 'flex',
+          alignItems: 'flex-end',
+          background: 'rgba(0, 0, 0, 0.5)'
+        }}
+        onClick={() => {
+          console.log('💳 [VERESIYE] Modal overlay clicked - closing');
+          setShowCustomerModal(false);
+        }}
+      >
+        <div className="customer-modal-pro" onClick={(e) => {
+          console.log('💳 [VERESIYE] Modal content clicked - not closing');
+          e.stopPropagation();
+        }}>
+          <div className="modal-header-pro">
+            <h2>Müşteri Seç</h2>
+            <button onClick={() => {
+              console.log('💳 [VERESIYE] Close button clicked');
+              setShowCustomerModal(false);
+            }} className="close-btn-pro">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          
+          <div className="customer-list-pro">
+            {customers.length === 0 ? (
+              <div className="empty-state-pro">
+                <User className="w-16 h-16 opacity-20" />
+                <p>Müşteri bulunamadı</p>
+                <button 
+                  onClick={() => {
+                    console.log('💳 [VERESIYE] Add customer clicked - navigating');
+                    setShowCustomerModal(false);
+                    navigate('/customers');
+                  }}
+                  className="add-customer-btn-pro"
+                >
+                  Müşteri Ekle
+                </button>
+              </div>
+            ) : (
+              customers.map((customer) => (
+                <button
+                  key={customer.id}
+                  onClick={() => {
+                    console.log('💳 [VERESIYE] Customer selected:', customer.name);
+                    console.log('💳 [VERESIYE] Customer ID:', customer.id);
+                    setSelectedCustomer(customer);
+                    setShowCustomerModal(false);
+                    // ✅ PASS CUSTOMER DIRECTLY - Don't wait for state update!
+                    completeSale('CREDIT', customer);
+                  }}
+                  className="customer-item-pro"
+                >
+                  <div className="customer-avatar-pro">
+                    {customer.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="customer-info-pro">
+                    <h3>{customer.name}</h3>
+                    {customer.phone && <p className="customer-phone-pro">{customer.phone}</p>}
+                    {customer.debt > 0 && (
+                      <span className="customer-debt-pro">₺{customer.debt.toFixed(2)} Borç</span>
+                    )}
+                  </div>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Success Screen with Receipt Share
   if (showSuccess) {
     return (
-      <div className="mobile-pos-success">
+      <>
+        <div className="mobile-pos-success">
         <div className="success-content-pro">
           <div className="success-icon-pro">
             <CheckCircle2 className="w-20 h-20" />
@@ -586,13 +879,20 @@ Teşekkür ederiz! 🙏
             Yeni Satışa Başla
           </button>
         </div>
-      </div>
+        </div>
+        
+        {/* GLOBAL MODAL */}
+        {renderCustomerModal()}
+      </>
     );
   }
 
   // Full Screen Cart Detail
   if (showCartDetail) {
+    console.log('🔍 [RENDER] Cart Detail rendering, showCustomerModal:', showCustomerModal);
+    
     return (
+      <>
       <div className="mobile-pos-detail">
         {/* Header */}
         <div className="detail-header-pro">
@@ -698,7 +998,43 @@ Teşekkür ederiz! 🙏
               <Users className="w-4 h-4" />
               Böl
             </button>
+            <button
+              onClick={() => setPaymentMode('multiple')}
+              className={`mode-btn ${paymentMode === 'multiple' ? 'active' : ''}`}
+            >
+              <CreditCard className="w-4 h-4" />
+              Çoklu
+            </button>
           </div>
+
+          {/* 🆕 Discount & Subtotal Display */}
+          {discountAmount > 0 && (
+            <div className="discount-display-pro">
+              <div className="discount-row">
+                <span>Ara Toplam:</span>
+                <span>₺{subtotal.toFixed(2)}</span>
+              </div>
+              <div className="discount-row discount-amount">
+                <span>İndirim ({discountType === 'percent' ? `%${discountValue}` : `₺${discountValue}`}):</span>
+                <span>-₺{discountAmount.toFixed(2)}</span>
+              </div>
+              <button onClick={clearDiscount} className="clear-discount-btn">
+                <X className="w-4 h-4" />
+                İndirimi Kaldır
+              </button>
+            </div>
+          )}
+
+          {/* 🆕 Discount Button */}
+          {discountType === 'none' && (
+            <button 
+              onClick={() => setShowDiscountModal(true)} 
+              className="discount-btn-pro"
+            >
+              <Calculator className="w-4 h-4" />
+              İndirim Uygula
+            </button>
+          )}
 
           {/* Smart Change Mode */}
           {paymentMode === 'smart-change' && (
@@ -759,6 +1095,57 @@ Teşekkür ederiz! 🙏
             </div>
           )}
 
+          {/* 🆕 Multiple Payment Mode */}
+          {paymentMode === 'multiple' && (
+            <div className="multiple-payment-pro">
+              <div className="multiple-payments-list">
+                {multiplePayments.map((payment, index) => (
+                  <div key={index} className="payment-item-pro">
+                    <span>{payment.method}</span>
+                    <span>₺{payment.amount.toFixed(2)}</span>
+                    <button onClick={() => removeMultiplePayment(index)} className="remove-payment-btn">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              
+              {multiplePayments.reduce((sum, p) => sum + p.amount, 0) < total && (
+                <div className="add-payment-controls">
+                  <p className="remaining-amount">
+                    Kalan: ₺{(total - multiplePayments.reduce((sum, p) => sum + p.amount, 0)).toFixed(2)}
+                  </p>
+                  <div className="payment-quick-btns">
+                    <button 
+                      onClick={() => addMultiplePayment('Nakit', total - multiplePayments.reduce((sum, p) => sum + p.amount, 0))}
+                      className="quick-pay-btn cash"
+                    >
+                      <DollarSign className="w-4 h-4" />
+                      Nakit
+                    </button>
+                    <button 
+                      onClick={() => addMultiplePayment('Kart', total - multiplePayments.reduce((sum, p) => sum + p.amount, 0))}
+                      className="quick-pay-btn card"
+                    >
+                      <CreditCard className="w-4 h-4" />
+                      Kart
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {multiplePayments.reduce((sum, p) => sum + p.amount, 0) >= total && (
+                <button 
+                  onClick={completeMultiplePayment}
+                  className="complete-multiple-btn"
+                >
+                  <CheckCircle2 className="w-5 h-5" />
+                  Tamamla
+                </button>
+              )}
+            </div>
+          )}
+
           {/* Payment Buttons */}
           <div className="payment-buttons-pro">
             <button onClick={() => completeSale('CASH')} className="pay-btn-pro cash">
@@ -769,18 +1156,39 @@ Teşekkür ederiz! 🙏
               <CreditCard className="w-5 h-5" />
               <span>Kart</span>
             </button>
-            <button onClick={() => completeSale('CREDIT')} className="pay-btn-pro credit">
+            <button onClick={() => {
+              console.log('💳 [VERESIYE] Veresiye button clicked!');
+              console.log('💳 [VERESIYE] Cart items:', cartItems.length);
+              
+              if (cartItems.length === 0) {
+                console.log('⚠️ [VERESIYE] Cart is empty!');
+                toast.error('Sepet boş!');
+                hapticFeedback(ImpactStyle.Light);
+                return;
+              }
+              
+              console.log('✅ [VERESIYE] Opening customer modal...');
+              setShowCustomerModal(true);
+              hapticFeedback(ImpactStyle.Medium);
+            }} className="pay-btn-pro credit">
               <User className="w-5 h-5" />
               <span>Veresiye</span>
             </button>
           </div>
         </div>
       </div>
+      
+      {/* GLOBAL MODAL */}
+      {renderCustomerModal()}
+      </>
     );
   }
 
   // Main POS Screen
+  console.log('🔍 [RENDER] Main POS rendering, showCustomerModal:', showCustomerModal);
+  
   return (
+    <>
     <div 
       className="mobile-pos-main"
       ref={containerRef}
@@ -837,15 +1245,20 @@ Teşekkür ederiz! 🙏
       <div className="quick-products-main">
         <h3>⭐ Sık Satanlar</h3>
         <div className="quick-grid-main">
-          {quickProducts.slice(0, 8).map((product) => (
+          {quickProducts.slice(0, 6).map((product) => (
             <button
               key={product.id}
               onClick={() => addQuickProduct(product)}
               className="quick-item-main"
             >
-              <span className="quick-icon">{product.icon}</span>
-              <span className="quick-name">{product.name}</span>
-              <span className="quick-price">₺{product.price}</span>
+              <div 
+                className="quick-avatar"
+                style={{ background: product.gradient || 'linear-gradient(135deg, #D1D1D6, #AEAEB2)' }}
+              >
+                {product.icon}
+              </div>
+              <span className="quick-name">{shortenName(product.name)}</span>
+              <span className="quick-price">₺{product.price.toFixed(2)}</span>
               {product.stock <= 15 && (
                 <span className="quick-stock-warn">⚠️</span>
               )}
@@ -881,6 +1294,114 @@ Teşekkür ederiz! 🙏
         <span>{isScanning ? 'Taranıyor...' : 'TARA'}</span>
       </button>
     </div>
+
+    {/* GLOBAL MODAL */}
+    {renderCustomerModal()}
+
+    {/* 🆕 DISCOUNT MODAL */}
+    {showDiscountModal && (
+      <div 
+        className="customer-modal-overlay" 
+        style={{ 
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 999999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'rgba(0, 0, 0, 0.5)'
+        }}
+        onClick={() => setShowDiscountModal(false)}
+      >
+        <div 
+          className="customer-modal-pro" 
+          style={{ width: '90%', maxWidth: '400px' }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="modal-header-pro">
+            <h2>İndirim Uygula</h2>
+            <button onClick={() => setShowDiscountModal(false)} className="close-btn-pro">
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          
+          <div style={{ padding: '20px' }}>
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '10px', fontWeight: 600 }}>
+                İndirim Tipi:
+              </label>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={() => setDiscountType('percent')}
+                  className={`mode-btn ${discountType === 'percent' ? 'active' : ''}`}
+                  style={{ flex: 1 }}
+                >
+                  Yüzde (%)
+                </button>
+                <button
+                  onClick={() => setDiscountType('amount')}
+                  className={`mode-btn ${discountType === 'amount' ? 'active' : ''}`}
+                  style={{ flex: 1 }}
+                >
+                  Tutar (₺)
+                </button>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', marginBottom: '10px', fontWeight: 600 }}>
+                {discountType === 'percent' ? 'İndirim Yüzdesi:' : 'İndirim Tutarı:'}
+              </label>
+              <input
+                type="number"
+                value={discountValue}
+                onChange={(e) => setDiscountValue(e.target.value)}
+                placeholder={discountType === 'percent' ? '0-100' : '0.00'}
+                className="amount-input-pro"
+                style={{ width: '100%', padding: '12px', fontSize: '18px', borderRadius: '8px', border: '2px solid #E5E5EA' }}
+                autoFocus
+              />
+            </div>
+
+            {discountValue && (
+              <div style={{ 
+                background: '#F2F2F7', 
+                padding: '15px', 
+                borderRadius: '8px', 
+                marginBottom: '20px',
+                textAlign: 'center'
+              }}>
+                <p style={{ fontSize: '14px', color: '#666', marginBottom: '5px' }}>
+                  Ara Toplam: ₺{subtotal.toFixed(2)}
+                </p>
+                <p style={{ fontSize: '18px', fontWeight: 700, color: '#FF3B30' }}>
+                  İndirim: -₺{(discountType === 'percent' 
+                    ? (subtotal * (parseFloat(discountValue) || 0)) / 100
+                    : parseFloat(discountValue) || 0).toFixed(2)}
+                </p>
+                <p style={{ fontSize: '20px', fontWeight: 700, color: '#007AFF', marginTop: '5px' }}>
+                  Yeni Toplam: ₺{Math.max(0, subtotal - (discountType === 'percent' 
+                    ? (subtotal * (parseFloat(discountValue) || 0)) / 100
+                    : parseFloat(discountValue) || 0)).toFixed(2)}
+                </p>
+              </div>
+            )}
+
+            <button 
+              onClick={applyDiscount}
+              className="success-btn-pro"
+              style={{ width: '100%', padding: '15px', fontSize: '16px', fontWeight: 600 }}
+            >
+              ✅ İndirimi Uygula
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 

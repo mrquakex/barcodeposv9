@@ -3,16 +3,20 @@ import prisma from '../lib/prisma';
 
 export const getAllReturns = async (req: Request, res: Response) => {
   try {
+    console.log('🔍 [BACKEND-RETURNS] Fetching all returns...');
     const returns = await prisma.return.findMany({
       include: {
         sale: { select: { id: true, saleNumber: true } },
         items: { include: { product: true } },
+        user: { select: { id: true, name: true } },
       },
       orderBy: { createdAt: 'desc' },
     });
+    console.log(`✅ [BACKEND-RETURNS] Found ${returns.length} returns`);
+    console.log('📦 [BACKEND-RETURNS] Sample:', returns[0] || 'No returns');
     res.json({ returns });
   } catch (error) {
-    console.error('Get returns error:', error);
+    console.error('❌ [BACKEND-RETURNS] Error:', error);
     res.status(500).json({ error: 'İadeler getirilemedi' });
   }
 };

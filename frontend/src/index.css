@@ -14,9 +14,9 @@
     --font-mono: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
     
     /* 🎨 FLUENT 2 COLOR SYSTEM - Light Mode (Windows 11) */
-    --background: 0 0% 99%;            /* #FCFCFC - Softer white background */
-    --background-alt: 0 0% 97%;        /* #F7F7F7 - Subtle alt */
-    --background-tertiary: 0 0% 96%;   /* #F5F5F5 */
+    --background: 0 0% 91%;            /* #E8E8E8 - Much Darker Gray (High Contrast) */
+    --background-alt: 0 0% 94%;        /* #F0F0F0 - Lighter Alternative */
+    --background-tertiary: 0 0% 88%;   /* #E0E0E0 - Darkest Tertiary */
     
     --foreground: 0 0% 11%;            /* #1C1C1C - Darker, better contrast */
     --foreground-secondary: 0 0% 36%;  /* #5C5C5C - Softer secondary */
@@ -1580,43 +1580,52 @@ body.scanner-active .barcode-scanner-ui {
   background: transparent;
   border: none;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-  color: rgba(0, 0, 0, 0.5);
+  transition: all 0.2s ease;
+  color: #8E8E93;
   min-width: 64px;
 }
 
 /* Bottom Nav Item Icon */
 .bottom-nav-item svg {
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: all 0.2s ease;
 }
 
 /* Bottom Nav Item Label */
 .bottom-nav-label {
-  font-size: 11px;
-  font-weight: 500;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-size: 10px;
+  font-weight: 400;
+  transition: all 0.2s ease;
 }
 
 /* Active State */
 .bottom-nav-item.active {
-  color: #0078D4;
-  background: linear-gradient(135deg, rgba(0, 120, 212, 0.08) 0%, rgba(0, 95, 183, 0.12) 100%);
-  transform: translateY(-2px);
+  color: #000000;
 }
 
 .bottom-nav-item.active svg {
-  transform: scale(1.1);
-  filter: drop-shadow(0 2px 8px rgba(0, 120, 212, 0.3));
+  transform: scale(1);
 }
 
 .bottom-nav-item.active .bottom-nav-label {
   font-weight: 600;
 }
 
+/* Dark Mode */
+.dark .bottom-nav-item {
+  color: #8E8E93;
+}
+
+.dark .bottom-nav-item.active {
+  color: #FFFFFF;
+}
+
 /* Hover State (for web testing) */
 .bottom-nav-item:hover:not(.active) {
-  background: rgba(0, 0, 0, 0.04);
-  color: rgba(0, 0, 0, 0.7);
+  color: #000000;
+}
+
+.dark .bottom-nav-item:hover:not(.active) {
+  color: #FFFFFF;
 }
 
 /* Active Press Effect */
@@ -3318,7 +3327,97 @@ body.scanner-active .barcode-scanner-ui {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
+}
+
+/* Mode Indicator */
+.mode-indicator {
+  background: #F2F2F7;
+  border: 1px solid #E5E5EA;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #000000;
+}
+
+.mode-indicator.update {
+  background: #E8F5E9;
+  border-color: #C8E6C9;
+  color: #2E7D32;
+}
+
+.mode-indicator.add {
+  background: #E3F2FD;
+  border-color: #BBDEFB;
+  color: #1976D2;
+}
+
+.dark .mode-indicator {
+  background: #1C1C1E;
+  border-color: #2C2C2E;
+  color: #FFFFFF;
+}
+
+.dark .mode-indicator.update {
+  background: rgba(76, 175, 80, 0.2);
+  border-color: rgba(76, 175, 80, 0.3);
+  color: #81C784;
+}
+
+.dark .mode-indicator.add {
+  background: rgba(33, 150, 243, 0.2);
+  border-color: rgba(33, 150, 243, 0.3);
+  color: #64B5F6;
+}
+
+/* Barcode Display */
+.barcode-display-clean {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.barcode-value {
+  flex: 1;
+  background: #F2F2F7;
+  border: 1px solid #E5E5EA;
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #000000;
+  font-family: monospace;
+}
+
+.dark .barcode-value {
+  background: #1C1C1E;
+  border-color: #2C2C2E;
+  color: #FFFFFF;
+}
+
+.scan-btn-inline {
+  background: #000000;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.scan-btn-inline:active {
+  transform: scale(0.95);
+}
+
+.dark .scan-btn-inline {
+  background: #FFFFFF;
+  color: #000000;
 }
 
 /* Form */
@@ -3733,36 +3832,27 @@ body.scanner-active .barcode-scanner-ui {
   align-items: center;
   justify-content: center;
   margin-bottom: 4px;
+  background: #F2F2F7;
+  color: #000000;
 }
 
-.stat-icon-clean.sales {
-  background: #E8F5E9;
-  color: #2E7D32;
+.dark .stat-icon-clean {
+  background: #2C2C2E;
+  color: #FFFFFF;
 }
 
-.dark .stat-icon-clean.sales {
-  background: rgba(76, 175, 80, 0.2);
-  color: #81C784;
-}
-
-.stat-icon-clean.products {
-  background: #E3F2FD;
-  color: #1976D2;
-}
-
-.dark .stat-icon-clean.products {
-  background: rgba(33, 150, 243, 0.2);
-  color: #64B5F6;
-}
-
+.stat-icon-clean.sales,
+.stat-icon-clean.products,
 .stat-icon-clean.activity {
-  background: #FFF3E0;
-  color: #F57C00;
+  background: #F2F2F7;
+  color: #000000;
 }
 
+.dark .stat-icon-clean.sales,
+.dark .stat-icon-clean.products,
 .dark .stat-icon-clean.activity {
-  background: rgba(255, 152, 0, 0.2);
-  color: #FFB74D;
+  background: #2C2C2E;
+  color: #FFFFFF;
 }
 
 .stat-content-clean {
@@ -3856,6 +3946,16 @@ body.scanner-active .barcode-scanner-ui {
   cursor: pointer;
   position: relative;
   transition: all 0.2s;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav-item-pro:focus {
+  outline: none;
+}
+
+.nav-item-pro:focus-visible {
+  outline: none;
 }
 
 .nav-icon-wrapper {
@@ -4950,61 +5050,83 @@ body.scanner-active .barcode-scanner-ui {
 
 .quick-grid-main {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
 }
 
 .quick-item-main {
   background: white;
-  border: 2px solid #E5E5E5;
-  border-radius: 12px;
-  padding: 12px 8px;
+  border: 1.5px solid #E5E5EA;
+  border-radius: 16px;
+  padding: 16px 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   cursor: pointer;
   transition: all 0.2s;
   position: relative;
+  min-height: 120px;
 }
 
 .dark .quick-item-main {
-  background: #1A1A1A;
-  border-color: #2A2A2A;
+  background: #1C1C1E;
+  border-color: #2C2C2E;
 }
 
 .quick-item-main:active {
-  transform: scale(0.95);
-  background: #F5F5F5;
+  transform: scale(0.96);
+  background: #F9F9F9;
 }
 
 .dark .quick-item-main:active {
-  background: #252525;
+  background: #252527;
 }
 
-.quick-icon {
-  font-size: 24px;
+.quick-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: #000000;
+  letter-spacing: -0.5px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.dark .quick-avatar {
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
 .quick-name {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  color: black;
+  color: #000000;
   text-align: center;
+  line-height: 1.3;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .dark .quick-name {
-  color: white;
+  color: #FFFFFF;
 }
 
 .quick-price {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
-  color: #666;
+  color: #636366;
+  margin-top: auto;
 }
 
 .dark .quick-price {
-  color: #999;
+  color: #8E8E93;
 }
 
 .quick-stock-warn {
@@ -6115,10 +6237,10 @@ body.scanner-active .barcode-scanner-ui {
 .filter-pill {
   padding: 8px 16px;
   border-radius: 20px;
-  border: 1px solid #E5E5E5;
-  background: white;
-  color: #666;
-  font-size: 14px;
+  border: 1.5px solid #E5E5EA;
+  background: #F9F9F9;
+  color: #636366;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
@@ -6126,41 +6248,21 @@ body.scanner-active .barcode-scanner-ui {
 }
 
 .dark .filter-pill {
-  background: #1A1A1A;
-  border-color: #2A2A2A;
-  color: #999;
+  background: #1C1C1E;
+  border-color: #2C2C2E;
+  color: #8E8E93;
 }
 
 .filter-pill.active {
-  background: black;
-  color: white;
-  border-color: black;
+  background: #000000;
+  color: #FFFFFF;
+  border-color: #000000;
 }
 
 .dark .filter-pill.active {
-  background: white;
-  color: black;
-  border-color: white;
-}
-
-.filter-pill.critical {
-  border-color: #FF3B30;
-}
-
-.filter-pill.critical.active {
-  background: #FF3B30;
-  color: white;
-  border-color: #FF3B30;
-}
-
-.filter-pill.low {
-  border-color: #FF9500;
-}
-
-.filter-pill.low.active {
-  background: #FF9500;
-  color: white;
-  border-color: #FF9500;
+  background: #FFFFFF;
+  color: #000000;
+  border-color: #FFFFFF;
 }
 
 /* Sort Menu */
@@ -8780,8 +8882,12 @@ body.scanner-active .barcode-scanner-ui {
 }
 
 .swipe-action-ultra.edit-action {
-  background: #007AFF;
+  background: #636366;
   right: 60px;
+}
+
+.dark .swipe-action-ultra.edit-action {
+  background: #8E8E93;
 }
 
 .swipe-action-ultra.delete-action {
@@ -8789,18 +8895,30 @@ body.scanner-active .barcode-scanner-ui {
   right: 0;
 }
 
+.dark .swipe-action-ultra.delete-action {
+  background: #FF453A;
+}
+
 .swipe-action-ultra.view-action {
-  background: #34C759;
+  background: #636366;
   right: 60px;
 }
 
+.dark .swipe-action-ultra.view-action {
+  background: #8E8E93;
+}
+
 .swipe-action-ultra.share-action {
-  background: #007AFF;
+  background: #636366;
   right: 0;
 }
 
+.dark .swipe-action-ultra.share-action {
+  background: #8E8E93;
+}
+
 .swipe-action-ultra:active {
-  opacity: 0.8;
+  opacity: 0.7;
 }
 
 /* Customer Content */
@@ -8820,15 +8938,21 @@ body.scanner-active .barcode-scanner-ui {
 .employee-avatar-ultra {
   width: 48px;
   height: 48px;
-  background: linear-gradient(135deg, #007AFF, #5856D6);
+  background: linear-gradient(135deg, #E5E5EA, #D1D1D6);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: #000000;
   font-size: 20px;
   font-weight: 700;
   flex-shrink: 0;
+}
+
+.dark .customer-avatar-ultra,
+.dark .employee-avatar-ultra {
+  background: linear-gradient(135deg, #2C2C2E, #3A3A3C);
+  color: #FFFFFF;
 }
 
 .category-icon-ultra,
@@ -8840,16 +8964,24 @@ body.scanner-active .barcode-scanner-ui {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: #000000;
   flex-shrink: 0;
 }
 
-.supplier-icon-ultra {
-  background: linear-gradient(135deg, #FF9500, #FF3B30);
+.dark .category-icon-ultra,
+.dark .supplier-icon-ultra,
+.dark .branch-icon-ultra {
+  color: #FFFFFF;
 }
 
+.supplier-icon-ultra,
 .branch-icon-ultra {
-  background: linear-gradient(135deg, #34C759, #007AFF);
+  background: linear-gradient(135deg, #E5E5EA, #D1D1D6);
+}
+
+.dark .supplier-icon-ultra,
+.dark .branch-icon-ultra {
+  background: linear-gradient(135deg, #2C2C2E, #3A3A3C);
 }
 
 .customer-info-ultra,
@@ -8917,21 +9049,38 @@ body.scanner-active .barcode-scanner-ui {
 
 .debt-badge,
 .balance-badge {
-  background: #FFF3F3;
+  background: #F2F2F7;
   color: #FF3B30;
   padding: 4px 8px;
   border-radius: 6px;
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.dark .debt-badge,
+.dark .balance-badge {
+  background: #1C1C1E;
+  color: #FF453A;
 }
 
 .balance-badge.positive {
-  background: #F0FFF4;
+  background: #F2F2F7;
   color: #34C759;
 }
 
+.dark .balance-badge.positive {
+  background: #1C1C1E;
+  color: #32D74B;
+}
+
 .balance-badge.negative {
-  background: #FFF3F3;
+  background: #F2F2F7;
   color: #FF3B30;
+}
+
+.dark .balance-badge.negative {
+  background: #1C1C1E;
+  color: #FF453A;
 }
 
 .product-count-badge {
@@ -9611,15 +9760,20 @@ body.scanner-active .barcode-scanner-ui {
 .profile-avatar-ultra {
   width: 56px;
   height: 56px;
-  background: linear-gradient(135deg, #007AFF, #5856D6);
+  background: linear-gradient(135deg, #E5E5EA, #D1D1D6);
   border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: #000000;
   font-size: 24px;
   font-weight: 700;
   flex-shrink: 0;
+}
+
+.dark .profile-avatar-ultra {
+  background: linear-gradient(135deg, #2C2C2E, #3A3A3C);
+  color: #FFFFFF;
 }
 
 .profile-info-ultra h4 {
@@ -9728,7 +9882,11 @@ body.scanner-active .barcode-scanner-ui {
 }
 
 .toggle-ultra input:checked + .slider-ultra {
-  background: #007AFF;
+  background: #34C759;
+}
+
+.dark .toggle-ultra input:checked + .slider-ultra {
+  background: #30D158;
 }
 
 .toggle-ultra input:checked + .slider-ultra:before {
@@ -9761,3 +9919,624 @@ body.scanner-active .barcode-scanner-ui {
 .dark .app-version {
   color: #999;
 }
+/* Customer Selection Modal (POS - Credit Sales) */
+.customer-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: flex-end;
+  z-index: 100002 !important; /* En üstte olmalı! */
+  animation: fadeIn 0.2s ease;
+}
+
+.customer-modal-pro {
+  background: white;
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease;
+}
+
+.dark .customer-modal-pro {
+  background: #1C1C1E;
+}
+
+.modal-header-pro {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #E5E5EA;
+}
+
+.dark .modal-header-pro {
+  border-bottom-color: #2C2C2E;
+}
+
+.modal-header-pro h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #000000;
+  margin: 0;
+}
+
+.dark .modal-header-pro h2 {
+  color: #FFFFFF;
+}
+
+.close-btn-pro {
+  background: none;
+  border: none;
+  color: #8E8E93;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn-pro:active {
+  opacity: 0.6;
+}
+
+.customer-list-pro {
+  overflow-y: auto;
+  padding: 12px;
+  flex: 1;
+}
+
+.customer-item-pro {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #F9F9F9;
+  border: 1.5px solid #E5E5EA;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  text-align: left;
+}
+
+.dark .customer-item-pro {
+  background: #1C1C1E;
+  border-color: #2C2C2E;
+}
+
+.customer-item-pro:active {
+  transform: scale(0.98);
+  background: #F2F2F7;
+}
+
+.dark .customer-item-pro:active {
+  background: #252527;
+}
+
+.customer-avatar-pro {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #E5E5EA, #D1D1D6);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #000000;
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.dark .customer-avatar-pro {
+  background: linear-gradient(135deg, #2C2C2E, #3A3A3C);
+  color: #FFFFFF;
+}
+
+.customer-info-pro {
+  flex: 1;
+  min-width: 0;
+}
+
+.customer-info-pro h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #000000;
+  margin: 0 0 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dark .customer-info-pro h3 {
+  color: #FFFFFF;
+}
+
+.customer-phone-pro {
+  font-size: 13px;
+  color: #8E8E93;
+  margin: 0;
+}
+
+.customer-debt-pro {
+  display: inline-block;
+  background: #F2F2F7;
+  color: #FF3B30;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.dark .customer-debt-pro {
+  background: #1C1C1E;
+  color: #FF453A;
+}
+
+.empty-state-pro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+  color: #8E8E93;
+}
+
+.empty-state-pro p {
+  margin: 12px 0 20px;
+  font-size: 15px;
+}
+
+.add-customer-btn-pro {
+  background: #000000;
+  color: #FFFFFF;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dark .add-customer-btn-pro {
+  background: #FFFFFF;
+  color: #000000;
+}
+
+.add-customer-btn-pro:active {
+  transform: scale(0.96);
+  opacity: 0.8;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+
+/* ============================================
+   🎨 MICROSOFT FLUENT DESIGN - WEB ENHANCEMENTS
+   Balanced Design - Professional & Colorful
+   MOBILE UNAFFECTED - Only Web Components
+   ============================================ */
+
+/* ✅ ADIM 1: WEB DASHBOARD STAT CARDS - COLORFUL GRADIENTS */
+/* Microsoft Teams/Outlook inspired gradient cards */
+
+/* Total Sales → Success Green (Microsoft Excel) */
+.stats-container .stat-card:nth-child(1),
+.dashboard-stats .stat-card:nth-child(1) {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Total Products → Communication Blue (Microsoft) */
+.stats-container .stat-card:nth-child(2),
+.dashboard-stats .stat-card:nth-child(2) {
+  background: linear-gradient(135deg, #0078D4 0%, #005FB7 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 120, 212, 0.15);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Total Customers → Accent Purple (Windows 11) */
+.stats-container .stat-card:nth-child(3),
+.dashboard-stats .stat-card:nth-child(3) {
+  background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Profit/Revenue → Warning Orange (Microsoft Outlook) */
+.stats-container .stat-card:nth-child(4),
+.dashboard-stats .stat-card:nth-child(4) {
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.15);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Ensure white text for all stat values and labels */
+.stats-container .stat-card h3,
+.stats-container .stat-card p,
+.stats-container .stat-card .stat-value,
+.stats-container .stat-card .stat-label,
+.dashboard-stats .stat-card h3,
+.dashboard-stats .stat-card p,
+.dashboard-stats .stat-card .stat-value,
+.dashboard-stats .stat-card .stat-label {
+  color: white !important;
+  opacity: 0.95;
+}
+
+.stats-container .stat-card .stat-label,
+.dashboard-stats .stat-card .stat-label {
+  opacity: 0.85;
+}
+
+/* Icon glow effect for gradient cards */
+.stats-container .stat-card svg,
+.dashboard-stats .stat-card svg {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+
+/* ✅ ADIM 2: WEB HOVER EFFECTS - FLUENT MOTION */
+/* Windows 11 Start Menu inspired hover animations */
+
+/* Dashboard Stat Cards Hover */
+.stats-container .stat-card:hover,
+.dashboard-stats .stat-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+}
+
+/* General Web Cards Hover (Exclude mobile cards) */
+.dashboard-grid .card:hover,
+.content-section .card:hover,
+main > .card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--depth-16);
+  transition: all var(--motion-normal);
+}
+
+/* Tables hover */
+table tbody tr:hover {
+  background: hsl(var(--muted) / 0.5);
+  transition: background var(--motion-fast);
+}
+
+/* Button hover with gradient shift */
+.btn-primary,
+button.primary,
+.button-primary {
+  background: linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--primary-pressed)) 100%);
+  background-size: 200% auto;
+  transition: all var(--motion-normal);
+}
+
+.btn-primary:hover,
+button.primary:hover,
+.button-primary:hover {
+  background-position: right center;
+  box-shadow: 0 4px 12px hsl(var(--primary) / 0.3);
+  transform: translateY(-1px);
+}
+
+
+/* ✅ ADIM 3: WEB NAVBAR - ACRYLIC EFFECT */
+/* Windows 11 Taskbar/Window Header inspired */
+
+header.main-header,
+.main-navbar,
+nav.navbar {
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.dark header.main-header,
+.dark .main-navbar,
+.dark nav.navbar {
+  background: rgba(28, 28, 30, 0.8) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Sidebar Acrylic (if exists) */
+aside.sidebar,
+.sidebar-container {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.dark aside.sidebar,
+.dark .sidebar-container {
+  background: rgba(28, 28, 30, 0.9);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+
+/* ✅ ADIM 4: WEB MENU ICONS - COLORFUL */
+/* Microsoft Office/Windows Settings inspired */
+
+/* POS → Success Green */
+.sidebar-menu a[href*="/pos"] svg,
+.menu-item.pos svg,
+nav a[href*="/pos"] svg {
+  color: #10b981;
+}
+
+/* Products → Communication Blue */
+.sidebar-menu a[href*="/products"] svg,
+.menu-item.products svg,
+nav a[href*="/products"] svg {
+  color: #0078D4;
+}
+
+/* Sales → Orange */
+.sidebar-menu a[href*="/sales"] svg,
+.menu-item.sales svg,
+nav a[href*="/sales"] svg {
+  color: #F59E0B;
+}
+
+/* Customers → Purple */
+.sidebar-menu a[href*="/customers"] svg,
+.menu-item.customers svg,
+nav a[href*="/customers"] svg {
+  color: #8B5CF6;
+}
+
+/* Suppliers → Teal */
+.sidebar-menu a[href*="/suppliers"] svg,
+.menu-item.suppliers svg,
+nav a[href*="/suppliers"] svg {
+  color: #14B8A6;
+}
+
+/* Categories → Pink */
+.sidebar-menu a[href*="/categories"] svg,
+.menu-item.categories svg,
+nav a[href*="/categories"] svg {
+  color: #EC4899;
+}
+
+/* Expenses → Red */
+.sidebar-menu a[href*="/expenses"] svg,
+.menu-item.expenses svg,
+nav a[href*="/expenses"] svg {
+  color: #EF4444;
+}
+
+/* Reports → Indigo */
+.sidebar-menu a[href*="/reports"] svg,
+.menu-item.reports svg,
+nav a[href*="/reports"] svg {
+  color: #6366F1;
+}
+
+/* Settings → Gray */
+.sidebar-menu a[href*="/settings"] svg,
+.menu-item.settings svg,
+nav a[href*="/settings"] svg {
+  color: #6B7280;
+}
+
+
+/* ✅ ADIM 5: WEB BADGES - COLORFUL STATUS */
+/* Windows 11 Notification Center inspired */
+
+/* Stock Status Badges */
+.badge.critical,
+.status-badge.critical,
+.stock-badge.critical {
+  background: #FEE2E2;
+  color: #DC2626;
+  border: 1px solid #FECACA;
+}
+
+.badge.low,
+.status-badge.low,
+.stock-badge.low {
+  background: #FEF3C7;
+  color: #D97706;
+  border: 1px solid #FDE68A;
+}
+
+.badge.good,
+.status-badge.good,
+.stock-badge.good {
+  background: #D1FAE5;
+  color: #059669;
+  border: 1px solid #A7F3D0;
+}
+
+.badge.excellent,
+.status-badge.excellent,
+.stock-badge.excellent {
+  background: #DBEAFE;
+  color: #0078D4;
+  border: 1px solid #BFDBFE;
+}
+
+/* Payment Method Badges */
+.payment-method-badge.cash,
+.badge.cash {
+  background: #D1FAE5;
+  color: #059669;
+  border: 1px solid #A7F3D0;
+}
+
+.payment-method-badge.card,
+.badge.card {
+  background: #DBEAFE;
+  color: #0078D4;
+  border: 1px solid #BFDBFE;
+}
+
+.payment-method-badge.credit,
+.badge.credit {
+  background: #FEF3C7;
+  color: #D97706;
+  border: 1px solid #FDE68A;
+}
+
+/* Dark Mode Badges */
+.dark .badge.critical,
+.dark .status-badge.critical {
+  background: rgba(220, 38, 38, 0.2);
+  color: #FCA5A5;
+  border: 1px solid rgba(220, 38, 38, 0.3);
+}
+
+.dark .badge.low,
+.dark .status-badge.low {
+  background: rgba(217, 119, 6, 0.2);
+  color: #FCD34D;
+  border: 1px solid rgba(217, 119, 6, 0.3);
+}
+
+.dark .badge.good,
+.dark .status-badge.good {
+  background: rgba(5, 150, 105, 0.2);
+  color: #6EE7B7;
+  border: 1px solid rgba(5, 150, 105, 0.3);
+}
+
+
+/* ✅ ADIM 6: WEB PROGRESS BARS - GRADIENT */
+/* Microsoft Edge progress inspired */
+
+.progress-bar,
+.stock-progress {
+  background: linear-gradient(90deg, #10b981 0%, #0078D4 50%, #8B5CF6 100%);
+  border-radius: var(--radius);
+  box-shadow: 0 2px 4px rgba(0, 120, 212, 0.2);
+}
+
+.progress-bar::before,
+.stock-progress::before {
+  background: linear-gradient(90deg, rgba(255,255,255,0.3), rgba(255,255,255,0) 50%, rgba(255,255,255,0.3));
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+
+/* ✅ ADIM 7: WEB FORM INPUTS - MODERN FOCUS */
+/* Windows 11 input focus effect */
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
+  outline: none;
+  transition: all var(--motion-fast);
+}
+
+
+/* ✅ ADIM 8: WEB BUTTONS - ENHANCED */
+/* Fluent Design button effects */
+
+button:active,
+.btn:active {
+  transform: scale(0.98);
+  transition: transform 100ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* Success button */
+.btn-success,
+button.success {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
+}
+
+.btn-success:hover,
+button.success:hover {
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Danger button */
+.btn-danger,
+button.danger {
+  background: linear-gradient(135deg, #EF4444, #DC2626);
+  color: white;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+}
+
+.btn-danger:hover,
+button.danger:hover {
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  transform: translateY(-1px);
+}
+
+
+/* ============================================
+   🛡️ MOBILE PROTECTION
+   Ensure mobile styles remain untouched
+   ============================================ */
+
+/* Exclude all mobile-specific classes from web enhancements */
+.mobile-pos-main *,
+.mobile-pos-stats *,
+.mobile-dashboard *,
+.stat-card-mobile *,
+.product-card-ultra *,
+.customer-card-ultra *,
+.supplier-card-ultra *,
+.category-card-ultra *,
+.expense-card-ultra *,
+.sale-card-ultra *,
+.pos-card-pro *,
+.customer-modal-pro *,
+.mobile-navbar *,
+.mobile-header *,
+.mobile-footer *,
+.fab-scan-main *,
+.quick-product-card-pro *,
+.cart-preview-pro *,
+.detail-header-pro *,
+.pay-btn-pro * {
+  /* Preserve original mobile styles - no web gradients */
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Mobile cards keep their Apple HIG design - no hover effects */
+.product-card-ultra:hover,
+.customer-card-ultra:hover,
+.supplier-card-ultra:hover,
+.category-card-ultra:hover,
+.expense-card-ultra:hover,
+.sale-card-ultra:hover {
+  transform: none !important;
+}
+
+/* End of Microsoft Fluent Design Enhancements */
+

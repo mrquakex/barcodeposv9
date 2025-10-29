@@ -164,16 +164,8 @@ const MobileProducts: React.FC = () => {
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
     }
-
-    const touchX = e.touches[0].clientX;
-    const touchY = e.touches[0].clientY;
-    const deltaX = touchX - touchStartX.current;
-    const deltaY = touchY - touchStartY.current;
-
-    // Only swipe if horizontal movement is dominant
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-      setSwipedProduct(productId);
-    }
+    
+    // Swipe disabled - only long press works
   };
 
   const handleTouchEnd = (e: React.TouchEvent, productId: string) => {
@@ -243,8 +235,33 @@ const MobileProducts: React.FC = () => {
         }
         break;
       case 'addToPos':
-        toast.success('POS\'a eklendi!');
-        // TODO: Add to POS cart
+        // Add product to POS pending items
+        if (product) {
+          const posItem = {
+            id: product.id,
+            barcode: product.barcode,
+            name: product.name,
+            price: product.sellPrice,
+            quantity: 1,
+            stock: product.stock,
+            addedAt: Date.now()
+          };
+          
+          // Save to localStorage for POS to pick up
+          const existing = localStorage.getItem('pos_pending_items');
+          const pending = existing ? JSON.parse(existing) : [];
+          pending.push(posItem);
+          localStorage.setItem('pos_pending_items', JSON.stringify(pending));
+          
+          toast.success(`${product.name} POS'a eklendi!`);
+          soundEffects.success();
+          hapticFeedback(ImpactStyle.Medium);
+          
+          // Navigate to POS
+          setTimeout(() => {
+            navigate('/pos');
+          }, 500);
+        }
         break;
       case 'favorite':
         toggleFavorite(productId);
@@ -308,11 +325,42 @@ const MobileProducts: React.FC = () => {
     }
   };
 
-  const toggleFavorite = (productId: string) => {
-    setProducts(prev => prev.map(p =>
-      p.id === productId ? { ...p, isFavorite: !p.isFavorite } : p
-    ));
-    toast.success('Favori güncellendi');
+  const toggleFavorite = async (productId: string) => {
+    try {
+      // Find current product
+      const product = products.find(p => p.id === productId);
+      if (!product) return;
+
+      const newFavoriteStatus = !product.isFavorite;
+
+      console.log('⭐ [FAVORITE] Toggling favorite for:', product.name);
+      console.log('⭐ [FAVORITE] Current status:', product.isFavorite);
+      console.log('⭐ [FAVORITE] New status:', newFavoriteStatus);
+
+      // Optimistic UI update
+      setProducts(prev => prev.map(p =>
+        p.id === productId ? { ...p, isFavorite: newFavoriteStatus } : p
+      ));
+
+      // Save to backend
+      await api.patch(`/products/${productId}`, {
+        isFavorite: newFavoriteStatus
+      });
+
+      console.log('✅ [FAVORITE] Saved to backend successfully!');
+      toast.success(newFavoriteStatus ? '⭐ Favorilere eklendi' : '❌ Favorilerden çıkarıldı');
+      hapticFeedback();
+    } catch (error) {
+      console.error('❌ [FAVORITE] Backend save failed:', error);
+      
+      // Revert optimistic update on error
+      setProducts(prev => prev.map(p =>
+        p.id === productId ? { ...p, isFavorite: !p.isFavorite } : p
+      ));
+      
+      toast.error('Favori güncellenemedi');
+      soundEffects.error();
+    }
   };
 
   // Bulk Actions
@@ -434,21 +482,21 @@ const MobileProducts: React.FC = () => {
           </button>
           <button
             onClick={() => setFilter('critical')}
-            className={`filter-pill critical ${filter === 'critical' ? 'active' : ''}`}
+            className={`filter-pill ${filter === 'critical' ? 'active' : ''}`}
           >
-            🔴 Kritik
+            Kritik
           </button>
           <button
             onClick={() => setFilter('low')}
-            className={`filter-pill low ${filter === 'low' ? 'active' : ''}`}
+            className={`filter-pill ${filter === 'low' ? 'active' : ''}`}
           >
-            🟡 Düşük Stok
+            Düşük
           </button>
           <button
             onClick={() => setFilter('favorites')}
             className={`filter-pill ${filter === 'favorites' ? 'active' : ''}`}
           >
-            ⭐ Favoriler
+            Favori
           </button>
         </div>
       )}
@@ -533,7 +581,7 @@ const MobileProducts: React.FC = () => {
             {!searchQuery && (
               <button onClick={() => navigate('/products/add')} className="empty-action-ultra">
                 <Plus className="w-4 h-4" />
-                Ürün Ekle
+                Ürün Ekle/Güncelle
               </button>
             )}
           </div>
@@ -542,37 +590,12 @@ const MobileProducts: React.FC = () => {
           filteredProducts.map((product) => (
             <div
               key={product.id}
-              className={`product-item-ultra ${swipedProduct === product.id ? 'swiped' : ''} ${selectedProducts.includes(product.id) ? 'selected' : ''}`}
+              className={`product-item-ultra ${selectedProducts.includes(product.id) ? 'selected' : ''}`}
               onTouchStart={(e) => handleTouchStart(e, product.id)}
               onTouchMove={(e) => handleTouchMove(e, product.id)}
               onTouchEnd={(e) => handleTouchEnd(e, product.id)}
               style={{ borderLeftColor: getCategoryColor(product.category) }}
             >
-              {/* Swipe Left Actions */}
-              {swipedProduct === product.id && (
-                <div className="swipe-actions-left">
-                  <button 
-                    onClick={() => {
-                      const product = products.find(p => p.id === swipedProduct);
-                      if (product) {
-                        setEditingProduct(product);
-                        setEditForm({
-                          name: product.name,
-                          sellPrice: product.sellPrice.toString(),
-                          stock: product.stock?.toString() || '0',
-                        });
-                      }
-                      setSwipedProduct(null);
-                      soundEffects.tap();
-                      hapticFeedback();
-                    }} 
-                    className="swipe-action edit"
-                  >
-                    <Edit className="w-5 h-5" />
-                  </button>
-                </div>
-              )}
-
               {/* Main Content */}
               <div className="product-content-ultra">
                 {/* Avatar */}
@@ -611,15 +634,6 @@ const MobileProducts: React.FC = () => {
                   </div>
                 )}
               </div>
-
-              {/* Swipe Right Actions */}
-              {swipedProduct === product.id && (
-                <div className="swipe-actions-right">
-                  <button onClick={() => handleSwipeLeft(product.id)} className="swipe-action delete">
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                </div>
-              )}
             </div>
           ))
         )}

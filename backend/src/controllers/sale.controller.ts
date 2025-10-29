@@ -59,7 +59,7 @@ export const getAllSales = async (req: Request, res: Response) => {
       })),
     }));
 
-    res.json(formattedSales);
+    res.json({ sales: formattedSales });
   } catch (error) {
     console.error('Get all sales error:', error);
     res.status(500).json({ error: 'Satışlar getirilemedi' });
@@ -470,8 +470,22 @@ export const processSaleReturn = async (req: AuthRequest, res: Response) => {
     }
 
     let returnTotal = 0;
+    const returnItems: any[] = [];
 
     await prisma.$transaction(async (tx) => {
+      // Create Return record
+      const returnDoc = await tx.return.create({
+        data: {
+          returnNumber: `RET-${Date.now()}`,
+          saleId: sale.id,
+          userId: req.userId || sale.userId,
+          refundAmount: 0, // Will be updated later
+          refundMethod: sale.paymentMethod,
+          status: 'COMPLETED',
+          reason: 'Customer return',
+        },
+      });
+
       // Process each return item
       for (const returnItem of items) {
         const originalItem = sale.items.find((item) => item.id === returnItem.saleItemId);
@@ -524,6 +538,17 @@ export const processSaleReturn = async (req: AuthRequest, res: Response) => {
           },
         });
 
+        // Create return item
+        await tx.returnItem.create({
+          data: {
+            returnId: returnDoc.id,
+            productId: originalItem.productId,
+            quantity: returnItem.quantity,
+            price: originalItem.unitPrice,
+            total: returnAmount,
+          },
+        });
+
         // Update or delete sale item
         if (returnItem.quantity === originalItem.quantity) {
           // Full return - delete the item
@@ -564,6 +589,14 @@ export const processSaleReturn = async (req: AuthRequest, res: Response) => {
           },
         });
       }
+
+      // Update Return record with total refund amount
+      await tx.return.update({
+        where: { id: returnDoc.id },
+        data: {
+          refundAmount: returnTotal,
+        },
+      });
 
       // If customer exists and payment was credit, adjust debt
       if (sale.customer && sale.paymentMethod === 'CREDIT') {

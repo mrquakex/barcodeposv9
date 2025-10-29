@@ -49,6 +49,7 @@ const MobileSales: React.FC = () => {
 
   const loadSales = async () => {
     try {
+      console.log('🔄 Loading sales...');
       const params: any = {};
       
       if (filterType !== 'all') {
@@ -62,18 +63,25 @@ const MobileSales: React.FC = () => {
         }
       }
 
+      console.log('📤 Request params:', params);
       const response = await api.get('/sales', { params });
-      let salesData = response.data.sales || [];
+      console.log('📦 API response:', response.data);
+      
+      // Backend can return either {sales: [...]} or direct array
+      let salesData = Array.isArray(response.data) ? response.data : (response.data.sales || []);
+      console.log(`✅ Loaded ${salesData.length} sales`);
 
       // Filter by payment method
       if (paymentFilter !== 'all') {
         salesData = salesData.filter((sale: Sale) => 
           sale.paymentMethod.toLowerCase() === paymentFilter
         );
+        console.log(`🔍 After payment filter: ${salesData.length} sales`);
       }
 
       setSales(salesData);
     } catch (error) {
+      console.error('❌ Load sales error:', error);
       toast.error('Satışlar yüklenemedi');
     } finally {
       setIsLoading(false);

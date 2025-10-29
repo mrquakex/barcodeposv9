@@ -29,6 +29,7 @@ const MobileExpenses: React.FC = () => {
   const [formData, setFormData] = useState({ description: '', amount: '', category: '' });
   
   const touchStartX = useRef<number>(0);
+  const touchStartY = useRef<number>(0);
 
   const hapticFeedback = async (style: ImpactStyle = ImpactStyle.Light) => {
     if (Capacitor.isNativePlatform()) {
@@ -53,14 +54,25 @@ const MobileExpenses: React.FC = () => {
 
   const handleTouchStart = (e: React.TouchEvent, expenseId: string) => {
     touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
   };
 
   const handleTouchMove = (e: React.TouchEvent, expenseId: string) => {
     const touchX = e.touches[0].clientX;
+    const touchY = e.touches[0].clientY;
     const deltaX = touchX - touchStartX.current;
+    const deltaY = touchY - touchStartY.current;
 
-    if (Math.abs(deltaX) > 50) {
-      setSwipedExpense(expenseId);
+    // Only swipe if horizontal movement is dominant
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      if (deltaX < -50) {
+        // Swipe LEFT → Open edit/delete actions
+        setSwipedExpense(expenseId);
+      } else if (deltaX > 50 && swipedExpense === expenseId) {
+        // Swipe RIGHT → Close actions (return to normal)
+        setSwipedExpense(null);
+        hapticFeedback(ImpactStyle.Light);
+      }
     }
   };
 

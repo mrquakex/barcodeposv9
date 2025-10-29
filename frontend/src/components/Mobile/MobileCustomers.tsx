@@ -76,10 +76,20 @@ const MobileCustomers: React.FC = () => {
     }
 
     const touchX = e.touches[0].clientX;
+    const touchY = e.touches[0].clientY;
     const deltaX = touchX - touchStartX.current;
+    const deltaY = touchY - touchStartY.current;
 
-    if (Math.abs(deltaX) > 50) {
-      setSwipedCustomer(customerId);
+    // Only swipe if horizontal movement is dominant
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+      if (deltaX < -50) {
+        // Swipe LEFT → Open edit/delete actions
+        setSwipedCustomer(customerId);
+      } else if (deltaX > 50 && swipedCustomer === customerId) {
+        // Swipe RIGHT → Close actions (return to normal)
+        setSwipedCustomer(null);
+        hapticFeedback(ImpactStyle.Light);
+      }
     }
   };
 

@@ -17,6 +17,8 @@ const MobileProductAdd: React.FC = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [existingProductId, setExistingProductId] = useState<string | null>(null);
+  const [mode, setMode] = useState<'add' | 'update'>('add');
   
   const [formData, setFormData] = useState({
     barcode: '',
@@ -49,40 +51,120 @@ const MobileProductAdd: React.FC = () => {
   };
 
   const scanBarcode = async () => {
+    // Prevent multiple scans
+    if (isLoading) {
+      console.log('⚠️ [PRODUCT-ADD] Already scanning, skipping...');
+      return;
+    }
+    
     try {
+      console.log('🎯 [PRODUCT-ADD] Scan started!');
+      setIsLoading(true);
       soundEffects.beep();
       hapticFeedback(ImpactStyle.Light);
-      
-      console.log('📸 Starting barcode scan for product add...');
       
       const permissionResult = await BarcodeScanner.checkPermissions();
       if (permissionResult.camera !== 'granted') {
         const result = await BarcodeScanner.requestPermissions();
         if (result.camera !== 'granted') {
           toast.error('Kamera izni gerekli');
+          setIsLoading(false);
           return;
         }
       }
 
       const scanResult = await BarcodeScanner.scan();
-      console.log('📦 Scan result:', scanResult);
+      console.log('📦 [PRODUCT-ADD] Scan result:', scanResult);
 
       if (scanResult.barcodes && scanResult.barcodes.length > 0) {
         const barcode = scanResult.barcodes[0].displayValue || scanResult.barcodes[0].rawValue;
-        console.log('✅ Barcode:', barcode);
+        console.log('✅ [PRODUCT-ADD] Barcode extracted:', barcode);
+        console.log('🔍 [PRODUCT-ADD] Barcode type:', typeof barcode);
+        console.log('🔍 [PRODUCT-ADD] Barcode length:', barcode?.length);
         
-        if (barcode) {
-          setFormData(prev => ({ ...prev, barcode }));
-          toast.success(`Barkod: ${barcode}`);
-          soundEffects.cashRegister();
-          hapticFeedback(ImpactStyle.Medium);
+        if (barcode && barcode.trim()) {
+          const cleanBarcode = barcode.trim();
+          console.log('🔎 [PRODUCT-ADD] Checking product with barcode:', cleanBarcode);
+          
+          // Check if product exists
+          toast.loading('Ürün kontrol ediliyor...');
+          
+          try {
+            console.log('📡 [PRODUCT-ADD] API call starting...');
+            const response = await api.get(`/products/barcode/${cleanBarcode}`);
+            console.log('📥 [PRODUCT-ADD] API response:', response.data);
+            
+            // ✅ Backend direkt product objesini gönderiyor, .product wrapper yok!
+            const product = response.data;
+            
+            if (product && product.id) {
+              // Product exists - UPDATE MODE
+              console.log('🔄 [PRODUCT-ADD] Product found! Switching to UPDATE mode');
+              console.log('📝 [PRODUCT-ADD] Product data:', product);
+              
+              setMode('update');
+              setExistingProductId(product.id);
+              setFormData({
+                barcode: product.barcode,
+                name: product.name,
+                buyPrice: product.buyPrice?.toString() || '',
+                sellPrice: product.sellPrice?.toString() || '',
+                stock: product.stock?.toString() || '',
+                categoryId: product.categoryId || '',
+                minStock: product.minStock?.toString() || '5',
+              });
+              
+              toast.dismiss();
+              toast.success('✅ Ürün bulundu! Güncelleyebilirsiniz');
+              soundEffects.cashRegister();
+              hapticFeedback(ImpactStyle.Medium);
+            } else {
+              console.log('⚠️ [PRODUCT-ADD] Response OK but no product data');
+              toast.dismiss();
+              toast.error('Ürün verisi alınamadı');
+            }
+          } catch (error: any) {
+            console.log('❌ [PRODUCT-ADD] API error:', error);
+            toast.dismiss();
+            
+            if (error.response?.status === 404) {
+              // Product not found - ADD MODE
+              console.log('➕ [PRODUCT-ADD] Product not found (404) - switching to ADD mode');
+              setMode('add');
+              setExistingProductId(null);
+              setFormData(prev => ({ 
+                ...prev, 
+                barcode: cleanBarcode,
+                name: '',
+                buyPrice: '',
+                sellPrice: '',
+                stock: '',
+              }));
+              toast.success(`📸 Barkod: ${cleanBarcode}\nYeni ürün ekleyebilirsiniz`);
+              soundEffects.beep();
+              hapticFeedback(ImpactStyle.Light);
+            } else {
+              console.error('🔥 [PRODUCT-ADD] Unexpected error:', error);
+              toast.error('Ürün kontrol edilemedi: ' + (error.message || 'Bilinmeyen hata'));
+            }
+          }
+        } else {
+          console.log('⚠️ [PRODUCT-ADD] Barcode is empty or invalid');
+          toast.error('Barkod okunamadı');
         }
+      } else {
+        console.log('⚠️ [PRODUCT-ADD] No barcodes in scan result');
+        toast.error('Barkod bulunamadı');
       }
     } catch (error: any) {
-      console.error('❌ Scan error:', error);
+      console.error('❌ [PRODUCT-ADD] Scan error:', error);
+      toast.dismiss();
       if (error.message && !error.message.toLowerCase().includes('cancel')) {
-        toast.error('Barkod tarama hatası');
+        toast.error('Tarama hatası: ' + error.message);
       }
+    } finally {
+      console.log('✅ [PRODUCT-ADD] Scan finished, releasing lock');
+      setIsLoading(false);
     }
   };
 
@@ -109,16 +191,23 @@ const MobileProductAdd: React.FC = () => {
         minStock: parseInt(formData.minStock) || 5,
       };
 
-      await api.post('/products', productData);
+      if (mode === 'update' && existingProductId) {
+        // UPDATE existing product
+        await api.put(`/products/${existingProductId}`, productData);
+        toast.success('✅ Ürün güncellendi!');
+      } else {
+        // ADD new product
+        await api.post('/products', productData);
+        toast.success('✅ Ürün eklendi!');
+      }
       
-      toast.success('✅ Ürün eklendi!');
       soundEffects.cashRegister();
       hapticFeedback(ImpactStyle.Heavy);
       
       setTimeout(() => navigate('/products'), 500);
     } catch (error: any) {
-      console.error('Failed to add product:', error);
-      const message = error.response?.data?.message || 'Ürün eklenemedi';
+      console.error('Failed to save product:', error);
+      const message = error.response?.data?.message || (mode === 'update' ? 'Ürün güncellenemedi' : 'Ürün eklenemedi');
       toast.error(message);
       soundEffects.error();
     } finally {
@@ -140,31 +229,33 @@ const MobileProductAdd: React.FC = () => {
         <button onClick={() => navigate(-1)} className="back-btn-clean">
           <ArrowLeft className="w-5 h-5" />
         </button>
-        <h1 className="page-title-clean">Yeni Ürün</h1>
+        <h1 className="page-title-clean">Ürün Ekle/Güncelle</h1>
         <div className="w-10"></div>
       </div>
 
+      {/* Mode Indicator */}
+      {formData.barcode && (
+        <div className={`mode-indicator ${mode === 'update' ? 'update' : 'add'}`}>
+          {mode === 'update' ? '🔄 Güncelleme Modu' : '➕ Ekleme Modu'}
+        </div>
+      )}
+
       {/* Form */}
       <form onSubmit={handleSubmit} className="add-form-clean">
-        {/* Barcode */}
+        {/* Barcode - Camera Only */}
         <div className="form-group-clean">
           <label className="form-label-clean">
             Barkod <span className="required">*</span>
           </label>
-          <div className="input-with-button">
-            <input
-              type="text"
-              name="barcode"
-              value={formData.barcode}
-              onChange={handleChange}
-              placeholder="Barkod numarası"
-              className="form-input-clean"
-              required
-            />
+          <div className="barcode-display-clean">
+            <div className="barcode-value">
+              {formData.barcode || 'Barkod numarası'}
+            </div>
             <button 
               type="button"
               onClick={scanBarcode}
               className="scan-btn-inline"
+              disabled={isLoading}
             >
               <Camera className="w-5 h-5" />
             </button>
@@ -264,21 +355,33 @@ const MobileProductAdd: React.FC = () => {
 
         {/* Info Box */}
         <div className="info-box-clean">
-          <Package className="w-5 h-5" />
+          <Camera className="w-5 h-5" />
           <div>
-            <p className="info-title-clean">Hızlı Ekleme</p>
-            <p className="info-text-clean">Kamera ile barkod okutarak hızlıca ürün ekleyin</p>
+            <p className="info-title-clean">
+              {mode === 'update' ? 'Güncelleme Modu' : 'Ekleme Modu'}
+            </p>
+            <p className="info-text-clean">
+              {mode === 'update' 
+                ? 'Ürün bilgilerini değiştirip güncelleyebilirsiniz' 
+                : 'Kamera ile barkod okutarak yeni ürün ekleyin'}
+            </p>
           </div>
         </div>
 
         {/* Submit Button */}
         <button 
           type="submit" 
-          disabled={isLoading}
+          disabled={isLoading || !formData.barcode}
           className="submit-btn-clean"
         >
           <Save className="w-5 h-5" />
-          <span>{isLoading ? 'Kaydediliyor...' : 'Ürünü Kaydet'}</span>
+          <span>
+            {isLoading 
+              ? 'Kaydediliyor...' 
+              : mode === 'update' 
+                ? 'Ürünü Güncelle' 
+                : 'Ürünü Kaydet'}
+          </span>
         </button>
       </form>
     </div>

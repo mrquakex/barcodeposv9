@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, FileText, Printer, Eye, Calendar } from 'lucide-react';
+import { Search, FileText, Printer, Eye, Calendar, RotateCcw } from 'lucide-react';
 import FluentButton from '../components/fluent/FluentButton';
 import FluentCard from '../components/fluent/FluentCard';
 import FluentInput from '../components/fluent/FluentInput';
@@ -25,6 +25,7 @@ const Sales: React.FC = () => {
   const [sales, setSales] = useState<Sale[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isProcessingRefund, setIsProcessingRefund] = useState(false);
 
   useEffect(() => {
     fetchSales();
@@ -32,9 +33,23 @@ const Sales: React.FC = () => {
 
   const fetchSales = async () => {
     try {
+      console.log('🔍 [SALES-WEB] Fetching sales...');
       const response = await api.get('/sales');
-      setSales(response.data.sales || []);
+      console.log('📦 [SALES-WEB] Full response:', response);
+      console.log('📦 [SALES-WEB] Response data:', response.data);
+      console.log('📦 [SALES-WEB] response.data.sales:', response.data.sales);
+      
+      // Backend can return either {sales: [...]} or direct array
+      const salesData = Array.isArray(response.data) 
+        ? response.data 
+        : (response.data.sales || []);
+      
+      console.log('✅ [SALES-WEB] Parsed sales:', salesData);
+      console.log('✅ [SALES-WEB] Count:', salesData.length);
+      
+      setSales(salesData);
     } catch (error) {
+      console.error('❌ [SALES-WEB] Fetch error:', error);
       toast.error(t('sales.fetchError'));
     } finally {
       setIsLoading(false);
@@ -53,6 +68,39 @@ const Sales: React.FC = () => {
       link.remove();
     } catch (error) {
       toast.error(t('sales.printError'));
+    }
+  };
+
+  const handleRefund = async (sale: Sale) => {
+    if (!window.confirm(`${sale.saleNumber} numaralı satış için tam iade yapmak istediğinizden emin misiniz?`)) {
+      return;
+    }
+
+    setIsProcessingRefund(true);
+    try {
+      // Get sale details with items
+      const response = await api.get(`/sales/${sale.id}`);
+      const saleDetails = response.data;
+
+      // Prepare refund items (all items, full quantity)
+      const refundItems = saleDetails.items.map((item: any) => ({
+        saleItemId: item.id,
+        quantity: item.quantity,
+      }));
+
+      // Process refund
+      await api.post('/sales/return', {
+        saleId: sale.id,
+        items: refundItems,
+      });
+
+      toast.success('İade işlemi başarıyla tamamlandı!');
+      fetchSales(); // Refresh sales list
+    } catch (error: any) {
+      console.error('Refund error:', error);
+      toast.error(error.response?.data?.error || 'İade işlemi başarısız');
+    } finally {
+      setIsProcessingRefund(false);
     }
   };
 
@@ -170,6 +218,15 @@ const Sales: React.FC = () => {
                     onClick={() => handlePrint(sale.id)}
                   >
                     {t('common.print')}
+                  </FluentButton>
+                  <FluentButton
+                    appearance="subtle"
+                    size="small"
+                    icon={<RotateCcw className="w-3 h-3" />}
+                    onClick={() => handleRefund(sale)}
+                    disabled={isProcessingRefund}
+                  >
+                    İade Et
                   </FluentButton>
                 </div>
               </div>
