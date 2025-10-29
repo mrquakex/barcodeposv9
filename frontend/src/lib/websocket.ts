@@ -13,7 +13,7 @@ class WebSocketManager {
       return;
     }
 
-    this.socket = io('http://localhost:5000', {
+    this.socket = io('https://api.barcodepos.trade', {
       auth: { token },
       reconnection: true,
       reconnectionDelay: 1000,

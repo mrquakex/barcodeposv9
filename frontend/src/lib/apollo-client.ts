@@ -19,7 +19,7 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
 
 // HTTP link
 const httpLink = new HttpLink({
-  uri: 'http://localhost:5000/graphql',
+  uri: 'https://api.barcodepos.trade/graphql',
   credentials: 'include', // Send cookies
 });
 

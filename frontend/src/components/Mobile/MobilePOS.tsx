@@ -118,8 +118,15 @@ const MobilePOS: React.FC = () => {
     const deltaY = touch.clientY - touchStart.y;
     const deltaTime = Date.now() - touchStart.time;
 
-    // Double tap detection
-    if (deltaTime < 300 && Math.abs(deltaX) < 10 && Math.abs(deltaY) < 10) {
+    // Check if tap is on empty area (not on buttons or products)
+    const target = e.target as HTMLElement;
+    const isEmptyArea = !target.closest('button') && 
+                        !target.closest('.quick-item-main') && 
+                        !target.closest('.detail-item-pro') &&
+                        !target.closest('.pay-btn-pro');
+
+    // Double tap detection (only on empty area)
+    if (deltaTime < 300 && Math.abs(deltaX) < 10 && Math.abs(deltaY) < 10 && isEmptyArea) {
       if (Date.now() - lastTap < 500) {
         handleDoubleTap();
       }

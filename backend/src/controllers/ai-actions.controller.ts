@@ -40,10 +40,7 @@ export const createCategoryAndMoveProducts = async (req: Request, res: Response)
     // 1. Kategori zaten var mı kontrol et
     let category = await prisma.category.findFirst({
       where: {
-        name: {
-          equals: categoryName,
-          mode: 'insensitive',
-        },
+        name: categoryName,
       },
     });
 
@@ -151,7 +148,6 @@ export const bulkUpdateProductPrices = async (req: Request, res: Response) => {
         ...(filter?.keyword && {
           name: {
             contains: filter.keyword,
-            mode: 'insensitive',
           },
         }),
       },
@@ -226,7 +222,6 @@ export const bulkUpdateStocks = async (req: Request, res: Response) => {
     if (filter?.keyword) {
       whereClause.name = {
         contains: filter.keyword,
-        mode: 'insensitive',
       };
     }
     if (filter?.categoryId) {
@@ -549,8 +544,8 @@ export const naturalQuery = async (req: Request, res: Response) => {
       results = await prisma.product.findMany({
         where: {
           OR: [
-            { name: { contains: query, mode: 'insensitive' } },
-            { description: { contains: query, mode: 'insensitive' } },
+            { name: { contains: query } },
+            { description: { contains: query } },
           ],
         },
         include: {
@@ -587,7 +582,7 @@ export const createProduct = async (req: Request, res: Response) => {
     let category;
     if (categoryName) {
       category = await prisma.category.findFirst({
-        where: { name: { equals: categoryName.trim(), mode: 'insensitive' } },
+        where: { name: categoryName.trim() },
       });
 
       if (!category) {
@@ -646,7 +641,7 @@ export const deleteProduct = async (req: Request, res: Response) => {
       product = await prisma.product.findUnique({ where: { barcode } });
     } else if (productName) {
       product = await prisma.product.findFirst({
-        where: { name: { contains: productName, mode: 'insensitive' } },
+        where: { name: { contains: productName } },
       });
     }
 
@@ -678,7 +673,7 @@ export const deleteCategory = async (req: Request, res: Response) => {
       category = await prisma.category.findUnique({ where: { id: categoryId } });
     } else if (categoryName) {
       category = await prisma.category.findFirst({
-        where: { name: { equals: categoryName, mode: 'insensitive' } },
+        where: { name: categoryName },
       });
     }
 

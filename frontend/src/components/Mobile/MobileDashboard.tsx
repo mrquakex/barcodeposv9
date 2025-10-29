@@ -145,26 +145,22 @@ const MobileDashboard: React.FC = () => {
     }
   };
 
-  // 🎨 18 CLEAN BUTTONS - Minimalist Design
+  // 🎨 14 ACTIVE MOBILE PAGES - Only Working Pages
   const menuButtons: MenuButton[] = [
     { icon: ShoppingCart, title: 'Satış Yap', path: '/pos' },
     { icon: Package, title: 'Ürünler', path: '/products', badge: stats.totalProducts > 0 ? stats.totalProducts.toString() : undefined },
     { icon: PlusCircle, title: 'Ürün Ekle', path: '/products/add' },
     { icon: Users, title: 'Müşteriler', path: '/customers' },
-    { icon: Building2, title: 'Firmalar', path: '/suppliers' },
-    { icon: FileText, title: 'Alış Faturaları', path: '/purchase-orders' },
-    { icon: BarChart3, title: 'Satış Raporu', path: '/reports/sales' },
-    { icon: TrendingUp, title: 'Ürünsel Rapor', path: '/reports/products' },
-    { icon: PackageSearch, title: 'Grupsal Rapor', path: '/reports/groups' },
-    { icon: ClipboardList, title: 'Stok Sayımı', path: '/stock-count' },
-    { icon: ArrowUpCircle, title: 'Gelirler', path: '/income' },
+    { icon: Building2, title: 'Tedarikçiler', path: '/suppliers' },
+    { icon: BarChart3, title: 'Satışlar', path: '/sales' },
     { icon: ArrowDownCircle, title: 'Giderler', path: '/expenses' },
-    { icon: UserCog, title: 'Personeller', path: '/employees' },
-    { icon: Grid3x3, title: 'Ürün Grupları', path: '/categories' },
+    { icon: Grid3x3, title: 'Kategoriler', path: '/categories' },
+    { icon: UserCog, title: 'Personel', path: '/employees' },
     { icon: Store, title: 'Şubeler', path: '/branches' },
-    { icon: Coins, title: 'Döviz Kurları', path: '/exchange-rates' },
+    { icon: TrendingUp, title: 'Raporlar', path: '/reports' },
+    { icon: ClipboardList, title: 'Stok Sayımı', path: '/stock-count' },
     { icon: Bell, title: 'Bildirimler', path: '/notifications', badge: stats.lowStockCount > 0 ? stats.lowStockCount.toString() : undefined },
-    { icon: User, title: 'Profil', path: '/profile' },
+    { icon: User, title: 'Profil & Ayarlar', path: '/settings' },
   ];
 
   return (

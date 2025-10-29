@@ -13,6 +13,15 @@ import MobileProductAdd from './components/Mobile/MobileProductAdd';
 import MobileNotifications from './components/Mobile/MobileNotifications';
 import MobileProfile from './components/Mobile/MobileProfile';
 import MobileStockCount from './components/Mobile/MobileStockCount';
+import MobileCustomers from './components/Mobile/MobileCustomers';
+import MobileCategories from './components/Mobile/MobileCategories';
+import MobileSuppliers from './components/Mobile/MobileSuppliers';
+import MobileSales from './components/Mobile/MobileSales';
+import MobileExpenses from './components/Mobile/MobileExpenses';
+import MobileEmployees from './components/Mobile/MobileEmployees';
+import MobileBranches from './components/Mobile/MobileBranches';
+import MobileReports from './components/Mobile/MobileReports';
+import MobileSettings from './components/Mobile/MobileSettings';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import POS from './pages/POS';
@@ -97,6 +106,15 @@ const App: React.FC = () => {
             <Route path="/notifications" element={<MobileNotifications />} />
             <Route path="/profile" element={<MobileProfile />} />
             <Route path="/stock-count" element={<MobileStockCount />} />
+            <Route path="/customers" element={<MobileCustomers />} />
+            <Route path="/categories" element={<MobileCategories />} />
+            <Route path="/suppliers" element={<MobileSuppliers />} />
+            <Route path="/sales" element={<MobileSales />} />
+            <Route path="/expenses" element={<MobileExpenses />} />
+            <Route path="/employees" element={<MobileEmployees />} />
+            <Route path="/branches" element={<MobileBranches />} />
+            <Route path="/reports" element={<MobileReports />} />
+            <Route path="/settings" element={<MobileSettings />} />
           </>
         )}
 
@@ -104,26 +122,30 @@ const App: React.FC = () => {
           <Route path="/dashboard" element={isNativeApp ? <MobileDashboard /> : <Dashboard />} />
           <Route path="/pos" element={<POS />} />
           <Route path="/products" element={isNativeApp ? <MobileProducts /> : <Products />} />
-          <Route path="/customers" element={<Customers />} />
-          <Route path="/categories" element={<Categories />} />
-          <Route path="/suppliers" element={<Suppliers />} />
-          <Route path="/sales" element={<Sales />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/settings" element={<Settings />} />
+          {!isNativeApp && (
+            <>
+              <Route path="/customers" element={<Customers />} />
+              <Route path="/categories" element={<Categories />} />
+              <Route path="/suppliers" element={<Suppliers />} />
+              <Route path="/sales" element={<Sales />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/settings" element={<Settings />} />
+            </>
+          )}
           <Route path="/stock-movements" element={<StockMovements />} />
           <Route path="/stock-count" element={<StockCount />} />
           <Route path="/stock-transfer" element={<StockTransfer />} />
           <Route path="/purchase-orders" element={<PurchaseOrders />} />
           <Route path="/returns" element={<Returns />} />
           <Route path="/invoices" element={<Invoices />} />
-          <Route path="/expenses" element={<Expenses />} />
+          {!isNativeApp && <Route path="/expenses" element={<Expenses />} />}
           <Route path="/profit-loss" element={<ProfitLoss />} />
           <Route path="/cash-register" element={<CashRegister />} />
           <Route path="/shifts" element={<Shifts />} />
-          <Route path="/branches" element={<Branches />} />
-          <Route path="/employees" element={<Employees />} />
+          {!isNativeApp && <Route path="/branches" element={<Branches />} />}
+          {!isNativeApp && <Route path="/employees" element={<Employees />} />}
           <Route path="/activity-logs" element={<ActivityLogs />} />
-          <Route path="/profile" element={<Profile />} />
+          {!isNativeApp && <Route path="/profile" element={<Profile />} />}
           <Route path="/user-management" element={<UserManagement />} />
           {/* More pages will be added here */}
         </Route>

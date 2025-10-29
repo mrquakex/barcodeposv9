@@ -11,7 +11,7 @@ export const getAllProducts = async (req: Request, res: Response) => {
 
     if (search) {
       where.OR = [
-        { name: { contains: search as string, mode: 'insensitive' } },
+        { name: { contains: search as string } },
         { barcode: { contains: search as string } },
       ];
     }
@@ -88,33 +88,12 @@ export const getProductByBarcode = async (req: Request, res: Response) => {
       });
     }
 
-    // ÜÇÜNCÜ DENEME: Case-insensitive LIKE search (büyük/küçük harf fark etmez)
-    if (!product) {
-      const products = await prisma.product.findMany({
-        where: {
-          barcode: {
-            equals: normalizedBarcode,
-            mode: 'insensitive', // 🔥 Büyük/küçük harf fark etmez
-          },
-        },
-        include: {
-          category: true,
-        },
-        take: 1,
-      });
-      
-      if (products.length > 0) {
-        product = products[0];
-      }
-    }
-
-    // DÖRDÜNCÜ DENEME: CONTAINS search (içerir)
+    // ÜÇÜNCÜ DENEME: CONTAINS search (içerir)
     if (!product) {
       const products = await prisma.product.findMany({
         where: {
           barcode: {
             contains: normalizedBarcode,
-            mode: 'insensitive',
           },
         },
         include: {
@@ -534,7 +513,7 @@ export const bulkImportProducts = async (req: Request, res: Response) => {
         let category;
         if (categoryName && categoryName.trim() !== '') {
           category = await prisma.category.findFirst({
-            where: { name: { equals: categoryName.trim(), mode: 'insensitive' } },
+            where: { name: categoryName.trim() },
           });
 
           if (!category) {

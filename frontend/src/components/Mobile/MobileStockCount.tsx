@@ -148,8 +148,12 @@ const MobileStockCount: React.FC = () => {
   };
 
   const saveCount = async () => {
+    console.log('💾 SAVE COUNT CLICKED!');
+    console.log('Items:', items);
+    
     if (items.length === 0) {
       toast.error('Sayım listesi boş!');
+      console.log('❌ List is empty');
       return;
     }
 
@@ -171,7 +175,9 @@ const MobileStockCount: React.FC = () => {
         timestamp: new Date().toISOString()
       };
 
-      await api.post('/stock-count', countData);
+      console.log('📤 Sending data:', countData);
+      const response = await api.post('/stock-count', countData);
+      console.log('✅ Response:', response.data);
 
       toast.success('✅ Sayım kaydedildi!');
       soundEffects.cashRegister();
@@ -179,8 +185,9 @@ const MobileStockCount: React.FC = () => {
 
       setItems([]);
     } catch (error: any) {
-      console.error('Save error:', error);
-      toast.error('Sayım kaydedilemedi!');
+      console.error('❌ Save error:', error);
+      console.error('Error details:', error.response?.data);
+      toast.error(error.response?.data?.message || 'Sayım kaydedilemedi!');
       soundEffects.error();
     } finally {
       setIsSaving(false);

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   Search, Plus, Package, ArrowLeft, X, Edit, Trash2, 
   MoreVertical, Star, ShoppingCart, TrendingUp, TrendingDown,
-  Filter, SlidersHorizontal, CheckSquare, Square, ArrowUpDown
+  Filter, SlidersHorizontal, CheckSquare, Square, ArrowUpDown, RefreshCw
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { soundEffects } from '../../lib/sound-effects';
@@ -57,11 +57,22 @@ const MobileProducts: React.FC = () => {
     loadProducts();
   }, []);
 
-  const loadProducts = async () => {
+  const loadProducts = async (forceRefresh = false) => {
     try {
       setIsLoading(true);
+      
+      if (forceRefresh) {
+        console.log('🔄 FORCE REFRESH - Clearing cache...');
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem('cached_products');
+        }
+        toast.loading('Yenileniyor...', { duration: 1000 });
+      }
+      
+      console.log('🔄 Loading products from API...');
       const response = await api.get('/products');
       const fetchedProducts = response.data.products || [];
+      console.log(`✅ Loaded ${fetchedProducts.length} products from backend`);
       setProducts(fetchedProducts);
       
       // Cache for offline
@@ -70,15 +81,25 @@ const MobileProducts: React.FC = () => {
           products: fetchedProducts,
           timestamp: Date.now(),
         }));
+        console.log('💾 Products cached successfully');
+      }
+      
+      if (forceRefresh) {
+        toast.success('✅ Yenilendi!');
+        hapticFeedback(ImpactStyle.Medium);
       }
     } catch (error) {
-      console.error('Failed to load products:', error);
+      console.error('❌ Failed to load products:', error);
       
       // Load from cache
       if (typeof localStorage !== 'undefined') {
         const cached = localStorage.getItem('cached_products');
         if (cached) {
-          const { products: cachedProducts } = JSON.parse(cached);
+          const { products: cachedProducts, timestamp } = JSON.parse(cached);
+          const cacheAge = Date.now() - timestamp;
+          const cacheHours = Math.floor(cacheAge / (1000 * 60 * 60));
+          
+          console.log(`📦 Loading from cache (${cacheHours}h old)`);
           setProducts(cachedProducts);
           toast('📡 Çevrimdışı - önbellekten yüklendi', { duration: 2000 });
         } else {
@@ -246,7 +267,7 @@ const MobileProducts: React.FC = () => {
 
   const updateProductStock = async (productId: string, newStock: number) => {
     try {
-      await api.patch(`/products/${productId}`, { stock: newStock });
+      await api.put(`/products/${productId}`, { stock: newStock });
       setProducts(prev => prev.map(p =>
         p.id === productId ? { ...p, stock: newStock } : p
       ));
@@ -264,7 +285,7 @@ const MobileProducts: React.FC = () => {
     if (!editingProduct) return;
 
     try {
-      await api.patch(`/products/${editingProduct.id}`, {
+      await api.put(`/products/${editingProduct.id}`, {
         name: editForm.name,
         sellPrice: parseFloat(editForm.sellPrice),
         stock: parseInt(editForm.stock),
@@ -366,6 +387,13 @@ const MobileProducts: React.FC = () => {
         </button>
         <h1 className="page-title-ultra">Ürünler</h1>
         <div className="header-actions-ultra">
+          <button 
+            onClick={() => loadProducts(true)} 
+            className="icon-btn-ultra"
+            disabled={isLoading}
+          >
+            <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+          </button>
           <button onClick={() => setShowSortMenu(!showSortMenu)} className="icon-btn-ultra">
             <ArrowUpDown className="w-5 h-5" />
           </button>
@@ -523,7 +551,23 @@ const MobileProducts: React.FC = () => {
               {/* Swipe Left Actions */}
               {swipedProduct === product.id && (
                 <div className="swipe-actions-left">
-                  <button onClick={() => handleSwipeRight(product.id)} className="swipe-action edit">
+                  <button 
+                    onClick={() => {
+                      const product = products.find(p => p.id === swipedProduct);
+                      if (product) {
+                        setEditingProduct(product);
+                        setEditForm({
+                          name: product.name,
+                          sellPrice: product.sellPrice.toString(),
+                          stock: product.stock?.toString() || '0',
+                        });
+                      }
+                      setSwipedProduct(null);
+                      soundEffects.tap();
+                      hapticFeedback();
+                    }} 
+                    className="swipe-action edit"
+                  >
                     <Edit className="w-5 h-5" />
                   </button>
                 </div>
