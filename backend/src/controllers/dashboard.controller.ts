@@ -22,7 +22,11 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         break;
       case 'Bu Hafta':
         startDate = new Date(today);
-        startDate.setDate(today.getDate() - today.getDay()); // Haftanın başı (Pazar)
+        // Pazartesi başlangıçlı hafta (Türkiye)
+        const dayOfWeek = today.getDay();
+        const daysToMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Pazar ise 6 gün geriye, diğer günler için gün-1
+        startDate.setDate(today.getDate() - daysToMonday);
+        startDate.setHours(0, 0, 0, 0);
         endDate = tomorrow;
         break;
       case 'Geçen Ay':
@@ -36,7 +40,11 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         break;
     }
 
-    console.log(`📅 [DASHBOARD] Date filter: ${dateFilter || 'Bu Ay'}, Range: ${startDate.toISOString()} - ${endDate.toISOString()}`);
+    console.log(`📅 [DASHBOARD] ====================================`);
+    console.log(`📅 [DASHBOARD] Filter: ${dateFilter || 'Bu Ay'}`);
+    console.log(`📅 [DASHBOARD] Start: ${startDate.toLocaleString('tr-TR')}`);
+    console.log(`📅 [DASHBOARD] End: ${endDate.toLocaleString('tr-TR')}`);
+    console.log(`📅 [DASHBOARD] ====================================`);
 
     // Bugünkü satışlar (heatmap için)
     const todaySales = await prisma.sale.findMany({
@@ -61,6 +69,9 @@ export const getDashboardStats = async (req: Request, res: Response) => {
     });
 
     const periodRevenue = periodSales.reduce((sum, sale) => sum + sale.total, 0);
+
+    console.log(`💰 [DASHBOARD] Period Sales: ${periodSales.length} adet`);
+    console.log(`💰 [DASHBOARD] Period Revenue: ₺${periodRevenue.toLocaleString('tr-TR')}`);
 
     // Toplam sayılar
     const totalProducts = await prisma.product.count({ where: { isActive: true } });
