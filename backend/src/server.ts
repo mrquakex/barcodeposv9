@@ -186,7 +186,7 @@ app.use('/api/ai-actions', aiActionsRoutes);
 app.use('/api/ai-advanced', aiAdvancedRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/shifts', shiftRoutes);
-app.use('/api/stock-counts', stockCountRoutes);
+app.use('/api/stock-count', stockCountRoutes);
 app.use('/api/stock-transfers', stockTransferRoutes);
 app.use('/api/stock-movements', stockMovementRoutes);
 app.use('/api/purchase-orders', purchaseOrderRoutes);
