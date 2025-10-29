@@ -115,16 +115,21 @@ const Dashboard: React.FC = () => {
   // 🆕 COMMAND BAR STATES
   const [dateFilter, setDateFilter] = useState<string>('Bu Ay');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const isFirstRender = React.useRef(true);
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
-  // 🆕 Re-fetch when date filter changes (skip initial render)
+  // 🆕 Re-fetch when date filter changes (skip ONLY first render)
   useEffect(() => {
-    if (dateFilter && dateFilter !== 'Bu Ay') {
-      fetchDashboardData();
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return; // Skip first render
     }
+    
+    // Subsequent renders: always fetch when filter changes
+    fetchDashboardData();
   }, [dateFilter]);
 
   // 🆕 SEARCH HANDLER (Debounced)
@@ -182,15 +187,18 @@ const Dashboard: React.FC = () => {
 
   const fetchDashboardData = async () => {
     try {
-      console.log('🔍 [DASHBOARD] Fetching data...');
-      console.log('📅 [DASHBOARD] Date filter:', dateFilter);
+      console.log('🔍 [DASHBOARD] Fetching data for:', dateFilter);
       const response = await api.get('/dashboard/stats', {
         params: {
           dateFilter: dateFilter,
         },
       });
       const data = response.data;
-      console.log('📦 [DASHBOARD] Data:', data);
+      console.log('✅ [DASHBOARD] Data loaded:', {
+        revenue: data.monthRevenue,
+        sales: data.monthSalesCount,
+        filter: data.dateFilter,
+      });
 
       setStats({
         totalRevenue: data.monthRevenue || 0,
