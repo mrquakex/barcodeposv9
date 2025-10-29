@@ -93,6 +93,7 @@ const FluentSidebar: React.FC<FluentSidebarProps> = ({ isMobileOpen = false, onM
       children: [
         { icon: ClipboardList, label: t('nav.shifts'), path: '/shifts' },
         { icon: UserCog, label: t('nav.employees'), path: '/employees' },
+        { icon: TrendingUp, label: 'Performans', path: '/employee-performance' },
         { icon: Building2, label: t('nav.branches'), path: '/branches' },
       ]
     },

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, FileText, Printer, Eye, Calendar, RotateCcw } from 'lucide-react';
 import FluentButton from '../components/fluent/FluentButton';
 import FluentCard from '../components/fluent/FluentCard';
@@ -22,6 +23,7 @@ interface Sale {
 
 const Sales: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [sales, setSales] = useState<Sale[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -208,8 +210,9 @@ const Sales: React.FC = () => {
                     appearance="subtle"
                     size="small"
                     icon={<Eye className="w-3 h-3" />}
+                    onClick={() => navigate(`/sales/${sale.id}`)}
                   >
-                    View
+                    Detay
                   </FluentButton>
                   <FluentButton
                     appearance="subtle"

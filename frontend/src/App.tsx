@@ -30,6 +30,7 @@ import Customers from './pages/Customers';
 import Categories from './pages/Categories';
 import Suppliers from './pages/Suppliers';
 import Sales from './pages/Sales';
+import SalesDetail from './pages/SalesDetail';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import StockMovements from './pages/StockMovements';
@@ -44,6 +45,7 @@ import CashRegister from './pages/CashRegister';
 import Shifts from './pages/Shifts';
 import Branches from './pages/Branches';
 import Employees from './pages/Employees';
+import EmployeePerformance from './pages/EmployeePerformance';
 import ActivityLogs from './pages/ActivityLogs';
 import Profile from './pages/Profile';
 import UserManagement from './pages/UserManagement';
@@ -128,6 +130,7 @@ const App: React.FC = () => {
               <Route path="/categories" element={<Categories />} />
               <Route path="/suppliers" element={<Suppliers />} />
               <Route path="/sales" element={<Sales />} />
+              <Route path="/sales/:id" element={<SalesDetail />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/settings" element={<Settings />} />
             </>
@@ -144,6 +147,7 @@ const App: React.FC = () => {
           <Route path="/shifts" element={<Shifts />} />
           {!isNativeApp && <Route path="/branches" element={<Branches />} />}
           {!isNativeApp && <Route path="/employees" element={<Employees />} />}
+          {!isNativeApp && <Route path="/employee-performance" element={<EmployeePerformance />} />}
           <Route path="/activity-logs" element={<ActivityLogs />} />
           {!isNativeApp && <Route path="/profile" element={<Profile />} />}
           <Route path="/user-management" element={<UserManagement />} />

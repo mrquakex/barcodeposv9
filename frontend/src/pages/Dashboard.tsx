@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { 
   TrendingUp, Banknote, ShoppingCart, Package, ArrowUp, ArrowDown, 
   AlertCircle, Star, Clock, Plus, Zap, TrendingDown, Users,
-  Calendar, Activity, DollarSign
+  Calendar, Activity, DollarSign, Settings, Bell, Search, X
 } from 'lucide-react';
 import FluentCard from '../components/fluent/FluentCard';
 import FluentBadge from '../components/fluent/FluentBadge';
@@ -116,9 +116,55 @@ const Dashboard: React.FC = () => {
   const [dateFilter, setDateFilter] = useState<string>('Bu Ay');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const isFirstRender = React.useRef(true);
+  
+  // 🆕 SEARCH STATES
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [searchResults, setSearchResults] = useState<any>(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+  const searchDropdownRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchDashboardData();
+    
+    // Load recent searches from localStorage
+    const saved = localStorage.getItem('recentSearches');
+    if (saved) {
+      setRecentSearches(JSON.parse(saved));
+    }
+  }, []);
+
+  // 🆕 KEYBOARD SHORTCUT - Ctrl+K to focus search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+      
+      // ESC to close dropdown
+      if (e.key === 'Escape') {
+        setShowSearchDropdown(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // 🆕 CLICK OUTSIDE TO CLOSE - Dropdown & Notifications
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchDropdownRef.current && !searchDropdownRef.current.contains(event.target as Node) &&
+          searchInputRef.current && !searchInputRef.current.contains(event.target as Node)) {
+        setShowSearchDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   // 🆕 Re-fetch when date filter changes (skip ONLY first render)
@@ -132,13 +178,20 @@ const Dashboard: React.FC = () => {
     fetchDashboardData();
   }, [dateFilter]);
 
-  // 🆕 SEARCH HANDLER (Debounced)
+  // 🆕 INSTANT SEARCH - Debounced 200ms
   useEffect(() => {
-    if (!searchQuery) return;
+    if (!searchQuery || searchQuery.length < 2) {
+      setSearchResults(null);
+      setShowSearchDropdown(false);
+      return;
+    }
+
+    setIsSearching(true);
+    setShowSearchDropdown(true);
 
     const timeoutId = setTimeout(() => {
       handleGlobalSearch(searchQuery);
-    }, 500); // 500ms debounce
+    }, 200); // Fast 200ms debounce for instant feel
 
     return () => clearTimeout(timeoutId);
   }, [searchQuery]);
@@ -147,37 +200,59 @@ const Dashboard: React.FC = () => {
     setSearchQuery(e.target.value);
   };
 
+  const handleSearchFocus = () => {
+    if (searchQuery.length >= 2 && searchResults) {
+      setShowSearchDropdown(true);
+    }
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Arrow navigation can be added here later
+    if (e.key === 'Escape') {
+      setShowSearchDropdown(false);
+    }
+  };
+
   const handleGlobalSearch = async (query: string) => {
     try {
-      console.log('🔍 [SEARCH] Searching for:', query);
+      // Save to recent searches
+      if (!recentSearches.includes(query)) {
+        const updated = [query, ...recentSearches].slice(0, 5);
+        setRecentSearches(updated);
+        localStorage.setItem('recentSearches', JSON.stringify(updated));
+      }
       
-      // Search products
-      const productsRes = await api.get('/products', {
-        params: { search: query },
-      });
+      // Parallel search requests for speed
+      const [productsRes, customersRes, salesRes] = await Promise.all([
+        api.get('/products', { params: { search: query } }),
+        api.get('/customers', { params: { search: query } }),
+        api.get('/sales', { params: { search: query } }),
+      ]);
       
-      // Search customers
-      const customersRes = await api.get('/customers', {
-        params: { search: query },
-      });
-      
-      // Search sales
-      const salesRes = await api.get('/sales', {
-        params: { search: query },
-      });
-      
-      console.log('📦 [SEARCH] Results:', {
-        products: productsRes.data.products?.length || 0,
-        customers: customersRes.data.customers?.length || 0,
-        sales: Array.isArray(salesRes.data) ? salesRes.data.length : (salesRes.data.sales?.length || 0),
-      });
+      const results = {
+        products: productsRes.data.products || [],
+        customers: customersRes.data.customers || [],
+        sales: Array.isArray(salesRes.data) ? salesRes.data : (salesRes.data.sales || []),
+      };
 
-      // TODO: Show search results in a modal or redirect to search page
-      // For now, we'll just log the results
+      setSearchResults(results);
       
     } catch (error) {
-      console.error('❌ [SEARCH] Error:', error);
+      console.error('Search error:', error);
+      setSearchResults(null);
+    } finally {
+      setIsSearching(false);
     }
+  };
+
+  const handleRecentSearchClick = (search: string) => {
+    setSearchQuery(search);
+    handleGlobalSearch(search);
+  };
+
+  const clearRecentSearches = () => {
+    setRecentSearches([]);
+    localStorage.removeItem('recentSearches');
   };
 
   // 🆕 DATE FILTER HANDLER
@@ -214,11 +289,6 @@ const Dashboard: React.FC = () => {
       if (data.topProducts) {
         setTopProducts(data.topProducts.slice(0, 5));
         console.log('⭐ [DASHBOARD] Top products:', data.topProducts.length);
-      }
-
-      // 🆕 SET STOCK ALERTS
-      if (data.lowStockProducts > 0) {
-        fetchStockAlerts();
       }
 
       // 🆕 SET RECENT ACTIVITIES
@@ -297,30 +367,6 @@ const Dashboard: React.FC = () => {
       console.error('❌ [DASHBOARD] Failed to fetch data:', error);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  // 🆕 FETCH STOCK ALERTS
-  const fetchStockAlerts = async () => {
-    try {
-      const response = await api.get('/products?isActive=true');
-      const products = response.data.products || [];
-      
-      const alerts: StockAlert[] = products
-        .filter((p: any) => p.stock <= p.minStock)
-        .map((p: any) => ({
-          id: p.id,
-          name: p.name,
-          stock: p.stock,
-          minStock: p.minStock,
-          severity: p.stock === 0 ? 'critical' : 'low',
-        }))
-        .slice(0, 5);
-      
-      setStockAlerts(alerts);
-      console.log('⚠️ [DASHBOARD] Stock alerts:', alerts.length);
-    } catch (error) {
-      console.error('❌ [DASHBOARD] Failed to fetch stock alerts:', error);
     }
   };
 
@@ -421,16 +467,283 @@ const Dashboard: React.FC = () => {
                 <option>Geçen Ay</option>
               </select>
 
-              {/* Search */}
+              {/* Google-Style Search */}
               <div className="relative">
                 <input
+                  ref={searchInputRef}
                   type="text"
-                  placeholder="Ara..."
+                  placeholder="Ürün, müşteri veya satış ara... (Ctrl+K)"
                   value={searchQuery}
                   onChange={handleSearch}
-                  className="w-64 px-3 py-1.5 pl-9 text-sm bg-background border border-border/50 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                  onKeyDown={handleSearchKeyDown}
+                  onFocus={handleSearchFocus}
+                  className="w-80 px-4 py-2 pl-10 pr-10 text-sm bg-background border border-border/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all shadow-sm hover:shadow-md"
                 />
-                <TrendingUp className="absolute left-2.5 top-2 w-4 h-4 text-foreground-secondary/40" />
+                <Search className="absolute left-3 top-2.5 w-4 h-4 text-foreground-secondary/50" />
+                {isSearching && (
+                  <div className="absolute right-3 top-2.5">
+                    <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                  </div>
+                )}
+                {searchQuery && !isSearching && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setShowSearchDropdown(false);
+                    }}
+                    className="absolute right-3 top-2.5 text-foreground-secondary/60 hover:text-foreground transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+                
+                {/* 🎨 GOOGLE-STYLE DROPDOWN */}
+                {showSearchDropdown && (
+                  <div
+                    ref={searchDropdownRef}
+                    className="absolute top-full left-0 right-0 mt-2 bg-background border border-border rounded-lg shadow-2xl max-h-[600px] overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+                  >
+                    <div className="overflow-y-auto max-h-[600px]">
+                      
+                      {/* Loading State */}
+                      {isSearching && (
+                        <div className="flex items-center justify-center py-12">
+                          <div className="text-center">
+                            <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-3" />
+                            <p className="text-sm text-foreground-secondary">Aranıyor...</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Results */}
+                      {!isSearching && searchResults && (
+                        <div className="p-4 space-y-4">
+                          
+                          {/* Products Section */}
+                          {searchResults.products.length > 0 && (
+                            <div>
+                              <div className="flex items-center justify-between mb-2 px-2">
+                                <div className="flex items-center gap-2">
+                                  <Package className="w-4 h-4 text-blue-600" />
+                                  <h4 className="text-xs font-semibold text-foreground-secondary uppercase tracking-wide">
+                                    Ürünler
+                                  </h4>
+                                  <span className="px-1.5 py-0.5 text-xs bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded">
+                                    {searchResults.products.length}
+                                  </span>
+                                </div>
+                                {searchResults.products.length > 3 && (
+                                  <button
+                                    onClick={() => {
+                                      navigate('/products');
+                                      setShowSearchDropdown(false);
+                                      setSearchQuery('');
+                                    }}
+                                    className="text-xs text-primary hover:underline font-medium"
+                                  >
+                                    Tümünü Gör →
+                                  </button>
+                                )}
+                              </div>
+                              <div className="space-y-1">
+                                {searchResults.products.slice(0, 3).map((product: any) => (
+                                  <button
+                                    key={product.id}
+                                    onClick={() => {
+                                      navigate('/products');
+                                      setShowSearchDropdown(false);
+                                      setSearchQuery('');
+                                    }}
+                                    className="w-full p-3 rounded-lg hover:bg-background-alt transition-colors text-left group"
+                                  >
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-sm text-foreground group-hover:text-primary transition-colors truncate">
+                                          {product.name}
+                                        </p>
+                                        <p className="text-xs text-foreground-secondary mt-0.5">
+                                          Barkod: {product.barcode} • Stok: {product.stock}
+                                        </p>
+                                      </div>
+                                      <p className="font-semibold text-sm text-foreground ml-4">
+                                        ₺{product.price}
+                                      </p>
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Customers Section */}
+                          {searchResults.customers.length > 0 && (
+                            <div>
+                              <div className="flex items-center justify-between mb-2 px-2">
+                                <div className="flex items-center gap-2">
+                                  <Users className="w-4 h-4 text-purple-600" />
+                                  <h4 className="text-xs font-semibold text-foreground-secondary uppercase tracking-wide">
+                                    Müşteriler
+                                  </h4>
+                                  <span className="px-1.5 py-0.5 text-xs bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded">
+                                    {searchResults.customers.length}
+                                  </span>
+                                </div>
+                                {searchResults.customers.length > 3 && (
+                                  <button
+                                    onClick={() => {
+                                      navigate('/customers');
+                                      setShowSearchDropdown(false);
+                                      setSearchQuery('');
+                                    }}
+                                    className="text-xs text-primary hover:underline font-medium"
+                                  >
+                                    Tümünü Gör →
+                                  </button>
+                                )}
+                              </div>
+                              <div className="space-y-1">
+                                {searchResults.customers.slice(0, 3).map((customer: any) => (
+                                  <button
+                                    key={customer.id}
+                                    onClick={() => {
+                                      navigate('/customers');
+                                      setShowSearchDropdown(false);
+                                      setSearchQuery('');
+                                    }}
+                                    className="w-full p-3 rounded-lg hover:bg-background-alt transition-colors text-left group"
+                                  >
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-sm text-foreground group-hover:text-primary transition-colors truncate">
+                                          {customer.name}
+                                        </p>
+                                        <p className="text-xs text-foreground-secondary mt-0.5">
+                                          {customer.phone} • {customer.email}
+                                        </p>
+                                      </div>
+                                      {customer.debt > 0 && (
+                                        <FluentBadge appearance="error" size="small">
+                                          ₺{customer.debt}
+                                        </FluentBadge>
+                                      )}
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Sales Section */}
+                          {searchResults.sales.length > 0 && (
+                            <div>
+                              <div className="flex items-center justify-between mb-2 px-2">
+                                <div className="flex items-center gap-2">
+                                  <ShoppingCart className="w-4 h-4 text-green-600" />
+                                  <h4 className="text-xs font-semibold text-foreground-secondary uppercase tracking-wide">
+                                    Satışlar
+                                  </h4>
+                                  <span className="px-1.5 py-0.5 text-xs bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded">
+                                    {searchResults.sales.length}
+                                  </span>
+                                </div>
+                                {searchResults.sales.length > 3 && (
+                                  <button
+                                    onClick={() => {
+                                      navigate('/sales');
+                                      setShowSearchDropdown(false);
+                                      setSearchQuery('');
+                                    }}
+                                    className="text-xs text-primary hover:underline font-medium"
+                                  >
+                                    Tümünü Gör →
+                                  </button>
+                                )}
+                              </div>
+                              <div className="space-y-1">
+                                {searchResults.sales.slice(0, 3).map((sale: any) => (
+                                  <button
+                                    key={sale.id}
+                                    onClick={() => {
+                                      navigate('/sales');
+                                      setShowSearchDropdown(false);
+                                      setSearchQuery('');
+                                    }}
+                                    className="w-full p-3 rounded-lg hover:bg-background-alt transition-colors text-left group"
+                                  >
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex-1 min-w-0">
+                                        <p className="font-medium text-sm text-foreground group-hover:text-primary transition-colors">
+                                          Satış #{sale.saleNumber}
+                                        </p>
+                                        <p className="text-xs text-foreground-secondary mt-0.5">
+                                          {new Date(sale.createdAt).toLocaleString('tr-TR')}
+                                        </p>
+                                      </div>
+                                      <p className="font-semibold text-sm text-green-600 dark:text-green-400 ml-4">
+                                        ₺{sale.total}
+                                      </p>
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* No Results */}
+                          {searchResults.products.length === 0 &&
+                           searchResults.customers.length === 0 &&
+                           searchResults.sales.length === 0 && (
+                            <div className="text-center py-12">
+                              <div className="w-12 h-12 mx-auto mb-3 bg-background-alt rounded-full flex items-center justify-center">
+                                <Search className="w-6 h-6 text-foreground-secondary/30" />
+                              </div>
+                              <p className="text-sm font-medium text-foreground mb-1">Sonuç bulunamadı</p>
+                              <p className="text-xs text-foreground-secondary">
+                                "{searchQuery}" için sonuç bulunamadı
+                              </p>
+                            </div>
+                          )}
+
+                        </div>
+                      )}
+
+                      {/* Recent Searches */}
+                      {!searchQuery && recentSearches.length > 0 && (
+                        <div className="p-4">
+                          <div className="flex items-center justify-between mb-3 px-2">
+                            <div className="flex items-center gap-2">
+                              <Clock className="w-4 h-4 text-foreground-secondary" />
+                              <h4 className="text-xs font-semibold text-foreground-secondary uppercase tracking-wide">
+                                Son Aramalar
+                              </h4>
+                            </div>
+                            <button
+                              onClick={clearRecentSearches}
+                              className="text-xs text-foreground-secondary hover:text-foreground"
+                            >
+                              Temizle
+                            </button>
+                          </div>
+                          <div className="space-y-1">
+                            {recentSearches.map((search, idx) => (
+                              <button
+                                key={idx}
+                                onClick={() => handleRecentSearchClick(search)}
+                                className="w-full p-2 px-3 rounded-lg hover:bg-background-alt transition-colors text-left flex items-center gap-2 group"
+                              >
+                                <Search className="w-3.5 h-3.5 text-foreground-secondary group-hover:text-primary transition-colors" />
+                                <span className="text-sm text-foreground group-hover:text-primary transition-colors">
+                                  {search}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Settings */}
@@ -439,19 +752,7 @@ const Dashboard: React.FC = () => {
                 className="p-2 hover:bg-background-alt rounded-md transition-colors"
                 title="Ayarlar"
               >
-                <TrendingUp className="w-4 h-4 text-foreground-secondary" />
-              </button>
-
-              {/* Notifications */}
-              <button 
-                onClick={() => console.log('🔔 Notifications clicked')}
-                className="p-2 hover:bg-background-alt rounded-md transition-colors relative"
-                title="Bildirimler"
-              >
-                <Calendar className="w-4 h-4 text-foreground-secondary" />
-                {stockAlerts.length > 0 && (
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-error rounded-full" />
-                )}
+                <Settings className="w-4 h-4 text-foreground-secondary" />
               </button>
             </div>
           </div>
