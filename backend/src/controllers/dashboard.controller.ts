@@ -110,6 +110,109 @@ export const getDashboardStats = async (req: Request, res: Response) => {
       });
     }
 
+    // 🆕 SALES HEATMAP (Saatlik satış analizi - bugün)
+    const salesHeatmap = Array(24).fill(0);
+    todaySales.forEach(sale => {
+      const hour = new Date(sale.createdAt).getHours();
+      salesHeatmap[hour] += sale.total;
+    });
+
+    // 🆕 REVENUE TREND (Son 6 ay karşılaştırması)
+    const revenueTrend = [];
+    for (let i = 5; i >= 0; i--) {
+      const monthStart = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const monthEnd = new Date(today.getFullYear(), today.getMonth() - i + 1, 1);
+      
+      const monthSalesData = await prisma.sale.findMany({
+        where: {
+          createdAt: {
+            gte: monthStart,
+            lt: monthEnd,
+          },
+        },
+      });
+
+      const monthName = monthStart.toLocaleDateString('tr-TR', { month: 'short', year: 'numeric' });
+      const revenue = monthSalesData.reduce((sum, sale) => sum + sale.total, 0);
+
+      revenueTrend.push({
+        month: monthName,
+        revenue,
+        salesCount: monthSalesData.length,
+      });
+    }
+
+    // 🆕 CUSTOMER ANALYTICS
+    // Yeni müşteriler (son 30 gün)
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const newCustomers = await prisma.customer.count({
+      where: {
+        isActive: true,
+        createdAt: {
+          gte: thirtyDaysAgo,
+        },
+      },
+    });
+
+    // Borçlu müşteriler
+    const debtorCustomers = await prisma.customer.count({
+      where: {
+        isActive: true,
+        debt: {
+          gt: 0,
+        },
+      },
+    });
+
+    // VIP müşteriler (en çok alışveriş yapan top 10)
+    const customerPurchases = await prisma.sale.groupBy({
+      by: ['customerId'],
+      where: {
+        customerId: { not: null },
+      },
+      _sum: {
+        total: true,
+      },
+      _count: {
+        id: true,
+      },
+      orderBy: {
+        _sum: {
+          total: 'desc',
+        },
+      },
+      take: 10,
+    });
+
+    const vipCustomers = customerPurchases.length;
+
+    // 🆕 GOAL TRACKING (Bu ay hedef: geçen ay gelirinin %20 fazlası)
+    const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 1);
+    
+    const lastMonthSales = await prisma.sale.findMany({
+      where: {
+        createdAt: {
+          gte: lastMonthStart,
+          lt: lastMonthEnd,
+        },
+      },
+    });
+
+    const lastMonthRevenue = lastMonthSales.reduce((sum, sale) => sum + sale.total, 0);
+    const monthlyGoal = lastMonthRevenue * 1.2; // %20 artış hedefi
+    const goalProgress = monthlyGoal > 0 ? (monthRevenue / monthlyGoal) * 100 : 0;
+
+    // 🆕 PREVIOUS MONTH DATA (Change percentage calculation)
+    const revenueChange = lastMonthRevenue > 0 
+      ? ((monthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 
+      : 0;
+    const salesChange = lastMonthSales.length > 0 
+      ? ((monthSales.length - lastMonthSales.length) / lastMonthSales.length) * 100 
+      : 0;
+
     res.json({
       todayRevenue,
       todaySalesCount: todaySales.length,
@@ -120,6 +223,25 @@ export const getDashboardStats = async (req: Request, res: Response) => {
       lowStockProducts,
       topProducts: topProductsWithDetails,
       last7DaysChart: last7Days,
+      // 🆕 NEW ANALYTICS
+      salesHeatmap,
+      revenueTrend,
+      customerAnalytics: {
+        newCustomers,
+        vipCustomers,
+        debtorCustomers,
+        totalCustomers,
+      },
+      goalTracking: {
+        currentRevenue: monthRevenue,
+        monthlyGoal,
+        goalProgress: Math.min(goalProgress, 100),
+        lastMonthRevenue,
+      },
+      changePercentages: {
+        revenueChange,
+        salesChange,
+      },
     });
   } catch (error) {
     console.error('Get dashboard stats error:', error);

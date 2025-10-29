@@ -8,7 +8,7 @@ import FluentCard from '../components/fluent/FluentCard';
 import FluentBadge from '../components/fluent/FluentBadge';
 import FluentButton from '../components/fluent/FluentButton';
 import { api } from '../lib/api';
-import { Line } from 'react-chartjs-2';
+import { Line, Bar } from 'react-chartjs-2';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -59,6 +59,26 @@ interface StockAlert {
   severity: 'critical' | 'low';
 }
 
+interface CustomerAnalytics {
+  newCustomers: number;
+  vipCustomers: number;
+  debtorCustomers: number;
+  totalCustomers: number;
+}
+
+interface GoalTracking {
+  currentRevenue: number;
+  monthlyGoal: number;
+  goalProgress: number;
+  lastMonthRevenue: number;
+}
+
+interface RevenueTrendData {
+  month: string;
+  revenue: number;
+  salesCount: number;
+}
+
 const Dashboard: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -79,6 +99,14 @@ const Dashboard: React.FC = () => {
   const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
   const [recentActivities, setRecentActivities] = useState<RecentActivity[]>([]);
   const [stockAlerts, setStockAlerts] = useState<StockAlert[]>([]);
+  
+  // 🆕 ADVANCED ANALYTICS STATES
+  const [salesHeatmap, setSalesHeatmap] = useState<number[]>([]);
+  const [revenueTrend, setRevenueTrend] = useState<RevenueTrendData[]>([]);
+  const [customerAnalytics, setCustomerAnalytics] = useState<CustomerAnalytics | null>(null);
+  const [goalTracking, setGoalTracking] = useState<GoalTracking | null>(null);
+  const [revenueTrendChart, setRevenueTrendChart] = useState<any>(null);
+  const [heatmapChart, setHeatmapChart] = useState<any>(null);
 
   useEffect(() => {
     fetchDashboardData();
@@ -97,8 +125,8 @@ const Dashboard: React.FC = () => {
         totalProducts: data.totalProducts || 0,
         lowStockCount: data.lowStockProducts || 0,
         totalCustomers: data.totalCustomers || 0,
-        revenueChange: 0, // TODO: Calculate from previous month
-        salesChange: 0, // TODO: Calculate from previous month
+        revenueChange: data.changePercentages?.revenueChange || 0,
+        salesChange: data.changePercentages?.salesChange || 0,
       });
 
       // 🆕 SET TOP PRODUCTS
@@ -114,6 +142,60 @@ const Dashboard: React.FC = () => {
 
       // 🆕 SET RECENT ACTIVITIES
       fetchRecentActivities();
+
+      // 🆕 SET ADVANCED ANALYTICS
+      if (data.salesHeatmap) {
+        setSalesHeatmap(data.salesHeatmap);
+        console.log('🔥 [DASHBOARD] Heatmap data loaded');
+        
+        // Create heatmap chart
+        setHeatmapChart({
+          labels: Array.from({ length: 24 }, (_, i) => `${i}:00`),
+          datasets: [
+            {
+              label: 'Saatlik Satış',
+              data: data.salesHeatmap,
+              backgroundColor: data.salesHeatmap.map((value: number) => {
+                const max = Math.max(...data.salesHeatmap);
+                const intensity = max > 0 ? value / max : 0;
+                return `rgba(0, 120, 212, ${0.2 + intensity * 0.6})`;
+              }),
+              borderColor: 'hsl(207, 100%, 41%)',
+              borderWidth: 1,
+            },
+          ],
+        });
+      }
+
+      if (data.revenueTrend) {
+        setRevenueTrend(data.revenueTrend);
+        console.log('📈 [DASHBOARD] Revenue trend loaded');
+        
+        // Create revenue trend chart
+        setRevenueTrendChart({
+          labels: data.revenueTrend.map((d: any) => d.month),
+          datasets: [
+            {
+              label: 'Aylık Gelir',
+              data: data.revenueTrend.map((d: any) => d.revenue),
+              borderColor: 'hsl(142, 76%, 36%)',
+              backgroundColor: 'hsl(142, 76%, 36%, 0.1)',
+              fill: true,
+              tension: 0.4,
+            },
+          ],
+        });
+      }
+
+      if (data.customerAnalytics) {
+        setCustomerAnalytics(data.customerAnalytics);
+        console.log('👥 [DASHBOARD] Customer analytics loaded');
+      }
+
+      if (data.goalTracking) {
+        setGoalTracking(data.goalTracking);
+        console.log('🎯 [DASHBOARD] Goal tracking loaded');
+      }
 
       if (data.last7DaysChart) {
         setChartData({
@@ -556,6 +638,241 @@ const Dashboard: React.FC = () => {
           </FluentCard>
 
         </div>
+
+      </div>
+
+      {/* 🆕 ADVANCED ANALYTICS ROW */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* 🔥 SALES HEATMAP */}
+        {heatmapChart && (
+          <FluentCard depth="depth-4" className="p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <Activity className="w-5 h-5 text-orange-500" />
+              <h3 className="text-lg font-semibold text-foreground">Saatlik Satış Yoğunluğu</h3>
+              <FluentBadge appearance="info" size="small">Bugün</FluentBadge>
+            </div>
+            <div className="h-64">
+              <Bar
+                data={heatmapChart}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      titleColor: '#1C1C1C',
+                      bodyColor: '#5C5C5C',
+                      borderColor: '#E6E6E6',
+                      borderWidth: 1,
+                      padding: 12,
+                      cornerRadius: 8,
+                      callbacks: {
+                        label: (context: any) => `₺${context.parsed.y.toFixed(2)}`,
+                      },
+                    },
+                  },
+                  scales: {
+                    x: { 
+                      grid: { display: false },
+                      ticks: { 
+                        color: '#858585', 
+                        font: { size: 10 },
+                        maxRotation: 45,
+                        minRotation: 45,
+                      }
+                    },
+                    y: { 
+                      grid: { color: 'rgba(0,0,0,0.05)' },
+                      ticks: { 
+                        color: '#858585', 
+                        font: { size: 12 },
+                        callback: (value: any) => `₺${value}`,
+                      }
+                    },
+                  },
+                }}
+              />
+            </div>
+            <p className="text-xs text-foreground-secondary mt-3 text-center">
+              En yoğun saat: {salesHeatmap.indexOf(Math.max(...salesHeatmap))}:00
+            </p>
+          </FluentCard>
+        )}
+
+        {/* 📈 REVENUE TREND */}
+        {revenueTrendChart && (
+          <FluentCard depth="depth-4" className="p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <TrendingUp className="w-5 h-5 text-green-500" />
+              <h3 className="text-lg font-semibold text-foreground">Gelir Trendi</h3>
+              <FluentBadge appearance="success" size="small">Son 6 Ay</FluentBadge>
+            </div>
+            <div className="h-64">
+              <Line
+                data={revenueTrendChart}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                      titleColor: '#1C1C1C',
+                      bodyColor: '#5C5C5C',
+                      borderColor: '#E6E6E6',
+                      borderWidth: 1,
+                      padding: 12,
+                      cornerRadius: 8,
+                      callbacks: {
+                        label: (context: any) => `₺${context.parsed.y.toFixed(2)}`,
+                      },
+                    },
+                  },
+                  scales: {
+                    x: { 
+                      grid: { display: false },
+                      ticks: { color: '#858585', font: { size: 12 } }
+                    },
+                    y: { 
+                      grid: { color: 'rgba(0,0,0,0.05)' },
+                      ticks: { 
+                        color: '#858585', 
+                        font: { size: 12 },
+                        callback: (value: any) => `₺${value}`,
+                      }
+                    },
+                  },
+                }}
+              />
+            </div>
+          </FluentCard>
+        )}
+
+      </div>
+
+      {/* 🆕 BOTTOM ROW - Customer Analytics + Goal Tracking */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* 👥 CUSTOMER ANALYTICS */}
+        {customerAnalytics && (
+          <FluentCard depth="depth-4" className="p-6">
+            <div className="flex items-center gap-2 mb-6">
+              <Users className="w-5 h-5 text-purple-500" />
+              <h3 className="text-lg font-semibold text-foreground">Müşteri Analizi</h3>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center p-4 bg-background-alt rounded-lg">
+                <div className="flex items-center justify-center w-12 h-12 mx-auto mb-2 rounded-full bg-green-100 dark:bg-green-900/20">
+                  <Users className="w-6 h-6 text-green-600 dark:text-green-400" />
+                </div>
+                <p className="text-2xl font-bold text-foreground">{customerAnalytics.newCustomers}</p>
+                <p className="text-xs text-foreground-secondary mt-1">Yeni Müşteri</p>
+                <p className="text-xs text-foreground-secondary">(30 gün)</p>
+              </div>
+
+              <div className="text-center p-4 bg-background-alt rounded-lg">
+                <div className="flex items-center justify-center w-12 h-12 mx-auto mb-2 rounded-full bg-yellow-100 dark:bg-yellow-900/20">
+                  <Star className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+                </div>
+                <p className="text-2xl font-bold text-foreground">{customerAnalytics.vipCustomers}</p>
+                <p className="text-xs text-foreground-secondary mt-1">VIP Müşteri</p>
+                <p className="text-xs text-foreground-secondary">(Top 10)</p>
+              </div>
+
+              <div className="text-center p-4 bg-background-alt rounded-lg">
+                <div className="flex items-center justify-center w-12 h-12 mx-auto mb-2 rounded-full bg-red-100 dark:bg-red-900/20">
+                  <DollarSign className="w-6 h-6 text-red-600 dark:text-red-400" />
+                </div>
+                <p className="text-2xl font-bold text-foreground">{customerAnalytics.debtorCustomers}</p>
+                <p className="text-xs text-foreground-secondary mt-1">Borçlu</p>
+                <p className="text-xs text-foreground-secondary">&nbsp;</p>
+              </div>
+            </div>
+
+            <div className="mt-4 p-3 bg-primary/10 rounded-lg">
+              <p className="text-sm text-foreground text-center">
+                Toplam <span className="font-bold">{customerAnalytics.totalCustomers}</span> aktif müşteri
+              </p>
+            </div>
+          </FluentCard>
+        )}
+
+        {/* 🎯 GOAL TRACKING */}
+        {goalTracking && (
+          <FluentCard depth="depth-4" className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-blue-500" />
+                <h3 className="text-lg font-semibold text-foreground">Aylık Hedef</h3>
+              </div>
+              <FluentBadge 
+                appearance={goalTracking.goalProgress >= 100 ? 'success' : goalTracking.goalProgress >= 80 ? 'warning' : 'error'}
+                size="small"
+              >
+                {goalTracking.goalProgress.toFixed(0)}%
+              </FluentBadge>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="mb-6">
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-foreground-secondary">İlerleme</span>
+                <span className="font-semibold text-foreground">
+                  ₺{goalTracking.currentRevenue.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} / 
+                  ₺{goalTracking.monthlyGoal.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className="w-full bg-background-tertiary rounded-full h-4 overflow-hidden">
+                <div 
+                  className={`h-full rounded-full transition-all duration-500 ${
+                    goalTracking.goalProgress >= 100 
+                      ? 'bg-gradient-to-r from-green-500 to-green-600' 
+                      : goalTracking.goalProgress >= 80 
+                      ? 'bg-gradient-to-r from-yellow-500 to-orange-500' 
+                      : 'bg-gradient-to-r from-blue-500 to-blue-600'
+                  }`}
+                  style={{ width: `${Math.min(goalTracking.goalProgress, 100)}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-3 bg-background-alt rounded-lg">
+                <p className="text-xs text-foreground-secondary mb-1">Bu Ay</p>
+                <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                  ₺{goalTracking.currentRevenue.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className="p-3 bg-background-alt rounded-lg">
+                <p className="text-xs text-foreground-secondary mb-1">Geçen Ay</p>
+                <p className="text-lg font-bold text-foreground">
+                  ₺{goalTracking.lastMonthRevenue.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+            </div>
+
+            {/* Goal Message */}
+            <div className={`mt-4 p-3 rounded-lg ${
+              goalTracking.goalProgress >= 100 
+                ? 'bg-green-100 dark:bg-green-900/20' 
+                : 'bg-blue-100 dark:bg-blue-900/20'
+            }`}>
+              <p className={`text-sm text-center font-medium ${
+                goalTracking.goalProgress >= 100 
+                  ? 'text-green-700 dark:text-green-300' 
+                  : 'text-blue-700 dark:text-blue-300'
+              }`}>
+                {goalTracking.goalProgress >= 100 
+                  ? '🎉 Tebrikler! Hedefi aştınız!' 
+                  : `💪 Hedefe ${(goalTracking.monthlyGoal - goalTracking.currentRevenue).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺ kaldı!`}
+              </p>
+            </div>
+          </FluentCard>
+        )}
 
       </div>
     </div>
