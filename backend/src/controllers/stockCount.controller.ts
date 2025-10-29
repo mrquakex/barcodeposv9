@@ -77,11 +77,14 @@ export const startStockCount = async (req: AuthRequest, res: Response) => {
     const where: any = { isActive: true };
     if (type === 'CATEGORY' && categoryId) {
       where.categoryId = categoryId;
-    } else if (type === 'LOW_STOCK') {
-      where.stock = { lte: prisma.raw('minStock') };
     }
 
-    const products = await prisma.product.findMany({ where });
+    let products = await prisma.product.findMany({ where });
+
+    // Filter LOW_STOCK products after fetching
+    if (type === 'LOW_STOCK') {
+      products = products.filter(p => p.stock <= p.minStock);
+    }
 
     if (products.length === 0) {
       return res.status(400).json({ error: 'Sayılacak ürün bulunamadı' });
