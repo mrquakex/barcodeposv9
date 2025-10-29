@@ -170,6 +170,8 @@ app.use('/api/', limiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/categories', categoryRoutes);
+// Customer routes - detail routes MUST be registered before generic routes
+app.use('/api/customers', customerDetailRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/sales', saleRoutes);
 app.use('/api/dashboard', dashboardRoutes);
@@ -196,7 +198,6 @@ app.use('/api/purchase-orders', purchaseOrderRoutes);
 app.use('/api/returns', returnRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/employees', employeeRoutes);
-app.use('/api/customers', customerDetailRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
