@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Edit, Trash2, User, Mail, Phone, Eye } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, User, Mail, Phone, Eye, LayoutGrid, List, DollarSign, Award } from 'lucide-react';
 import FluentButton from '../components/fluent/FluentButton';
 import FluentCard from '../components/fluent/FluentCard';
 import FluentInput from '../components/fluent/FluentInput';
 import FluentDialog from '../components/fluent/FluentDialog';
+import FluentBadge from '../components/fluent/FluentBadge';
 import { api } from '../lib/api';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
@@ -20,6 +21,8 @@ interface Customer {
   totalSpent: number;
 }
 
+type ViewMode = 'grid' | 'list';
+
 const Customers: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -28,12 +31,21 @@ const Customers: React.FC = () => {
   const [showDialog, setShowDialog] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    const saved = localStorage.getItem('customersViewMode');
+    return (saved as ViewMode) || 'grid';
+  });
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
     address: '',
   });
+
+  const handleViewModeChange = (mode: ViewMode) => {
+    setViewMode(mode);
+    localStorage.setItem('customersViewMode', mode);
+  };
 
   useEffect(() => {
     fetchCustomers();
@@ -124,20 +136,42 @@ const Customers: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">
-            👥 Müşteriler
+          <h1 className="text-3xl font-bold text-foreground tracking-tight flex items-center gap-3">
+            <User className="w-8 h-8" />
+            Müşteriler
           </h1>
           <p className="text-base text-foreground-secondary">
             {filteredCustomers.length} müşteri
           </p>
         </div>
-        <FluentButton
-          appearance="primary"
-          icon={<Plus className="w-4 h-4" />}
-          onClick={() => setShowDialog(true)}
-        >
-          Yeni Müşteri
-        </FluentButton>
+        <div className="flex items-center gap-2">
+          {/* View Toggle */}
+          <div className="flex items-center gap-1 bg-background-alt rounded-lg p-1">
+            <FluentButton
+              appearance={viewMode === 'grid' ? 'primary' : 'subtle'}
+              size="small"
+              icon={<LayoutGrid className="w-4 h-4" />}
+              onClick={() => handleViewModeChange('grid')}
+            >
+              Kart
+            </FluentButton>
+            <FluentButton
+              appearance={viewMode === 'list' ? 'primary' : 'subtle'}
+              size="small"
+              icon={<List className="w-4 h-4" />}
+              onClick={() => handleViewModeChange('list')}
+            >
+              Liste
+            </FluentButton>
+          </div>
+          <FluentButton
+            appearance="primary"
+            icon={<Plus className="w-4 h-4" />}
+            onClick={() => setShowDialog(true)}
+          >
+            Yeni Müşteri
+          </FluentButton>
+        </div>
       </div>
 
       {/* Search */}
@@ -150,74 +184,179 @@ const Customers: React.FC = () => {
         />
       </FluentCard>
 
-      {/* Customers Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredCustomers.map((customer) => (
-          <FluentCard key={customer.id} depth="depth-4" hoverable className="p-4">
-            <div className="flex items-start gap-3 mb-4">
-              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
-                <User className="w-6 h-6 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h4 className="font-medium text-foreground truncate">{customer.name}</h4>
+      {/* Customers Grid View */}
+      {viewMode === 'grid' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredCustomers.map((customer) => (
+            <FluentCard key={customer.id} depth="depth-4" hoverable className="p-4">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
+                  <User className="w-6 h-6 text-primary" />
                 </div>
-                {customer.email && (
-                  <div className="flex items-center gap-1 text-xs text-foreground-secondary mb-1">
-                    <Mail className="w-3 h-3" />
-                    <span className="truncate">{customer.email}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h4 className="font-medium text-foreground truncate">{customer.name}</h4>
                   </div>
-                )}
-                {customer.phone && (
-                  <div className="flex items-center gap-1 text-xs text-foreground-secondary">
-                    <Phone className="w-3 h-3" />
-                    <span>{customer.phone}</span>
-                  </div>
-                )}
+                  {customer.email && (
+                    <div className="flex items-center gap-1 text-xs text-foreground-secondary mb-1">
+                      <Mail className="w-3 h-3" />
+                      <span className="truncate">{customer.email}</span>
+                    </div>
+                  )}
+                  {customer.phone && (
+                    <div className="flex items-center gap-1 text-xs text-foreground-secondary">
+                      <Phone className="w-3 h-3" />
+                      <span>{customer.phone}</span>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-2 mb-3 pt-3 border-t border-border">
-              <div>
-                <p className="text-xs text-foreground-secondary">Toplam Harcama</p>
-                <p className="font-medium text-foreground">₺{Number(customer.totalSpent).toFixed(2)}</p>
+              <div className="grid grid-cols-2 gap-2 mb-3 pt-3 border-t border-border">
+                <div>
+                  <p className="text-xs text-foreground-secondary">Toplam Harcama</p>
+                  <p className="font-medium text-foreground">₺{Number(customer.totalSpent).toFixed(2)}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-foreground-secondary">Puan</p>
+                  <p className="font-medium text-primary">{customer.loyaltyPoints}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-xs text-foreground-secondary">Puan</p>
-                <p className="font-medium text-primary">{customer.loyaltyPoints}</p>
-              </div>
-            </div>
 
-            <div className="flex gap-2 pt-3 border-t border-border">
-              <FluentButton
-                appearance="subtle"
-                size="small"
-                className="flex-1"
-                icon={<Eye className="w-3 h-3" />}
-                onClick={() => handleViewDetail(customer.id)}
-              >
-                Detay
-              </FluentButton>
-              <FluentButton
-                appearance="subtle"
-                size="small"
-                icon={<Edit className="w-3 h-3" />}
-                onClick={() => handleEdit(customer)}
-              >
-                Düzenle
-              </FluentButton>
-              <FluentButton
-                appearance="subtle"
-                size="small"
-                icon={<Trash2 className="w-3 h-3" />}
-                onClick={() => handleDelete(customer.id)}
-              >
-                Sil
-              </FluentButton>
-            </div>
-          </FluentCard>
-        ))}
-      </div>
+              <div className="flex gap-2 pt-3 border-t border-border">
+                <FluentButton
+                  appearance="subtle"
+                  size="small"
+                  className="flex-1"
+                  icon={<Eye className="w-3 h-3" />}
+                  onClick={() => handleViewDetail(customer.id)}
+                >
+                  Detay
+                </FluentButton>
+                <FluentButton
+                  appearance="subtle"
+                  size="small"
+                  icon={<Edit className="w-3 h-3" />}
+                  onClick={() => handleEdit(customer)}
+                >
+                  Düzenle
+                </FluentButton>
+                <FluentButton
+                  appearance="subtle"
+                  size="small"
+                  icon={<Trash2 className="w-3 h-3" />}
+                  onClick={() => handleDelete(customer.id)}
+                >
+                  Sil
+                </FluentButton>
+              </div>
+            </FluentCard>
+          ))}
+        </div>
+      )}
+
+      {/* Customers List View */}
+      {viewMode === 'list' && (
+        <FluentCard depth="depth-4" className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-background-alt border-b border-border">
+                <tr>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">Müşteri</th>
+                  <th className="text-left py-3 px-4 text-sm font-medium text-foreground-secondary">İletişim</th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-foreground-secondary">Harcama</th>
+                  <th className="text-right py-3 px-4 text-sm font-medium text-foreground-secondary">Borç</th>
+                  <th className="text-center py-3 px-4 text-sm font-medium text-foreground-secondary">Puan</th>
+                  <th className="text-center py-3 px-4 text-sm font-medium text-foreground-secondary">İşlemler</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCustomers.map((customer) => (
+                  <tr 
+                    key={customer.id} 
+                    className="border-b border-border/50 hover:bg-background-alt transition-colors"
+                  >
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center shrink-0">
+                          <User className="w-5 h-5 text-primary" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground">{customer.name}</p>
+                          {customer.totalSpent > 5000 && (
+                            <FluentBadge appearance="success" size="small">
+                              <Award className="w-3 h-3 inline mr-1" />
+                              VIP
+                            </FluentBadge>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="space-y-1 text-sm">
+                        {customer.email && (
+                          <div className="flex items-center gap-2 text-foreground-secondary">
+                            <Mail className="w-3 h-3" />
+                            <span className="truncate max-w-[200px]">{customer.email}</span>
+                          </div>
+                        )}
+                        {customer.phone && (
+                          <div className="flex items-center gap-2 text-foreground-secondary">
+                            <Phone className="w-3 h-3" />
+                            <span>{customer.phone}</span>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <DollarSign className="w-4 h-4 text-success" />
+                        <span className="font-medium text-success">
+                          ₺{Number(customer.totalSpent).toFixed(2)}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <span className={`font-medium ${
+                        customer.debt > 0 ? 'text-error' : 'text-foreground-secondary'
+                      }`}>
+                        ₺{Number(customer.debt).toFixed(2)}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <FluentBadge appearance="info" size="small">
+                        {customer.loyaltyPoints}
+                      </FluentBadge>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center justify-center gap-1">
+                        <FluentButton
+                          appearance="subtle"
+                          size="small"
+                          icon={<Eye className="w-3 h-3" />}
+                          onClick={() => handleViewDetail(customer.id)}
+                        />
+                        <FluentButton
+                          appearance="subtle"
+                          size="small"
+                          icon={<Edit className="w-3 h-3" />}
+                          onClick={() => handleEdit(customer)}
+                        />
+                        <FluentButton
+                          appearance="subtle"
+                          size="small"
+                          icon={<Trash2 className="w-3 h-3" />}
+                          onClick={() => handleDelete(customer.id)}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </FluentCard>
+      )}
 
       {filteredCustomers.length === 0 && (
         <div className="text-center py-12">
