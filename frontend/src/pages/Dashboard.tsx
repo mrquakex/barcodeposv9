@@ -321,39 +321,42 @@ const Dashboard: React.FC = () => {
         </p>
       </div>
 
-      {/* 💎 Modern KPI Cards (Gradient Icons) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* 💎 Professional KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpiCards.map((card, index) => {
           const Icon = card.icon;
           return (
             <FluentCard 
               key={index} 
               depth="depth-4" 
-              hoverable 
-              className="p-6 group"
+              className="p-5 hover:shadow-md transition-shadow border border-border/50"
             >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-foreground-secondary mb-2">
+              <div className="flex items-start justify-between mb-3">
+                <p className="text-xs font-medium text-foreground-secondary uppercase tracking-wide">
                     {card.title}
                   </p>
-                  <h3 className="text-2xl font-bold text-foreground mb-3 tracking-tight">
-                    {card.value}
-                  </h3>
+                <Icon className="w-4 h-4 text-foreground-secondary/40" />
+              </div>
+              
+              <h3 className="text-3xl font-bold text-foreground mb-2 tracking-tight">
+                {card.value}
+              </h3>
+              
                   {card.change !== undefined && (
-                    <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5">
                       {card.change >= 0 ? (
-                        <ArrowUp className="w-4 h-4 text-success" />
+                    <ArrowUp className="w-3.5 h-3.5 text-success" />
                       ) : (
-                        <ArrowDown className="w-4 h-4 text-destructive" />
+                    <ArrowDown className="w-3.5 h-3.5 text-destructive" />
                       )}
                       <span
-                        className={`text-sm font-semibold ${
+                    className={`text-xs font-medium ${
                           card.change >= 0 ? 'text-success' : 'text-destructive'
                         }`}
                       >
                         {Math.abs(card.change).toFixed(1)}%
                       </span>
+                  <span className="text-xs text-foreground-secondary">vs geçen ay</span>
                     </div>
                   )}
                   {card.badge && (
@@ -361,19 +364,13 @@ const Dashboard: React.FC = () => {
                       {card.badge}
                     </FluentBadge>
                   )}
-                </div>
-                {/* Gradient Icon Background */}
-                <div className="p-3 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 group-hover:from-primary/20 group-hover:to-primary/10 transition-all">
-                  <Icon className="w-7 h-7 text-primary" />
-                </div>
-              </div>
             </FluentCard>
           );
         })}
       </div>
 
       {/* 🆕 SIDEBAR WIDGETS - Activities + Stock Alerts + Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           
         {/* 🆕 RECENT ACTIVITIES WIDGET */}
         <FluentCard depth="depth-4" className="p-6">
@@ -489,7 +486,7 @@ const Dashboard: React.FC = () => {
         </FluentCard>
 
         {/* 🆕 QUICK ACTIONS */}
-        <FluentCard depth="depth-4" className="p-6">
+      <FluentCard depth="depth-4" className="p-6">
             <div className="flex items-center gap-2 mb-4">
               <Zap className="w-5 h-5 text-purple-500" />
               <h3 className="text-lg font-semibold text-foreground">Hızlı İşlemler</h3>
@@ -537,126 +534,132 @@ const Dashboard: React.FC = () => {
 
       </div>
 
-      {/* 🆕 SALES ANALYTICS HUB - MEGA WIDGET */}
-      <FluentCard depth="depth-4" className="p-8">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600">
-            <TrendingUp className="w-6 h-6 text-white" />
+      {/* 🆕 SALES ANALYTICS HUB - PROFESSIONAL */}
+      <FluentCard depth="depth-4" className="p-6 border border-border/50">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
+              <TrendingUp className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-foreground">Satış Analitiği</h2>
+              <p className="text-xs text-foreground-secondary">Son güncelleme: {new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-2xl font-bold text-foreground">Satış Analitiği</h2>
-            <p className="text-sm text-foreground-secondary">Tüm satış verileriniz tek yerde</p>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-100 dark:bg-green-900/20 rounded-full">
+            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+            <span className="text-xs font-medium text-green-700 dark:text-green-300">CANLI</span>
           </div>
         </div>
 
-        {/* 🆕 QUICK STATS - 4 KPI */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg border border-green-200 dark:border-green-800">
-            <p className="text-xs font-medium text-green-700 dark:text-green-300 mb-1">Bu Ay Gelir</p>
-            <p className="text-2xl font-bold text-green-900 dark:text-green-100">
+        {/* 🆕 QUICK STATS - Compact & Professional */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+          <div className="p-3 bg-background-alt rounded-lg border border-border/30">
+            <p className="text-xs font-medium text-foreground-secondary mb-1.5">Bu Ay Gelir</p>
+            <p className="text-xl font-bold text-foreground">
               ₺{stats.totalRevenue.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
             </p>
             {stats.revenueChange !== 0 && (
-              <p className={`text-xs font-medium mt-1 ${stats.revenueChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <p className={`text-xs font-medium mt-1 ${stats.revenueChange >= 0 ? 'text-success' : 'text-destructive'}`}>
                 {stats.revenueChange >= 0 ? '↑' : '↓'} {Math.abs(stats.revenueChange).toFixed(1)}%
               </p>
             )}
           </div>
 
-          <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg border border-blue-200 dark:border-blue-800">
-            <p className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">Toplam Satış</p>
-            <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{stats.totalSales}</p>
+          <div className="p-3 bg-background-alt rounded-lg border border-border/30">
+            <p className="text-xs font-medium text-foreground-secondary mb-1.5">Toplam Satış</p>
+            <p className="text-xl font-bold text-foreground">{stats.totalSales}</p>
             {stats.salesChange !== 0 && (
-              <p className={`text-xs font-medium mt-1 ${stats.salesChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <p className={`text-xs font-medium mt-1 ${stats.salesChange >= 0 ? 'text-success' : 'text-destructive'}`}>
                 {stats.salesChange >= 0 ? '↑' : '↓'} {Math.abs(stats.salesChange).toFixed(1)}%
               </p>
             )}
           </div>
 
-          <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg border border-purple-200 dark:border-purple-800">
-            <p className="text-xs font-medium text-purple-700 dark:text-purple-300 mb-1">Ortalama</p>
-            <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">
+          <div className="p-3 bg-background-alt rounded-lg border border-border/30">
+            <p className="text-xs font-medium text-foreground-secondary mb-1.5">Ortalama</p>
+            <p className="text-xl font-bold text-foreground">
               ₺{stats.totalSales > 0 ? (stats.totalRevenue / stats.totalSales).toFixed(2) : '0.00'}
             </p>
-            <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">Satış başına</p>
+            <p className="text-xs text-foreground-secondary mt-1">Satış başına</p>
           </div>
 
-          <div className="p-4 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-lg border border-orange-200 dark:border-orange-800">
-            <p className="text-xs font-medium text-orange-700 dark:text-orange-300 mb-1">Hedef</p>
-            <p className="text-2xl font-bold text-orange-900 dark:text-orange-100">
+          <div className="p-3 bg-background-alt rounded-lg border border-border/30">
+            <p className="text-xs font-medium text-foreground-secondary mb-1.5">Hedef</p>
+            <p className="text-xl font-bold text-foreground">
               {goalTracking ? `${goalTracking.goalProgress.toFixed(0)}%` : '-%'}
             </p>
-            <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
+            <p className="text-xs text-foreground-secondary mt-1">
               {goalTracking && goalTracking.goalProgress >= 100 ? 'Hedef aşıldı!' : 'İlerleme'}
             </p>
           </div>
         </div>
 
-        {/* 🆕 TAB BAR */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+        {/* 🆕 TAB BAR - Professional */}
+        <div className="flex gap-1 mb-5 p-1 bg-background-alt rounded-lg border border-border/30 overflow-x-auto">
           <button
             onClick={() => setActiveTab('today')}
-            className={`px-6 py-3 rounded-lg font-medium transition-all whitespace-nowrap ${
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
               activeTab === 'today'
-                ? 'bg-primary text-white shadow-lg'
-                : 'bg-background-alt text-foreground-secondary hover:bg-background-tertiary'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-foreground-secondary hover:text-foreground'
             }`}
           >
-            📅 Bugün
+            Bugün
           </button>
           <button
             onClick={() => setActiveTab('7days')}
-            className={`px-6 py-3 rounded-lg font-medium transition-all whitespace-nowrap ${
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
               activeTab === '7days'
-                ? 'bg-primary text-white shadow-lg'
-                : 'bg-background-alt text-foreground-secondary hover:bg-background-tertiary'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-foreground-secondary hover:text-foreground'
             }`}
           >
-            📊 7 Gün
+            7 Gün
           </button>
           <button
             onClick={() => setActiveTab('30days')}
-            className={`px-6 py-3 rounded-lg font-medium transition-all whitespace-nowrap ${
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
               activeTab === '30days'
-                ? 'bg-primary text-white shadow-lg'
-                : 'bg-background-alt text-foreground-secondary hover:bg-background-tertiary'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-foreground-secondary hover:text-foreground'
             }`}
           >
-            📈 30 Gün
+            30 Gün
           </button>
           <button
             onClick={() => setActiveTab('6months')}
-            className={`px-6 py-3 rounded-lg font-medium transition-all whitespace-nowrap ${
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
               activeTab === '6months'
-                ? 'bg-primary text-white shadow-lg'
-                : 'bg-background-alt text-foreground-secondary hover:bg-background-tertiary'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-foreground-secondary hover:text-foreground'
             }`}
           >
-            📉 6 Ay
+            6 Ay
           </button>
           <button
             onClick={() => setActiveTab('goal')}
-            className={`px-6 py-3 rounded-lg font-medium transition-all whitespace-nowrap ${
+            className={`px-4 py-2 rounded-md text-sm font-medium transition-all whitespace-nowrap ${
               activeTab === 'goal'
-                ? 'bg-primary text-white shadow-lg'
-                : 'bg-background-alt text-foreground-secondary hover:bg-background-tertiary'
+                ? 'bg-background text-foreground shadow-sm'
+                : 'text-foreground-secondary hover:text-foreground'
             }`}
           >
-            🎯 Hedef
+            Hedef
           </button>
         </div>
 
-        {/* 🆕 TAB CONTENT */}
-        <div className="min-h-[400px]">
+        {/* 🆕 TAB CONTENT - Compact */}
+        <div className="min-h-[320px]">
           
           {/* BUGÜN TAB */}
           {activeTab === 'today' && heatmapChart && (
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-foreground">Saatlik Satış Yoğunluğu</h3>
-                <FluentBadge appearance="info" size="small">Bugün</FluentBadge>
+                <h3 className="text-base font-semibold text-foreground">Saatlik Satış Yoğunluğu</h3>
+                <span className="text-xs px-2 py-0.5 bg-background-alt rounded-md text-foreground-secondary border border-border/30">Bugün</span>
               </div>
-              <div className="h-80">
+          <div className="h-64">
                 <Bar
                   data={heatmapChart}
                   options={{
@@ -713,19 +716,19 @@ const Dashboard: React.FC = () => {
                 <FluentBadge appearance="success" size="small">Haftalık</FluentBadge>
               </div>
               <div className="h-80">
-                <Line
-                  data={chartData}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                      legend: { display: false },
-                      tooltip: {
+            <Line
+              data={chartData}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { display: false },
+                  tooltip: {
                         backgroundColor: 'rgba(255, 255, 255, 0.95)',
                         titleColor: '#1C1C1C',
                         bodyColor: '#5C5C5C',
                         borderColor: '#E6E6E6',
-                        borderWidth: 1,
+                    borderWidth: 1,
                         padding: 12,
                         cornerRadius: 8,
                         displayColors: false,
@@ -793,8 +796,8 @@ const Dashboard: React.FC = () => {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
-                    scales: {
-                      x: { grid: { display: false } },
+                scales: {
+                  x: { grid: { display: false } },
                       y: { grid: { color: 'rgba(0,0,0,0.05)' } },
                     },
                   }} />
@@ -844,9 +847,9 @@ const Dashboard: React.FC = () => {
                           callback: (value: any) => `₺${value}`,
                         }
                       },
-                    },
-                  }}
-                />
+                },
+              }}
+            />
               </div>
               <div className="grid grid-cols-6 gap-2 mt-4">
                 {revenueTrend.map((month, idx) => (
@@ -942,14 +945,14 @@ const Dashboard: React.FC = () => {
                     : `Hedefe ${(goalTracking.monthlyGoal - goalTracking.currentRevenue).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺ kaldı!`}
                 </p>
               </div>
-            </div>
-          )}
+          </div>
+        )}
 
         </div>
       </FluentCard>
 
       {/* 🆕 BOTTOM ROW - Customer Analytics + Top Products */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         
         {/* 👥 CUSTOMER ANALYTICS */}
         {customerAnalytics && (
