@@ -120,24 +120,75 @@ const Dashboard: React.FC = () => {
     fetchDashboardData();
   }, []);
 
-  // 🆕 SEARCH HANDLER
+  // 🆕 Re-fetch when date filter changes
+  useEffect(() => {
+    if (dateFilter) {
+      fetchDashboardData();
+    }
+  }, [dateFilter]);
+
+  // 🆕 SEARCH HANDLER (Debounced)
+  useEffect(() => {
+    if (!searchQuery) return;
+
+    const timeoutId = setTimeout(() => {
+      handleGlobalSearch(searchQuery);
+    }, 500); // 500ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-    // TODO: Implement global search across products, customers, sales
-    console.log('🔍 [SEARCH] Query:', e.target.value);
+  };
+
+  const handleGlobalSearch = async (query: string) => {
+    try {
+      console.log('🔍 [SEARCH] Searching for:', query);
+      
+      // Search products
+      const productsRes = await api.get('/products', {
+        params: { search: query },
+      });
+      
+      // Search customers
+      const customersRes = await api.get('/customers', {
+        params: { search: query },
+      });
+      
+      // Search sales
+      const salesRes = await api.get('/sales', {
+        params: { search: query },
+      });
+      
+      console.log('📦 [SEARCH] Results:', {
+        products: productsRes.data.products?.length || 0,
+        customers: customersRes.data.customers?.length || 0,
+        sales: Array.isArray(salesRes.data) ? salesRes.data.length : (salesRes.data.sales?.length || 0),
+      });
+
+      // TODO: Show search results in a modal or redirect to search page
+      // For now, we'll just log the results
+      
+    } catch (error) {
+      console.error('❌ [SEARCH] Error:', error);
+    }
   };
 
   // 🆕 DATE FILTER HANDLER
   const handleDateFilter = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setDateFilter(e.target.value);
-    // TODO: Implement date-based filtering
-    console.log('📅 [FILTER] Date:', e.target.value);
   };
 
   const fetchDashboardData = async () => {
     try {
       console.log('🔍 [DASHBOARD] Fetching data...');
-      const response = await api.get('/dashboard/stats');
+      console.log('📅 [DASHBOARD] Date filter:', dateFilter);
+      const response = await api.get('/dashboard/stats', {
+        params: {
+          dateFilter: dateFilter,
+        },
+      });
       const data = response.data;
       console.log('📦 [DASHBOARD] Data:', data);
 
@@ -343,6 +394,9 @@ const Dashboard: React.FC = () => {
                 <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
                 CANLI
               </span>
+              <span className="px-2 py-0.5 text-xs bg-primary/10 text-primary rounded-md font-medium">
+                📅 {dateFilter}
+              </span>
             </div>
 
             {/* Right: Actions */}
@@ -488,9 +542,9 @@ const Dashboard: React.FC = () => {
               <ArrowUp className="w-3.5 h-3.5 text-success" />
               <span className="text-xs font-medium text-success">
                 +{customerAnalytics.newCustomers} yeni
-              </span>
-            </div>
-          )}
+                      </span>
+                    </div>
+                  )}
           <button className="text-xs text-primary hover:underline font-medium opacity-0 group-hover:opacity-100 transition-opacity">
             Detay →
           </button>
@@ -673,12 +727,12 @@ const Dashboard: React.FC = () => {
           >
             <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500/10 to-pink-600/10 mb-3 group-hover:scale-110 transition-transform">
               <Activity className="w-6 h-6 text-pink-600 dark:text-pink-400" />
-            </div>
+                </div>
             <h3 className="font-semibold text-sm text-foreground mb-1">Trendler</h3>
             <p className="text-xs text-foreground-secondary">İstatistikler</p>
           </FluentCard>
-        </div>
-      </div>
+                </div>
+              </div>
 
       {/* 📊 INSIGHTS & ACTIVITY - 2 Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -688,20 +742,20 @@ const Dashboard: React.FC = () => {
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-5 h-5 text-primary" />
             <h3 className="text-base font-semibold text-foreground">Bu Ay Performans</h3>
-          </div>
+      </div>
 
           {/* Mini Revenue Chart */}
           {revenueTrendChart && (
             <div className="mb-6">
               <div style={{ height: '180px' }}>
                 <Line data={revenueTrendChart} options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: { display: false },
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { display: false },
                     tooltip: { mode: 'index', intersect: false }
-                  },
-                  scales: {
+                },
+                scales: {
                     y: { display: false, grid: { display: false } },
                     x: { grid: { display: false }, ticks: { font: { size: 10 } } }
                   }
@@ -837,9 +891,9 @@ const Dashboard: React.FC = () => {
                   Tümünü Gör ({stockAlerts.length}) →
                 </FluentButton>
               )}
-            </div>
-          )}
-        </FluentCard>
+          </div>
+        )}
+      </FluentCard>
 
       </div>
 

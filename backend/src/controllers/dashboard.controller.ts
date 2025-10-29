@@ -3,13 +3,42 @@ import prisma from '../lib/prisma';
 
 export const getDashboardStats = async (req: Request, res: Response) => {
   try {
+    const { dateFilter } = req.query;
+    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    // Bugünkü satışlar
+    // 📅 DATE FILTER LOGIC
+    let startDate: Date;
+    let endDate: Date;
+    
+    switch (dateFilter) {
+      case 'Bugün':
+        startDate = today;
+        endDate = tomorrow;
+        break;
+      case 'Bu Hafta':
+        startDate = new Date(today);
+        startDate.setDate(today.getDate() - today.getDay()); // Haftanın başı (Pazar)
+        endDate = tomorrow;
+        break;
+      case 'Geçen Ay':
+        startDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+        endDate = new Date(today.getFullYear(), today.getMonth(), 1);
+        break;
+      case 'Bu Ay':
+      default:
+        startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+        endDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+        break;
+    }
+
+    console.log(`📅 [DASHBOARD] Date filter: ${dateFilter || 'Bu Ay'}, Range: ${startDate.toISOString()} - ${endDate.toISOString()}`);
+
+    // Bugünkü satışlar (heatmap için)
     const todaySales = await prisma.sale.findMany({
       where: {
         createdAt: {
@@ -21,20 +50,17 @@ export const getDashboardStats = async (req: Request, res: Response) => {
 
     const todayRevenue = todaySales.reduce((sum, sale) => sum + sale.total, 0);
 
-    // Bu ayki satışlar
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const firstDayOfNextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-
-    const monthSales = await prisma.sale.findMany({
+    // Filtrelenmiş dönem satışları
+    const periodSales = await prisma.sale.findMany({
       where: {
         createdAt: {
-          gte: firstDayOfMonth,
-          lt: firstDayOfNextMonth,
+          gte: startDate,
+          lt: endDate,
         },
       },
     });
 
-    const monthRevenue = monthSales.reduce((sum, sale) => sum + sale.total, 0);
+    const periodRevenue = periodSales.reduce((sum, sale) => sum + sale.total, 0);
 
     // Toplam sayılar
     const totalProducts = await prisma.product.count({ where: { isActive: true } });
@@ -48,14 +74,14 @@ export const getDashboardStats = async (req: Request, res: Response) => {
       },
     });
 
-    // En çok satan ürünler (bu ay)
+    // En çok satan ürünler (seçili dönem)
     const topProducts = await prisma.saleItem.groupBy({
       by: ['productId'],
       where: {
         sale: {
           createdAt: {
-            gte: firstDayOfMonth,
-            lt: firstDayOfNextMonth,
+            gte: startDate,
+            lt: endDate,
           },
         },
       },
@@ -204,21 +230,21 @@ export const getDashboardStats = async (req: Request, res: Response) => {
 
     const lastMonthRevenue = lastMonthSales.reduce((sum, sale) => sum + sale.total, 0);
     const monthlyGoal = lastMonthRevenue * 1.2; // %20 artış hedefi
-    const goalProgress = monthlyGoal > 0 ? (monthRevenue / monthlyGoal) * 100 : 0;
+    const goalProgress = monthlyGoal > 0 ? (periodRevenue / monthlyGoal) * 100 : 0;
 
     // 🆕 PREVIOUS MONTH DATA (Change percentage calculation)
     const revenueChange = lastMonthRevenue > 0 
-      ? ((monthRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 
+      ? ((periodRevenue - lastMonthRevenue) / lastMonthRevenue) * 100 
       : 0;
     const salesChange = lastMonthSales.length > 0 
-      ? ((monthSales.length - lastMonthSales.length) / lastMonthSales.length) * 100 
+      ? ((periodSales.length - lastMonthSales.length) / lastMonthSales.length) * 100 
       : 0;
 
     res.json({
       todayRevenue,
       todaySalesCount: todaySales.length,
-      monthRevenue,
-      monthSalesCount: monthSales.length,
+      monthRevenue: periodRevenue,
+      monthSalesCount: periodSales.length,
       totalProducts,
       totalCustomers,
       lowStockProducts,
@@ -234,7 +260,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         totalCustomers,
       },
       goalTracking: {
-        currentRevenue: monthRevenue,
+        currentRevenue: periodRevenue,
         monthlyGoal,
         goalProgress: Math.min(goalProgress, 100),
         lastMonthRevenue,
@@ -243,6 +269,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         revenueChange,
         salesChange,
       },
+      dateFilter: dateFilter || 'Bu Ay', // 📅 Return selected filter
     });
   } catch (error) {
     console.error('Get dashboard stats error:', error);
