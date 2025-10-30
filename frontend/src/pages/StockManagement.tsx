@@ -32,6 +32,7 @@ import Pagination from '../components/ui/Pagination';
 import ProductModal from '../components/modals/ProductModal';
 import StockAdjustmentModal from '../components/modals/StockAdjustmentModal';
 import PriceUpdateModal from '../components/modals/PriceUpdateModal';
+import ProductDetailModal from '../components/modals/ProductDetailModal';
 import api from '../lib/api';
 import toast from 'react-hot-toast';
 
@@ -450,6 +451,7 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
   const [showProductModal, setShowProductModal] = useState(false);
   const [showStockModal, setShowStockModal] = useState(false);
   const [showPriceModal, setShowPriceModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [stockModalType, setStockModalType] = useState<'increase' | 'decrease'>('increase');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
@@ -581,7 +583,7 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
 
   const handleViewDetails = (product: Product) => {
     setSelectedProduct(product);
-    toast.info('Ürün detay modal\'ı yakında eklenecek');
+    setShowDetailModal(true);
     closeContextMenu();
   };
 
@@ -962,6 +964,15 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
             onSuccess={fetchProducts}
             product={selectedProduct}
           />
+
+          <ProductDetailModal
+            isOpen={showDetailModal}
+            onClose={() => {
+              setShowDetailModal(false);
+              setSelectedProduct(null);
+            }}
+            productId={selectedProduct.id}
+          />
         </>
       )}
     </div>
@@ -1105,21 +1116,44 @@ const StockCountTab: React.FC<StockCountTabProps> = ({ currentPage, onPageChange
   const [counts, setCounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchCounts = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/stock-counts');
+      const countsData = response.data.counts || response.data || [];
+      setCounts(Array.isArray(countsData) ? countsData : []);
+    } catch (error) {
+      console.error('Counts fetch error:', error);
+      setCounts([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchCounts = async () => {
-      try {
-        const response = await api.get('/stock-counts');
-        const countsData = response.data.counts || response.data || [];
-        setCounts(Array.isArray(countsData) ? countsData : []);
-      } catch (error) {
-        console.error('Counts fetch error:', error);
-        setCounts([]);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchCounts();
   }, []);
+
+  const handleNewCount = async () => {
+    const name = prompt('Sayım adı girin:');
+    if (!name) return;
+
+    try {
+      await api.post('/stock-counts', {
+        name,
+        status: 'IN_PROGRESS'
+      });
+      toast.success('✅ Yeni sayım başlatıldı');
+      fetchCounts();
+    } catch (error: any) {
+      console.error('New count error:', error);
+      toast.error(error.response?.data?.error || 'Sayım başlatılamadı');
+    }
+  };
+
+  const handleCountClick = (count: any) => {
+    toast.info(`${count.name} sayımı detayları: Durum ${count.status === 'COMPLETED' ? 'Tamamlandı' : count.status === 'IN_PROGRESS' ? 'Devam Ediyor' : 'Beklemede'}. Detay modal'ı yakında eklenecek.`);
+  };
 
   // Pagination logic
   const totalPages = Math.ceil(counts.length / itemsPerPage);
@@ -1141,14 +1175,22 @@ const StockCountTab: React.FC<StockCountTabProps> = ({ currentPage, onPageChange
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-foreground">Stok Sayımları</h3>
-        <FluentButton appearance="primary" icon={<Plus className="w-4 h-4" />}>
+        <FluentButton
+          appearance="primary"
+          icon={<Plus className="w-4 h-4" />}
+          onClick={handleNewCount}
+        >
           Yeni Sayım Başlat
         </FluentButton>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {paginatedCounts.map((count) => (
-          <FluentCard key={count.id} className="p-5 hover:shadow-lg transition-shadow">
+          <FluentCard
+            key={count.id}
+            className="p-5 hover:shadow-lg transition-shadow cursor-pointer"
+            onClick={() => handleCountClick(count)}
+          >
             <div className="flex items-center justify-between mb-3">
               <h4 className="font-semibold text-foreground">{count.name}</h4>
               <span className={`px-3 py-1 rounded-full text-xs font-medium ${
@@ -1204,21 +1246,31 @@ const StockTransferTab: React.FC<StockTransferTabProps> = ({ currentPage, onPage
   const [transfers, setTransfers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchTransfers = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/stock-transfers');
+      const transfersData = response.data.transfers || response.data || [];
+      setTransfers(Array.isArray(transfersData) ? transfersData : []);
+    } catch (error) {
+      console.error('Transfers fetch error:', error);
+      setTransfers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchTransfers = async () => {
-      try {
-        const response = await api.get('/stock-transfers');
-        const transfersData = response.data.transfers || response.data || [];
-        setTransfers(Array.isArray(transfersData) ? transfersData : []);
-      } catch (error) {
-        console.error('Transfers fetch error:', error);
-        setTransfers([]);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchTransfers();
   }, []);
+
+  const handleNewTransfer = () => {
+    toast.info('Transfer modal\'ı: Şube seçimi, ürün ve miktar. Backend hazır ama modal UI geliştirme aşamasında. Alternatif: Şubeler arası envanter düzenlemesi manuel yapılabilir.');
+  };
+
+  const handleTransferClick = (transfer: any) => {
+    toast.info(`Transfer detayları: ${transfer.fromBranch?.name || 'Bilinmeyen'} → ${transfer.toBranch?.name || 'Bilinmeyen'}. Detay modal'ı yakında eklenecek.`);
+  };
 
   // Pagination logic
   const totalPages = Math.ceil(transfers.length / itemsPerPage);
@@ -1240,7 +1292,11 @@ const StockTransferTab: React.FC<StockTransferTabProps> = ({ currentPage, onPage
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-foreground">Şubeler Arası Transfer</h3>
-        <FluentButton appearance="primary" icon={<Plus className="w-4 h-4" />}>
+        <FluentButton
+          appearance="primary"
+          icon={<Plus className="w-4 h-4" />}
+          onClick={handleNewTransfer}
+        >
           Yeni Transfer
         </FluentButton>
       </div>
@@ -1251,7 +1307,8 @@ const StockTransferTab: React.FC<StockTransferTabProps> = ({ currentPage, onPage
             key={transfer.id}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex items-center gap-4 p-4 bg-card border border-border rounded-xl hover:shadow-md transition-shadow"
+            onClick={() => handleTransferClick(transfer)}
+            className="flex items-center gap-4 p-4 bg-card border border-border rounded-xl hover:shadow-md transition-shadow cursor-pointer"
           >
             <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
               <RefreshCw className="w-5 h-5 text-purple-600" />
