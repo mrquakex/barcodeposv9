@@ -14,8 +14,8 @@ RUN npm install
 # Copy Prisma schema from main backend (we share the same DB)
 COPY backend/prisma ./prisma-temp/
 
-# Generate Prisma Client using main backend's schema
-RUN npx prisma generate --schema=./prisma-temp/schema.prisma
+# Install Prisma CLI and generate client
+RUN npm install -D prisma && npx prisma generate --schema=./prisma-temp/schema.prisma
 
 # Copy source code
 COPY apps/corp-admin-backend/ ./
