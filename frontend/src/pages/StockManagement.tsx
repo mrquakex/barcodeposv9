@@ -53,6 +53,8 @@ const StockManagement: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [isRealTimeEnabled, setIsRealTimeEnabled] = useState(true);
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
   // Pagination States
   const [catalogPage, setCatalogPage] = useState(1);
@@ -71,6 +73,7 @@ const StockManagement: React.FC = () => {
       setRefreshing(true);
       const response = await api.get('/stock/dashboard-stats');
       setStats(response.data);
+      setLastUpdate(new Date());
     } catch (error) {
       console.error('Stats fetch error:', error);
     } finally {
@@ -81,6 +84,48 @@ const StockManagement: React.FC = () => {
 
   useEffect(() => {
     fetchStats();
+  }, []);
+
+  // 🔴 REAL-TIME: Auto-refresh every 30 seconds
+  useEffect(() => {
+    if (!isRealTimeEnabled) return;
+    
+    const interval = setInterval(() => {
+      fetchStats();
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [isRealTimeEnabled]);
+
+  // ⌨️ KEYBOARD SHORTCUTS
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Ctrl+N: Yeni Ürün
+      if (e.ctrlKey && e.key === 'n') {
+        e.preventDefault();
+        setShowNewProductModal(true);
+        toast.success('⌨️ Kısayol: Ctrl+N - Yeni Ürün');
+      }
+      // Ctrl+E: Dışa Aktar
+      if (e.ctrlKey && e.key === 'e') {
+        e.preventDefault();
+        handleExportAll();
+        toast.success('⌨️ Kısayol: Ctrl+E - Dışa Aktar');
+      }
+      // Ctrl+R: Yenile
+      if (e.ctrlKey && e.key === 'r') {
+        e.preventDefault();
+        fetchStats();
+        toast.success('⌨️ Kısayol: Ctrl+R - Yenile');
+      }
+      // Esc: Modal'ları kapat
+      if (e.key === 'Escape') {
+        setShowNewProductModal(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
   }, []);
 
   // Export all products
@@ -150,6 +195,23 @@ const StockManagement: React.FC = () => {
           >
             Yenile
           </FluentButton>
+          <div className="flex items-center gap-2 mr-4">
+            <button
+              onClick={() => setIsRealTimeEnabled(!isRealTimeEnabled)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all ${
+                isRealTimeEnabled 
+                  ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' 
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600'
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full ${isRealTimeEnabled ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
+              <span className="font-medium">{isRealTimeEnabled ? 'CANLI' : 'DURDURULDU'}</span>
+            </button>
+            <span className="text-xs text-foreground-secondary">
+              Son güncelleme: {lastUpdate.toLocaleTimeString('tr-TR')}
+            </span>
+          </div>
+          
           <FluentButton
             appearance="subtle"
             icon={<Download className="w-4 h-4" />}
@@ -1641,6 +1703,7 @@ const BulkOperationsTab = () => {
   const [bulkCategory, setBulkCategory] = useState('');
   const [bulkOperation, setBulkOperation] = useState('increase');
   const [bulkValue, setBulkValue] = useState(10);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -1668,12 +1731,51 @@ const BulkOperationsTab = () => {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      alert(`✅ İçe aktarma tamamlandı!\n\nYeni: ${response.data.imported}\nGüncellenen: ${response.data.updated}`);
+      toast.success(`✅ İçe aktarma tamamlandı!\n\nYeni: ${response.data.imported}\nGüncellenen: ${response.data.updated}`);
     } catch (error: any) {
-      alert(`❌ Hata: ${error.response?.data?.error || error.message}`);
+      toast.error(`❌ Hata: ${error.response?.data?.error || error.message}`);
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.csv')) {
+      toast.error('❌ Sadece Excel (.xlsx) veya CSV (.csv) dosyaları desteklenir');
+      return;
+    }
+
+    try {
+      setUploading(true);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await api.post('/stock/import-excel', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      toast.success(`✅ ${file.name} başarıyla içe aktarıldı!\n\nYeni: ${response.data.imported}\nGüncellenen: ${response.data.updated}`);
+    } catch (error: any) {
+      toast.error(`❌ Hata: ${error.response?.data?.error || error.message}`);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -1739,23 +1841,53 @@ const BulkOperationsTab = () => {
             </div>
           </div>
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".xlsx,.xls"
-            onChange={handleExcelImport}
-            className="hidden"
-          />
-
-          <FluentButton
-            appearance="primary"
-            icon={<Upload className="w-4 h-4" />}
-            onClick={() => fileInputRef.current?.click()}
-            loading={uploading}
-            className="w-full"
+          {/* Drag & Drop Zone */}
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`border-2 border-dashed rounded-xl p-8 text-center transition-all mb-4 ${
+              isDragging 
+                ? 'border-primary bg-primary/10 scale-105' 
+                : 'border-border bg-card-hover hover:border-primary/50'
+            }`}
           >
-            {uploading ? 'Yükleniyor...' : 'Excel Dosyası Seç'}
-          </FluentButton>
+            {uploading ? (
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                <p className="text-foreground font-medium">Yükleniyor...</p>
+              </div>
+            ) : (
+              <>
+                <Upload className={`w-16 h-16 mx-auto mb-4 ${isDragging ? 'text-primary animate-bounce' : 'text-foreground-secondary'}`} />
+                <p className="text-foreground font-semibold mb-2">
+                  {isDragging ? '🎯 Buraya bırak!' : '📤 Dosyayı sürükle-bırak'}
+                </p>
+                <p className="text-sm text-foreground-secondary mb-4">veya</p>
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".xlsx,.csv"
+                  onChange={handleExcelImport}
+                  className="hidden"
+                  id="excel-drag-drop-upload"
+                />
+                <label htmlFor="excel-drag-drop-upload">
+                  <FluentButton
+                    as="span"
+                    appearance="primary"
+                    className="cursor-pointer"
+                  >
+                    Dosya Seç
+                  </FluentButton>
+                </label>
+                <p className="text-xs text-foreground-secondary mt-3">
+                  .xlsx veya .csv | Binlerce ürün tek seferde
+                </p>
+              </>
+            )}
+          </div>
 
           <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
             <p className="text-xs text-blue-800 dark:text-blue-300">
