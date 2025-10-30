@@ -453,6 +453,12 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
   const [stockModalType, setStockModalType] = useState<'increase' | 'decrease'>('increase');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
+  // Filters
+  const [showFilters, setShowFilters] = useState(false);
+  const [minPrice, setMinPrice] = useState<number>(0);
+  const [maxPrice, setMaxPrice] = useState<number>(10000);
+  const [stockStatus, setStockStatus] = useState<string>('all'); // all, critical, low, ok
+
   // Reset to page 1 when search/filters change
   useEffect(() => {
     onPageChange(1);
@@ -468,8 +474,26 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
       if (selectedCategory) params.categoryId = selectedCategory;
 
       const response = await api.get('/products', { params });
-      const productsData = response.data.products || response.data || [];
-      setProducts(Array.isArray(productsData) ? productsData : []);
+      let productsData = response.data.products || response.data || [];
+      productsData = Array.isArray(productsData) ? productsData : [];
+
+      // Apply client-side filters
+      if (minPrice > 0 || maxPrice < 10000) {
+        productsData = productsData.filter((p: Product) => 
+          p.sellPrice >= minPrice && p.sellPrice <= maxPrice
+        );
+      }
+
+      if (stockStatus !== 'all') {
+        productsData = productsData.filter((p: Product) => {
+          if (stockStatus === 'critical') return p.stock <= p.minStock;
+          if (stockStatus === 'low') return p.stock > p.minStock && p.stock <= p.minStock * 1.5;
+          if (stockStatus === 'ok') return p.stock > p.minStock * 1.5;
+          return true;
+        });
+      }
+
+      setProducts(productsData);
     } catch (error) {
       console.error('Products fetch error:', error);
       setProducts([]);
@@ -496,7 +520,7 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
     fetchProducts();
     fetchCategoriesAndSuppliers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchTerm, selectedCategory]);
+  }, [searchTerm, selectedCategory, minPrice, maxPrice, stockStatus]);
 
   // Pagination logic
   const totalPages = Math.ceil(products.length / itemsPerPage);
@@ -665,8 +689,9 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
         <FluentButton
           appearance="subtle"
           icon={<Filter className="w-4 h-4" />}
+          onClick={() => setShowFilters(!showFilters)}
         >
-          Filtreler
+          Filtreler {showFilters && '✓'}
         </FluentButton>
 
         <div className="flex items-center gap-1 bg-card-hover rounded-lg p-1">
@@ -684,6 +709,93 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
           </button>
         </div>
       </div>
+
+      {/* Filters Panel */}
+      {showFilters && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          exit={{ opacity: 0, height: 0 }}
+          className="bg-card border border-border rounded-xl p-4 space-y-4"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Category Filter */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Kategori
+              </label>
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="w-full px-4 py-2.5 bg-card border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+              >
+                <option value="">Tüm Kategoriler</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Price Range */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Fiyat Aralığı
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(Number(e.target.value))}
+                  placeholder="Min"
+                  className="w-full px-3 py-2.5 bg-card border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+                <span className="text-foreground-secondary">-</span>
+                <input
+                  type="number"
+                  min="0"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(Number(e.target.value))}
+                  placeholder="Max"
+                  className="w-full px-3 py-2.5 bg-card border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
+            </div>
+
+            {/* Stock Status */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Stok Durumu
+              </label>
+              <select
+                value={stockStatus}
+                onChange={(e) => setStockStatus(e.target.value)}
+                className="w-full px-4 py-2.5 bg-card border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+              >
+                <option value="all">Tümü</option>
+                <option value="critical">Kritik (≤ Min Stok)</option>
+                <option value="low">Düşük (Min x 1.5)</option>
+                <option value="ok">Normal</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Clear Filters */}
+          <div className="flex items-center justify-end pt-2">
+            <FluentButton
+              appearance="subtle"
+              onClick={() => {
+                setSelectedCategory('');
+                setMinPrice(0);
+                setMaxPrice(10000);
+                setStockStatus('all');
+              }}
+            >
+              Filtreleri Temizle
+            </FluentButton>
+          </div>
+        </motion.div>
+      )}
 
       {/* Products List/Grid */}
       {viewMode === 'list' ? (
