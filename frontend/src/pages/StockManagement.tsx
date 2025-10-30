@@ -339,9 +339,11 @@ const ProductCatalogTab = () => {
       if (selectedCategory) params.categoryId = selectedCategory;
 
       const response = await api.get('/products', { params });
-      setProducts(response.data.products || []);
+      const productsData = response.data.products || response.data || [];
+      setProducts(Array.isArray(productsData) ? productsData : []);
     } catch (error) {
       console.error('Products fetch error:', error);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -349,6 +351,7 @@ const ProductCatalogTab = () => {
 
   useEffect(() => {
     fetchProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, selectedCategory]);
 
   // Context menu actions
@@ -639,9 +642,11 @@ const StockMovementsTab = () => {
     const fetchMovements = async () => {
       try {
         const response = await api.get('/stock-movements');
-        setMovements(response.data.movements || []);
+        const movementsData = response.data.movements || response.data || [];
+        setMovements(Array.isArray(movementsData) ? movementsData : []);
       } catch (error) {
         console.error('Movements fetch error:', error);
+        setMovements([]);
       } finally {
         setLoading(false);
       }
@@ -721,9 +726,11 @@ const StockCountTab = () => {
     const fetchCounts = async () => {
       try {
         const response = await api.get('/stock-counts');
-        setCounts(response.data || []);
+        const countsData = response.data.counts || response.data || [];
+        setCounts(Array.isArray(countsData) ? countsData : []);
       } catch (error) {
         console.error('Counts fetch error:', error);
+        setCounts([]);
       } finally {
         setLoading(false);
       }
@@ -794,9 +801,11 @@ const StockTransferTab = () => {
     const fetchTransfers = async () => {
       try {
         const response = await api.get('/stock-transfers');
-        setTransfers(response.data || []);
+        const transfersData = response.data.transfers || response.data || [];
+        setTransfers(Array.isArray(transfersData) ? transfersData : []);
       } catch (error) {
         console.error('Transfers fetch error:', error);
+        setTransfers([]);
       } finally {
         setLoading(false);
       }
@@ -871,9 +880,10 @@ const StockAlertsTab = () => {
     const fetchAlerts = async () => {
       try {
         const response = await api.get('/stock/alerts');
-        setAlerts(response.data);
+        setAlerts(response.data || { critical: [], overStock: [], inactive: [] });
       } catch (error) {
         console.error('Alerts fetch error:', error);
+        setAlerts({ critical: [], overStock: [], inactive: [] });
       } finally {
         setLoading(false);
       }
