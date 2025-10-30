@@ -387,39 +387,45 @@ const StockManagement: React.FC = () => {
           })}
         </div>
 
-        {/* Tab Content */}
+        {/* Tab Content - Keep all tabs mounted to preserve modal states */}
         <div className="p-6">
-          {activeTab === 'catalog' && (
+          <div style={{ display: activeTab === 'catalog' ? 'block' : 'none' }}>
             <ProductCatalogTab 
               currentPage={catalogPage}
               onPageChange={setCatalogPage}
               itemsPerPage={itemsPerPage}
             />
-          )}
-          {activeTab === 'movements' && (
+          </div>
+          <div style={{ display: activeTab === 'movements' ? 'block' : 'none' }}>
             <StockMovementsTab
               currentPage={movementsPage}
               onPageChange={setMovementsPage}
               itemsPerPage={itemsPerPage}
             />
-          )}
-          {activeTab === 'count' && (
+          </div>
+          <div style={{ display: activeTab === 'count' ? 'block' : 'none' }}>
             <StockCountTab
               currentPage={countsPage}
               onPageChange={setCountsPage}
               itemsPerPage={itemsPerPage}
             />
-          )}
-          {activeTab === 'transfer' && (
+          </div>
+          <div style={{ display: activeTab === 'transfer' ? 'block' : 'none' }}>
             <StockTransferTab
               currentPage={transfersPage}
               onPageChange={setTransfersPage}
               itemsPerPage={itemsPerPage}
             />
-          )}
-          {activeTab === 'alerts' && <StockAlertsTab />}
-          {activeTab === 'reports' && <StockReportsTab />}
-          {activeTab === 'bulk' && <BulkOperationsTab />}
+          </div>
+          <div style={{ display: activeTab === 'alerts' ? 'block' : 'none' }}>
+            <StockAlertsTab />
+          </div>
+          <div style={{ display: activeTab === 'reports' ? 'block' : 'none' }}>
+            <StockReportsTab />
+          </div>
+          <div style={{ display: activeTab === 'bulk' ? 'block' : 'none' }}>
+            <BulkOperationsTab />
+          </div>
         </div>
       </FluentCard>
 
@@ -595,8 +601,13 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
   // Context menu actions
   const handleEdit = (product: Product) => {
     console.log('✏️ handleEdit called with product:', product);
+    console.log('📝 Before state update - showProductModal:', showProductModal);
     setEditingProduct(product);
     setShowProductModal(true);
+    console.log('📝 After state update called');
+    setTimeout(() => {
+      console.log('📝 1 second later - showProductModal should be true');
+    }, 1000);
     closeContextMenu();
     toast.success(`✏️ ${product.name} düzenleme modal'ı açılıyor...`);
   };
