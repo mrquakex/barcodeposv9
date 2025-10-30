@@ -46,11 +46,12 @@ import FluentButton from '../components/fluent/FluentButton';
 import FluentCard from '../components/fluent/FluentCard';
 import { ContextMenu, useContextMenu, type ContextMenuItem } from '../components/ui/ContextMenu';
 import Pagination from '../components/ui/Pagination';
-import ProductModal from '../components/modals/ProductModal';
-import StockAdjustmentModal from '../components/modals/StockAdjustmentModal';
-import PriceUpdateModal from '../components/modals/PriceUpdateModal';
-import ProductDetailModal from '../components/modals/ProductDetailModal';
-import AdvancedExportModal from '../components/modals/AdvancedExportModal';
+// Modal components temporarily disabled - will be reimplemented
+// import ProductModal from '../components/modals/ProductModal';
+// import StockAdjustmentModal from '../components/modals/StockAdjustmentModal';
+// import PriceUpdateModal from '../components/modals/PriceUpdateModal';
+// import ProductDetailModal from '../components/modals/ProductDetailModal';
+// import AdvancedExportModal from '../components/modals/AdvancedExportModal';
 import api from '../lib/api';
 import toast from 'react-hot-toast';
 
@@ -518,14 +519,14 @@ const StockManagement: React.FC = () => {
         onProductAdded={fetchStats}
       />
 
-      {/* Advanced Export Modal */}
-      <AdvancedExportModal
+      {/* Advanced Export Modal - Temporarily disabled */}
+      {/* <AdvancedExportModal
         isOpen={showAdvancedExportModal}
         onClose={() => setShowAdvancedExportModal(false)}
-      />
+      /> */}
 
-      {/* Global Modals accessible from all tabs (including Alerts) */}
-      {showDetailModal && selectedProductId && (
+      {/* Global Modals accessible from all tabs (including Alerts) - Temporarily disabled */}
+      {/* {showDetailModal && selectedProductId && (
         <ProductDetailModal
           isOpen={showDetailModal}
           onClose={() => setShowDetailModal(false)}
@@ -548,7 +549,7 @@ const StockManagement: React.FC = () => {
           onSuccess={fetchStats}
           product={{ id: priceProduct.id, name: priceProduct.name, barcode: priceProduct.barcode || '', buyPrice: priceProduct.buyPrice, sellPrice: priceProduct.sellPrice, taxRate: priceProduct.taxRate || 18 }}
         />
-      )}
+      )} */}
     </div>
   );
 };
@@ -581,13 +582,15 @@ const ProductCatalogTabWrapper: React.FC<{
   }, [showNewProductModal]);
 
   return (
-    <ProductModal
-      isOpen={showNewProductModal}
-      onClose={() => setShowNewProductModal(false)}
-      onSuccess={onProductAdded}
-      categories={categories}
-      suppliers={suppliers}
-    />
+    // ProductModal temporarily disabled
+    null
+    // <ProductModal
+    //   isOpen={showNewProductModal}
+    //   onClose={() => setShowNewProductModal(false)}
+    //   onSuccess={onProductAdded}
+    //   categories={categories}
+    //   suppliers={suppliers}
+    // />
   );
 };
 
@@ -1124,8 +1127,8 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
         />
       )}
 
-      {/* Modals */}
-      <ProductModal
+      {/* Modals - Temporarily disabled */}
+      {/* <ProductModal
         isOpen={showProductModal}
         onClose={() => {
           setShowProductModal(false);
@@ -1135,11 +1138,11 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
         product={editingProduct || undefined}
         categories={categories}
         suppliers={suppliers}
-      />
+      /> */}
 
       {selectedProduct && (
         <>
-          <StockAdjustmentModal
+          {/* <StockAdjustmentModal
             isOpen={showStockModal}
             onClose={() => {
               setShowStockModal(false);
@@ -1160,14 +1163,14 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
             product={selectedProduct}
           />
 
-          <ProductDetailModal
+          {/* <ProductDetailModal
             isOpen={showDetailModal}
             onClose={() => {
               setShowDetailModal(false);
               setSelectedProduct(null);
             }}
             productId={selectedProduct.id}
-          />
+          /> */}
         </>
       )}
     </div>
