@@ -23,9 +23,15 @@ import MobileBranches from './components/Mobile/MobileBranches';
 import MobileReports from './components/Mobile/MobileReports';
 import MobileSettings from './components/Mobile/MobileSettings';
 import Login from './pages/Login';
+import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import POS from './pages/POS';
 import Products from './pages/Products';
+import ProductDetail from './pages/ProductDetail';
+import StockAlerts from './pages/StockAlerts';
+import StockValuation from './pages/StockValuation';
 import Customers from './pages/Customers';
 import CustomerDetail from './pages/CustomerDetail';
 import Categories from './pages/Categories';
@@ -35,8 +41,8 @@ import SalesDetail from './pages/SalesDetail';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import StockManagement from './pages/StockManagement';
-import StockMovements from './pages/StockMovements';
-import StockCount from './pages/StockCount';
+import StockMovements from './pages/StockMovementsUpgraded';
+import StockCount from './pages/StockCountUpgraded';
 import StockCountDetail from './pages/StockCountDetail';
 import StockTransfer from './pages/StockTransfer';
 import PurchaseOrders from './pages/PurchaseOrders';
@@ -54,6 +60,7 @@ import EmployeePerformance from './pages/EmployeePerformance';
 import ActivityLogs from './pages/ActivityLogs';
 import Profile from './pages/Profile';
 import UserManagement from './pages/UserManagement';
+import DownloadAPK from './pages/DownloadAPK';
 
 const App: React.FC = () => {
   const { token } = useAuthStore();
@@ -104,7 +111,11 @@ const App: React.FC = () => {
       }}
     >
       <Routes>
+        {/* Public Routes */}
         <Route path="/login" element={token ? <Navigate to="/dashboard" /> : (isNativeApp ? <MobileLogin /> : <Login />)} />
+        <Route path="/register" element={token ? <Navigate to="/dashboard" /> : <Register />} />
+        <Route path="/forgot-password" element={token ? <Navigate to="/dashboard" /> : <ForgotPassword />} />
+        <Route path="/reset-password" element={token ? <Navigate to="/dashboard" /> : <ResetPassword />} />
         
         {/* Mobile-only routes WITHOUT layout (full screen pages) */}
         {isNativeApp && token && (
@@ -129,6 +140,9 @@ const App: React.FC = () => {
           <Route path="/dashboard" element={isNativeApp ? <MobileDashboard /> : <Dashboard />} />
           <Route path="/pos" element={<POS />} />
           <Route path="/products" element={isNativeApp ? <MobileProducts /> : <Products />} />
+          {!isNativeApp && <Route path="/products/:id" element={<ProductDetail />} />}
+          {!isNativeApp && <Route path="/stock-alerts" element={<StockAlerts />} />}
+          {!isNativeApp && <Route path="/stock-valuation" element={<StockValuation />} />}
           {!isNativeApp && (
             <>
               <Route path="/customers" element={<Customers />} />
@@ -161,6 +175,7 @@ const App: React.FC = () => {
           <Route path="/activity-logs" element={<ActivityLogs />} />
           {!isNativeApp && <Route path="/profile" element={<Profile />} />}
           <Route path="/user-management" element={<UserManagement />} />
+          {!isNativeApp && <Route path="/download" element={<DownloadAPK />} />}
           {/* More pages will be added here */}
         </Route>
 

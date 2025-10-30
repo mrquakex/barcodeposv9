@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { LogIn, Eye, EyeOff } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { LogIn, Eye, EyeOff, UserPlus, KeyRound } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useThemeStore } from '../store/themeStore';
 import FluentButton from '../components/fluent/FluentButton';
@@ -87,6 +87,20 @@ const Login: React.FC = () => {
               </button>
             </div>
 
+          <div className="flex items-center justify-between mb-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" className="rounded border-border" />
+                <span className="text-sm text-foreground-secondary">Beni Hatırla</span>
+              </label>
+              <Link 
+                to="/forgot-password" 
+                className="text-sm text-primary hover:text-primary-hover transition-colors flex items-center gap-1"
+              >
+                <KeyRound className="w-4 h-4" />
+                Şifremi Unuttum
+              </Link>
+            </div>
+
             <FluentButton
               type="submit"
               appearance="primary"
@@ -97,6 +111,28 @@ const Login: React.FC = () => {
               {t('login.signIn') || 'Giriş Yap'}
             </FluentButton>
           </form>
+
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-card text-foreground-secondary">ya da</span>
+            </div>
+          </div>
+
+          {/* Register Link */}
+          <Link to="/register">
+            <FluentButton
+              appearance="subtle"
+              size="large"
+              className="w-full"
+              icon={<UserPlus className="w-5 h-5" />}
+            >
+              Yeni Hesap Oluştur
+            </FluentButton>
+          </Link>
 
           {/* Footer */}
           <div className="mt-6 text-center">
