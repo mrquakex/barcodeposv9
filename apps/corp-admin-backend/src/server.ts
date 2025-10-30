@@ -23,9 +23,21 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', service: 'corp-admin-backend' });
 });
 
+// Test endpoint for JSON parsing
+app.post('/test-json', (req, res) => {
+  console.log('Body received:', JSON.stringify(req.body));
+  res.json({ received: req.body, bodyType: typeof req.body });
+});
+
 app.use('/api/auth', authRoutes);
 app.use('/api/tenants', tenantRoutes);
 app.use('/api/licenses', licenseRoutes);
+
+// Error handler
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('Error:', err);
+  res.status(err.status || 500).json({ error: err.message || 'Internal server error' });
+});
 
 const port = process.env.PORT || 4001;
 app.listen(port, () => {
