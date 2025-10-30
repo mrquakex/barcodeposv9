@@ -585,6 +585,21 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
     closeContextMenu();
   };
 
+  const handleArchive = async (product: Product) => {
+    const newStatus = !product.isActive;
+    try {
+      await api.put(`/products/${product.id}`, {
+        isActive: newStatus
+      });
+      toast.success(newStatus ? '✅ Ürün aktif edildi' : '✅ Ürün arşivlendi');
+      fetchProducts();
+    } catch (error: any) {
+      console.error('Archive error:', error);
+      toast.error(error.response?.data?.error || 'İşlem başarısız');
+    }
+    closeContextMenu();
+  };
+
   // Context menu items
   const getContextMenuItems = (product: Product): ContextMenuItem[] => [
     {
@@ -639,7 +654,7 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
       id: 'archive',
       label: product.isActive ? 'Arşivle' : 'Arşivden Çıkar',
       icon: product.isActive ? <Archive className="w-4 h-4" /> : <ArchiveRestore className="w-4 h-4" />,
-      onClick: () => console.log('Archive:', product)
+      onClick: () => handleArchive(product)
     },
     {
       id: 'delete',
@@ -966,20 +981,23 @@ interface StockMovementsTabProps {
 const StockMovementsTab: React.FC<StockMovementsTabProps> = ({ currentPage, onPageChange, itemsPerPage }) => {
   const [movements, setMovements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showAddMovement, setShowAddMovement] = useState(false);
+
+  const fetchMovements = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/stock-movements');
+      const movementsData = response.data.movements || response.data || [];
+      setMovements(Array.isArray(movementsData) ? movementsData : []);
+    } catch (error) {
+      console.error('Movements fetch error:', error);
+      setMovements([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchMovements = async () => {
-      try {
-        const response = await api.get('/stock-movements');
-        const movementsData = response.data.movements || response.data || [];
-        setMovements(Array.isArray(movementsData) ? movementsData : []);
-      } catch (error) {
-        console.error('Movements fetch error:', error);
-        setMovements([]);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchMovements();
   }, []);
 
@@ -1001,6 +1019,18 @@ const StockMovementsTab: React.FC<StockMovementsTabProps> = ({ currentPage, onPa
 
   return (
     <div className="space-y-6">
+      {/* Header with Add Button */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-foreground">Stok Hareketleri</h3>
+        <FluentButton
+          appearance="primary"
+          icon={<Plus className="w-4 h-4" />}
+          onClick={() => toast.info('Ürün seçimi modal\'ı yakında eklenecek. Şimdilik Ürün Kataloğu\'ndan sağ tık ile stok işlemleri yapabilirsiniz.')}
+        >
+          Manuel Hareket Ekle
+        </FluentButton>
+      </div>
+
       {/* Timeline View */}
       <div className="space-y-3">
         {paginatedMovements.map((movement) => (
@@ -1309,7 +1339,7 @@ const StockAlertsTab = () => {
             <FluentCard key={product.id} className="p-4 border-l-4 border-red-500">
               <h4 className="font-semibold text-foreground mb-1">{product.name}</h4>
               <p className="text-sm text-foreground-secondary mb-2">{product.barcode}</p>
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-3">
                 <span className="text-sm font-semibold text-red-600">
                   {product.stock} {product.unit}
                 </span>
@@ -1317,6 +1347,15 @@ const StockAlertsTab = () => {
                   Min: {product.minStock}
                 </span>
               </div>
+              <FluentButton
+                appearance="primary"
+                size="small"
+                icon={<Plus className="w-3 h-3" />}
+                onClick={() => toast.info(`Stok giriş modal'ı ile ${product.name} için stok ekleyebilirsiniz. (Ürün Kataloğu > Sağ Tık > Stok Artır)`)}
+                className="w-full"
+              >
+                Stok Ekle
+              </FluentButton>
             </FluentCard>
           ))}
         </div>
@@ -1540,7 +1579,24 @@ const StockReportsTab = () => {
 
 const BulkOperationsTab = () => {
   const [uploading, setUploading] = useState(false);
+  const [bulkPriceLoading, setBulkPriceLoading] = useState(false);
+  const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
+  const [bulkCategory, setBulkCategory] = useState('');
+  const [bulkOperation, setBulkOperation] = useState('increase');
+  const [bulkValue, setBulkValue] = useState(10);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await api.get('/categories');
+        setCategories(res.data.categories || res.data || []);
+      } catch (error) {
+        console.error('Categories fetch error:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   const handleExcelImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1579,6 +1635,33 @@ const BulkOperationsTab = () => {
       link.remove();
     } catch (error) {
       alert('❌ Dışa aktarma başarısız');
+    }
+  };
+
+  const handleBulkPriceUpdate = async () => {
+    if (!bulkValue || bulkValue <= 0) {
+      toast.error('Lütfen geçerli bir değer girin');
+      return;
+    }
+
+    if (!window.confirm(`${bulkCategory ? 'Seçili kategori' : 'Tüm ürünler'} için fiyatları ${bulkOperation === 'increase' ? 'artırmak' : 'azaltmak'} istediğinize emin misiniz?`)) {
+      return;
+    }
+
+    setBulkPriceLoading(true);
+    try {
+      const response = await api.post('/stock/bulk-update-prices', {
+        categoryId: bulkCategory || undefined,
+        operation: bulkOperation,
+        value: Number(bulkValue)
+      });
+
+      toast.success(`✅ ${response.data.updated || 0} ürün güncellendi`);
+    } catch (error: any) {
+      console.error('Bulk price update error:', error);
+      toast.error(error.response?.data?.error || 'Toplu güncelleme başarısız');
+    } finally {
+      setBulkPriceLoading(false);
     }
   };
 
@@ -1664,19 +1747,34 @@ const BulkOperationsTab = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <select className="px-4 py-2 bg-card border border-border rounded-lg text-foreground">
-            <option>Tüm Kategoriler</option>
+          <select 
+            value={bulkCategory}
+            onChange={(e) => setBulkCategory(e.target.value)}
+            className="px-4 py-2 bg-card border border-border rounded-lg text-foreground"
+          >
+            <option value="">Tüm Kategoriler</option>
+            {categories.map(cat => (
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
+            ))}
           </select>
 
-          <select className="px-4 py-2 bg-card border border-border rounded-lg text-foreground">
-            <option>Artır</option>
-            <option>Azalt</option>
-            <option>Sabit Değer</option>
+          <select 
+            value={bulkOperation}
+            onChange={(e) => setBulkOperation(e.target.value)}
+            className="px-4 py-2 bg-card border border-border rounded-lg text-foreground"
+          >
+            <option value="increase">Artır (%)</option>
+            <option value="decrease">Azalt (%)</option>
+            <option value="fixed">Sabit Değer (₺)</option>
           </select>
 
           <input
             type="number"
-            placeholder="Değer (%)"
+            min="0"
+            step="0.01"
+            value={bulkValue}
+            onChange={(e) => setBulkValue(Number(e.target.value))}
+            placeholder="Değer"
             className="px-4 py-2 bg-card border border-border rounded-lg text-foreground"
           />
         </div>
@@ -1684,6 +1782,8 @@ const BulkOperationsTab = () => {
         <FluentButton
           appearance="primary"
           className="w-full mt-4"
+          onClick={handleBulkPriceUpdate}
+          loading={bulkPriceLoading}
         >
           Fiyatları Güncelle
         </FluentButton>
