@@ -831,3 +831,45 @@ model CustomerDocument {
   @@index([customerId])
   @@map("customer_documents")
 }
+
+// ============================================
+// CONTROL PLANE MODELS
+// ============================================
+
+model CorpAdmin {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  password    String
+  name        String
+  role        String   @default("CORP_ADMIN") // CORP_ADMIN, CORP_OPS, CORP_SUPPORT
+  isActive    Boolean  @default(true)
+  mfaEnabled  Boolean  @default(false)
+  mfaSecret   String?
+  lastLoginAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  auditLogs   AuditLog[]
+  
+  @@map("corp_admins")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  adminId     String
+  action      String   // CREATE, UPDATE, DELETE, APPROVE, REJECT, etc.
+  resource    String   // tenant, license, user, etc.
+  resourceId  String?
+  details     String?  // JSON string with before/after state
+  reason      String?  // why this action was taken
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  
+  admin       CorpAdmin @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  
+  @@index([adminId])
+  @@index([resource, resourceId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

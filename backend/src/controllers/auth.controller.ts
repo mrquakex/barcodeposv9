@@ -22,22 +22,22 @@ export const register = async (req: Request, res: Response) => {
     const result = await prisma.$transaction(async (tx) => {
       const tenant = await tx.tenant.create({ data: { name: email.split('@')[0] } });
       const u = await tx.user.create({
-        data: {
-          email,
-          password: hashedPassword,
-          name,
+      data: {
+        email,
+        password: hashedPassword,
+        name,
           role: 'ADMIN',
           tenantId: tenant.id,
           trialEndsAt: trialEnds
-        },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          isActive: true,
-          createdAt: true,
-        },
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+      },
       });
       await tx.license.create({ data: { tenantId: tenant.id, status: 'ACTIVE', plan: 'STANDARD', trial: true, trialEndsAt: trialEnds } });
       return u;
@@ -93,6 +93,9 @@ export const login = async (req: Request, res: Response) => {
         email: user.email,
         name: user.name,
         role: user.role,
+        isSuperAdmin: user.isSuperAdmin,
+        trialEndsAt: user.trialEndsAt,
+        tenantId: user.tenantId,
       },
     });
   } catch (error) {
@@ -116,6 +119,9 @@ export const getMe = async (req: AuthRequest, res: Response) => {
         name: true,
         role: true,
         isActive: true,
+        isSuperAdmin: true,
+        trialEndsAt: true,
+        tenantId: true,
         createdAt: true,
       },
     });

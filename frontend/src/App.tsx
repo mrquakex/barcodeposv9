@@ -64,7 +64,7 @@ import DownloadAPK from './pages/DownloadAPK';
 import SuperAdminPanel from './pages/SuperAdminPanel';
 
 const App: React.FC = () => {
-  const { token } = useAuthStore();
+  const { token, user, getMe } = useAuthStore();
   const { theme } = useThemeStore();
   
   // 📱 Detect if running as native app
@@ -100,6 +100,13 @@ const App: React.FC = () => {
       configureStatusBar();
     }
   }, [theme, isNativeApp]);
+
+  // Auth bootstrap: fetch current user once if we have a token
+  useEffect(() => {
+    if (token && !user) {
+      getMe().catch(() => {});
+    }
+  }, [token]);
 
   // 📱 Select layout based on platform
   const LayoutComponent = isNativeApp ? MobileLayout : MainLayout;
@@ -137,8 +144,9 @@ const App: React.FC = () => {
           </>
         )}
 
-        <Route element={token ? <LayoutComponent /> : <Navigate to="/login" />}>
-          <Route path="/dashboard" element={isNativeApp ? <MobileDashboard /> : <Dashboard />} />
+        <Route element={token ? <LayoutComponent /> : <Navigate to="/login" />}> 
+            <>
+              <Route path="/dashboard" element={isNativeApp ? <MobileDashboard /> : <Dashboard />} />
           <Route path="/pos" element={<POS />} />
           <Route path="/products" element={isNativeApp ? <MobileProducts /> : <Products />} />
           {!isNativeApp && <Route path="/products/:id" element={<ProductDetail />} />}
@@ -177,7 +185,7 @@ const App: React.FC = () => {
           {!isNativeApp && <Route path="/profile" element={<Profile />} />}
           <Route path="/user-management" element={<UserManagement />} />
           {!isNativeApp && <Route path="/download" element={<DownloadAPK />} />}
-          {!isNativeApp && <Route path="/super-admin" element={<SuperAdminPanel />} />}
+            </>
           {/* More pages will be added here */}
         </Route>
 

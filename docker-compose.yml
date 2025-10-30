@@ -56,6 +56,45 @@ services:
     networks:
       - barcodepos_network
 
+  # Control Plane Backend
+  corp-admin-backend:
+    build:
+      context: .
+      dockerfile: ./apps/corp-admin-backend/Dockerfile
+    container_name: barcodepos_corp_backend
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/barcodeposv9?schema=public"
+      JWT_SECRET: "barcodeposv9-super-secret-jwt-key-2025"
+      CORP_JWT_SECRET: "barcodeposv9-corp-admin-jwt-secret-2025"
+      PORT: 4001
+      NODE_ENV: "production"
+      FRONTEND_URL: "https://admin.barcodepos.trade"
+    ports:
+      - "4001:4001"
+    networks:
+      - barcodepos_network
+
+  # Control Plane Frontend
+  corp-admin-frontend:
+    build:
+      context: .
+      dockerfile: ./apps/corp-admin-frontend/Dockerfile
+      args:
+        VITE_API_URL: "https://admin.barcodepos.trade/api"
+    container_name: barcodepos_corp_frontend
+    restart: always
+    depends_on:
+      - corp-admin-backend
+    environment:
+      VITE_API_URL: "https://admin.barcodepos.trade/api"
+    ports:
+      - "3001:80"
+    networks:
+      - barcodepos_network
+
 volumes:
   postgres_data:
 

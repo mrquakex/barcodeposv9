@@ -6,7 +6,7 @@ import {
   Settings, ChevronRight, Search, Menu, X,
   FolderOpen, Building2, TrendingUp, ShoppingBag, FileText,
   Banknote, Receipt, Wallet, UserCog, ClipboardList, Smartphone,
-  AlertTriangle, ClipboardCheck, ArrowLeftRight, DollarSign, PieChart, Shield
+  AlertTriangle, ClipboardCheck, ArrowLeftRight, DollarSign, PieChart
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { cn } from '../../lib/utils';
@@ -47,10 +47,8 @@ const FluentSidebar: React.FC<FluentSidebarProps> = ({ isMobileOpen = false, onM
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
-  // 📱 Base menu items (Super Admin link at top if applicable)
-  const isSuperAdminAccount = (user?.isSuperAdmin ?? false) || (user?.email === 'superadmin@barcodepos.trade');
+  // 📱 Base menu items
   const baseMenuItems: MenuItem[] = [
-    ...(isSuperAdminAccount ? [{ icon: Shield, label: 'Süper Admin', path: '/super-admin', roles: [] }] : []),
     { icon: LayoutDashboard, label: t('nav.dashboard'), path: '/dashboard', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
     { icon: ShoppingCart, label: t('nav.pos'), path: '/pos', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
     { 

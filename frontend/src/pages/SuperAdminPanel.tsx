@@ -59,7 +59,9 @@ const SuperAdminPanel: React.FC = () => {
   
   // Redirect if not super admin (allow special bootstrap account)
   useEffect(() => {
-    const allowed = user?.isSuperAdmin || user?.email === 'superadmin@barcodepos.trade';
+    // wait until user is loaded; avoid false denial on initial mount
+    if (user === null || user === undefined) return;
+    const allowed = user.isSuperAdmin || user.email === 'superadmin@barcodepos.trade';
     if (!allowed) {
       navigate('/dashboard');
       toast.error('Bu sayfaya erişim yetkiniz yok');
@@ -144,10 +146,10 @@ const SuperAdminPanel: React.FC = () => {
     }
   };
 
-  const allowed = user?.isSuperAdmin || user?.email === 'superadmin@barcodepos.trade';
-  if (!allowed) {
-    return null;
-  }
+  // while user is loading, render nothing to prevent flicker
+  if (user === null || user === undefined) return null;
+  const allowed = user.isSuperAdmin || user.email === 'superadmin@barcodepos.trade';
+  if (!allowed) return null;
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
