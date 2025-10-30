@@ -4,12 +4,17 @@
     "lib": ["ES2020"],
     "module": "ESNext",
     "outDir": "dist",
-    "moduleResolution": "Bundler",
+    "moduleResolution": "node",
     "strict": true,
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": false
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
 }
 
 

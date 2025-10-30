@@ -44,7 +44,7 @@ export const listTenants = async (req: CorpAuthRequest, res: Response) => {
     ]);
 
     res.json({
-      tenants: tenants.map(t => ({
+      tenants: tenants.map((t: any) => ({
         ...t,
         userCount: t._count.users,
         productCount: t._count.products,
