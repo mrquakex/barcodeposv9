@@ -1502,6 +1502,8 @@ const StockAlertsTab = () => {
   const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
   const { contextMenu, handleContextMenu: baseHandleContextMenu, closeContextMenu } = useContextMenu();
   const [menuItems, setMenuItems] = useState<ContextMenuItem[]>([]);
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 20;
 
   useEffect(() => {
     const fetchAlerts = async () => {
@@ -1528,6 +1530,18 @@ const StockAlertsTab = () => {
   const filteredProducts = activeCategory === 'all' 
     ? allProducts 
     : allProducts.filter(p => p.alertType === activeCategory);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [activeCategory, viewMode, alerts]);
+
+  // Pagination calculations
+  const totalItems = filteredProducts.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+  const currentPage = Math.min(page, totalPages);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const pageItems = filteredProducts.slice(startIndex, startIndex + itemsPerPage);
 
   const handleContextMenu = (e: React.MouseEvent, product: any) => {
     e.preventDefault();
@@ -1730,7 +1744,7 @@ const StockAlertsTab = () => {
       {/* Products Display */}
       {viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {filteredProducts.map((product: any) => (
+          {pageItems.map((product: any) => (
             <FluentCard
               key={product.id}
               className={`p-4 border-l-4 cursor-pointer hover:shadow-lg transition-shadow ${
@@ -1799,7 +1813,7 @@ const StockAlertsTab = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredProducts.map((product: any, index: number) => (
+              {pageItems.map((product: any, index: number) => (
                 <tr
                   key={product.id}
                   className={`border-b border-border hover:bg-card-hover cursor-pointer ${
@@ -1868,6 +1882,16 @@ const StockAlertsTab = () => {
           </table>
         </FluentCard>
       )}
+
+      {/* Pagination */}
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        itemsPerPage={itemsPerPage}
+        totalItems={totalItems}
+        className="mt-4"
+      />
 
       {/* Context Menu */}
       <ContextMenu
