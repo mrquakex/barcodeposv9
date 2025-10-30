@@ -154,6 +154,15 @@ const StockManagement: React.FC = () => {
     toast('📊 Gelişmiş Dışa Aktarma açılıyor...');
   };
 
+  // Global modal states
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
+  const [showStockModal, setShowStockModal] = useState(false);
+  const [stockModalType, setStockModalType] = useState<'increase' | 'decrease'>('increase');
+  const [stockProduct, setStockProduct] = useState<any | null>(null);
+  const [showPriceModal, setShowPriceModal] = useState(false);
+  const [priceProduct, setPriceProduct] = useState<any | null>(null);
+
   const tabs = [
     { id: 'catalog', label: 'Ürün Kataloğu', icon: Package },
     { id: 'movements', label: 'Stok Hareketleri', icon: Activity },
@@ -482,8 +491,7 @@ const StockManagement: React.FC = () => {
                 setShowStockModal(true);
               }}
               onOpenEdit={(product: any) => {
-                setEditingProduct(product);
-                setShowProductModal(true);
+                toast(`✏️ ${product.name} düzenleme modal'ı yakında bu ekrandan açılacak`);
               }}
               onOpenPriceUpdate={(product: any) => {
                 setPriceProduct(product);
@@ -526,7 +534,7 @@ const StockManagement: React.FC = () => {
           isOpen={showStockModal}
           onClose={() => setShowStockModal(false)}
           onSuccess={fetchStats}
-          product={{ id: stockProduct.id, name: stockProduct.name, stock: stockProduct.stock, unit: stockProduct.unit }}
+          product={{ id: stockProduct.id, name: stockProduct.name, stock: stockProduct.stock, unit: stockProduct.unit, barcode: stockProduct.barcode || '' }}
           type={stockModalType}
         />
       )}
@@ -535,7 +543,7 @@ const StockManagement: React.FC = () => {
           isOpen={showPriceModal}
           onClose={() => setShowPriceModal(false)}
           onSuccess={fetchStats}
-          product={{ id: priceProduct.id, name: priceProduct.name, buyPrice: priceProduct.buyPrice, sellPrice: priceProduct.sellPrice, taxRate: priceProduct.taxRate || 18 }}
+          product={{ id: priceProduct.id, name: priceProduct.name, barcode: priceProduct.barcode || '', buyPrice: priceProduct.buyPrice, sellPrice: priceProduct.sellPrice, taxRate: priceProduct.taxRate || 18 }}
         />
       )}
     </div>
