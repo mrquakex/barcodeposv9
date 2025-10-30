@@ -25,10 +25,10 @@ import {
   Copy,
   Eye
 } from 'lucide-react';
-import { FluentButton } from '../components/fluent/FluentButton';
-import { FluentCard } from '../components/fluent/FluentCard';
+import FluentButton from '../components/fluent/FluentButton';
+import FluentCard from '../components/fluent/FluentCard';
 import { ContextMenu, useContextMenu, type ContextMenuItem } from '../components/ui/ContextMenu';
-import api from '../services/api';
+import api from '../lib/api';
 
 interface DashboardStats {
   totalProducts: number;
