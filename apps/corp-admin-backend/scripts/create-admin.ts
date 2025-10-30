@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import prisma from '../lib/prisma';
+import prisma from '../dist/lib/prisma.js';
 
 async function createAdmin() {
   const email = process.env.ADMIN_EMAIL || 'superadmin@barcodepos.trade';
