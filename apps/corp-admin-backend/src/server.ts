@@ -7,10 +7,17 @@ import tenantRoutes from './routes/tenant.routes.js';
 import licenseRoutes from './routes/license.routes.js';
 
 const app = express();
-app.use(helmet());
+// CORS first
 app.use(cors({ credentials: true, origin: process.env.FRONTEND_URL || '*' }));
-app.use(express.json());
+// Body parsing
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
+// Security headers (after body parsing)
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false
+}));
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', service: 'corp-admin-backend' });
