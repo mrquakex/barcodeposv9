@@ -42,6 +42,10 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
+        // Hash-based filenames for cache busting
+        entryFileNames: `assets/[name]-[hash].js`,
+        chunkFileNames: `assets/[name]-[hash].js`,
+        assetFileNames: `assets/[name]-[hash].[ext]`,
         manualChunks: undefined,
       }
     }
