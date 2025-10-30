@@ -575,9 +575,13 @@ export const processSaleReturn = async (req: AuthRequest, res: Response) => {
       });
 
       if (remainingItems.length === 0) {
-        // Full return - delete the sale
-        await tx.sale.delete({
+        // Full return - mark sale as returned (don't delete due to foreign key)
+        await tx.sale.update({
           where: { id: saleId },
+          data: {
+            total: 0,
+            // You could add a status field if needed: status: 'RETURNED'
+          },
         });
       } else {
         // Partial return - update the total
