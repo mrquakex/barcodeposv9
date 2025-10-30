@@ -411,7 +411,7 @@ const AdvancedExportModal: React.FC<AdvancedExportModalProps> = ({ isOpen, onClo
               </FluentButton>
               {emailTo && (
                 <FluentButton
-                  appearance="secondary"
+                  appearance="subtle"
                   onClick={handleEmailSend}
                   loading={loading}
                   icon={<Mail className="w-4 h-4" />}
