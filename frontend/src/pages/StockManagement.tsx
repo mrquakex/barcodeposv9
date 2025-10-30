@@ -602,6 +602,7 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
   };
 
   const handleDelete = async (product: Product) => {
+    console.log('🗑️ handleDelete called with product:', product);
     if (window.confirm(`"${product.name}" ürününü silmek istediğinize emin misiniz?`)) {
       try {
         await api.delete(`/products/${product.id}`);
@@ -611,6 +612,8 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
         console.error('Delete error:', error);
         toast.error(error.response?.data?.error || 'Silme işlemi başarısız');
       }
+    } else {
+      toast.info('❌ Silme işlemi iptal edildi');
     }
     closeContextMenu();
   };
@@ -734,8 +737,10 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
 
   // Handle right-click on product
   const onProductRightClick = (e: React.MouseEvent, product: Product) => {
+    console.log('🖱️ Right click on product:', product.name);
     handleContextMenu(e);
     setContextProduct(product);
+    toast.info(`🖱️ Sağ tık menüsü açıldı: ${product.name}`);
   };
 
   if (loading) {
