@@ -2,7 +2,9 @@ import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import * as XLSX from 'xlsx';
 import ExcelJS from 'exceljs';
+// @ts-ignore - jspdf types not available
 import jsPDF from 'jspdf';
+// @ts-ignore - jspdf-autotable types not available
 import autoTable from 'jspdf-autotable';
 import { sendEmail } from '../services/email.service';
 
