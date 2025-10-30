@@ -788,7 +788,7 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
       });
       toast.success(newStatus ? '✅ Ürün aktif edildi' : '✅ Ürün arşivlendi');
       fetchProducts();
-    } catch (error: belum) {
+    } catch (error: any) {
       if (IS_DEV) console.error('Archive error:', error);
       toast.error(error.response?.data?.error || 'İşlem başarısız');
     }

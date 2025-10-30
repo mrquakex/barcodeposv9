@@ -2,8 +2,11 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'ADMIN' | 'MANAGER' | 'CASHIER';
+  role: 'SUPER_ADMIN' | 'ADMIN' | 'MANAGER' | 'CASHIER';
   isActive: boolean;
+  isSuperAdmin?: boolean;
+  trialEndsAt?: string;
+  tenantId?: string;
   createdAt: string;
 }
 

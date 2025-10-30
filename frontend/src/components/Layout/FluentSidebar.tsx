@@ -6,7 +6,7 @@ import {
   Settings, ChevronRight, Search, Menu, X,
   FolderOpen, Building2, TrendingUp, ShoppingBag, FileText,
   Banknote, Receipt, Wallet, UserCog, ClipboardList, Smartphone,
-  AlertTriangle, ClipboardCheck, ArrowLeftRight, DollarSign, PieChart
+  AlertTriangle, ClipboardCheck, ArrowLeftRight, DollarSign, PieChart, Shield
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { cn } from '../../lib/utils';
