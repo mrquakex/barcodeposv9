@@ -9,14 +9,16 @@ import licenseRoutes from './routes/license.routes.js';
 const app = express();
 // CORS first
 app.use(cors({ credentials: true, origin: process.env.FRONTEND_URL || '*' }));
-// Body parsing
-app.use(express.json({ limit: '10mb' }));
+// Body parsing - MUST be before helmet
+app.use(express.json({ limit: '10mb', strict: false }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
-// Security headers (after body parsing)
+// Security headers (after body parsing to avoid blocking)
 app.use(helmet({
   contentSecurityPolicy: false,
-  crossOriginEmbedderPolicy: false
+  crossOriginEmbedderPolicy: false,
+  // Disable content type sniffing that might interfere
+  noSniff: false
 }));
 
 app.get('/health', (_req, res) => {
