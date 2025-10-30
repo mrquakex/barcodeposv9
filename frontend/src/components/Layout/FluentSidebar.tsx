@@ -60,6 +60,7 @@ const FluentSidebar: React.FC<FluentSidebarProps> = ({ isMobileOpen = false, onM
         { icon: FolderOpen, label: t('nav.categories'), path: '/categories' },
         { icon: FileText, label: t('nav.purchaseOrders'), path: '/purchase-orders' },
         { icon: Building2, label: t('nav.suppliers'), path: '/suppliers' },
+        { icon: BarChart3, label: '📊 Stok Yönetimi (YENİ)', path: '/stock-management' },
         { icon: AlertTriangle, label: 'Stok Uyarıları', path: '/stock-alerts' },
         { icon: TrendingUp, label: 'Stok Hareketleri', path: '/stock-movements' },
         { icon: ClipboardCheck, label: 'Stok Sayımı', path: '/stock-count' },
