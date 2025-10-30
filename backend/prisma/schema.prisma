@@ -16,13 +16,17 @@ model User {
   email     String   @unique
   password  String
   name      String
-  role      String   @default("CASHIER") // ADMIN, MANAGER, CASHIER
+  role      String   @default("CASHIER") // SUPER_ADMIN, ADMIN, MANAGER, CASHIER
+  isSuperAdmin Boolean @default(false)
+  tenantId  String?
+  trialEndsAt DateTime?
   branchId  String?
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   branch              Branch?           @relation(fields: [branchId], references: [id])
+  tenant              Tenant?           @relation(fields: [tenantId], references: [id])
   sales               Sale[]
   shifts              Shift[]
   stockMovements      StockMovement[]
@@ -88,6 +92,7 @@ model Category {
 
 model Product {
   id          String    @id @default(uuid())
+  tenantId    String?
   sku         String?   @unique
   barcode     String    @unique
   name        String
@@ -109,6 +114,7 @@ model Product {
   
   category             Category?              @relation(fields: [categoryId], references: [id])
   supplier             Supplier?              @relation(fields: [supplierId], references: [id])
+  tenant               Tenant?                @relation(fields: [tenantId], references: [id])
   variants             ProductVariant[]
   saleItems            SaleItem[]
   purchaseOrderItems   PurchaseOrderItem[]
@@ -118,6 +124,64 @@ model Product {
   returnItems          ReturnItem[]
   
   @@map("products")
+}
+
+// ============================================
+// MULTI-TENANCY & LICENSE MODELS
+// ============================================
+
+model Tenant {
+  id           String    @id @default(uuid())
+  name         String
+  ownerUserId  String?
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  users        User[]
+  products     Product[]
+  licenses     License[]
+  payments     PaymentReceipt[]
+
+  @@map("tenants")
+}
+
+model License {
+  id         String   @id @default(uuid())
+  tenantId   String
+  status     String   @default("ACTIVE") // ACTIVE, EXPIRED, SUSPENDED
+  plan       String   @default("STANDARD") // plan code
+  includesMobile Boolean @default(false)
+  trial       Boolean  @default(false)
+  trialEndsAt DateTime?
+  startsAt    DateTime @default(now())
+  expiresAt   DateTime?
+  notes       String?
+
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("licenses")
+}
+
+model PaymentReceipt {
+  id          String   @id @default(uuid())
+  tenantId    String
+  amount      Float
+  currency    String   @default("TRY")
+  bankName    String?
+  iban        String?
+  reference   String?  // açıklama/referans kodu
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  proofUrl    String?  // dekont dosyası
+  notes       String?
+  createdAt   DateTime @default(now())
+  approvedAt  DateTime?
+
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@map("payment_receipts")
 }
 
 model ProductVariant {
