@@ -911,7 +911,7 @@ const StockAlertsTab = () => {
           Kritik Stok ({alerts.critical?.length || 0})
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {alerts.critical?.map((product: any) => (
+          {Array.isArray(alerts.critical) && alerts.critical.map((product: any) => (
             <FluentCard key={product.id} className="p-4 border-l-4 border-red-500">
               <h4 className="font-semibold text-foreground mb-1">{product.name}</h4>
               <p className="text-sm text-foreground-secondary mb-2">{product.barcode}</p>
@@ -935,7 +935,7 @@ const StockAlertsTab = () => {
           Fazla Stok ({alerts.overStock?.length || 0})
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {alerts.overStock?.map((product: any) => (
+          {Array.isArray(alerts.overStock) && alerts.overStock.map((product: any) => (
             <FluentCard key={product.id} className="p-4 border-l-4 border-orange-500">
               <h4 className="font-semibold text-foreground mb-1">{product.name}</h4>
               <p className="text-sm text-foreground-secondary mb-2">{product.barcode}</p>
@@ -959,7 +959,7 @@ const StockAlertsTab = () => {
           Hareketsiz Stok (60+ gün) ({alerts.inactive?.length || 0})
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {alerts.inactive?.slice(0, 12).map((product: any) => (
+          {Array.isArray(alerts.inactive) && alerts.inactive.slice(0, 12).map((product: any) => (
             <FluentCard key={product.id} className="p-4 border-l-4 border-gray-500">
               <h4 className="font-semibold text-foreground mb-1">{product.name}</h4>
               <p className="text-sm text-foreground-secondary mb-2">{product.barcode}</p>
