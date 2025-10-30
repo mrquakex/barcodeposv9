@@ -1569,7 +1569,7 @@ const StockAlertsTab = () => {
           closeContextMenu();
         }
       },
-      { id: 'sep-1', divider: true },
+      { id: 'sep-1', label: '-', divider: true },
       {
         id: 'archive',
         label: product.isActive ? 'Arşivle' : 'Arşivden Çıkar',
