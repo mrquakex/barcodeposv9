@@ -11,6 +11,7 @@ import {
   bulkUpdateStock,
   bulkUpdatePrices
 } from '../controllers/stock.controller';
+import { advancedExport, emailReport } from '../controllers/advancedExport.controller';
 import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
@@ -34,5 +35,9 @@ router.get('/export-excel', authenticate, exportProductsToExcel);
 // ⚡ Toplu İşlemler
 router.post('/bulk-update', authenticate, bulkUpdateStock);
 router.post('/bulk-update-prices', authenticate, bulkUpdatePrices);
+
+// 📊 Gelişmiş Export
+router.get('/advanced-export', authenticate, advancedExport);
+router.post('/email-report', authenticate, emailReport);
 
 export default router;

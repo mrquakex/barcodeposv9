@@ -1,6 +1,10 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { sendEmail } from '../services/email.service';
 
 // 📊 Dashboard istatistikleri
 export const getDashboardStats = async (req: Request, res: Response) => {

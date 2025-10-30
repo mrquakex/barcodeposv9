@@ -1,6 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  LineChart,
+  Line,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  Legend,
+  ResponsiveContainer,
+  Cell,
+} from 'recharts';
+import {
   Package,
   TrendingUp,
   TrendingDown,
@@ -33,6 +50,7 @@ import ProductModal from '../components/modals/ProductModal';
 import StockAdjustmentModal from '../components/modals/StockAdjustmentModal';
 import PriceUpdateModal from '../components/modals/PriceUpdateModal';
 import ProductDetailModal from '../components/modals/ProductDetailModal';
+import AdvancedExportModal from '../components/modals/AdvancedExportModal';
 import api from '../lib/api';
 import toast from 'react-hot-toast';
 
@@ -66,6 +84,7 @@ const StockManagement: React.FC = () => {
 
   // Global modals (accessible from header)
   const [showNewProductModal, setShowNewProductModal] = useState(false);
+  const [showAdvancedExportModal, setShowAdvancedExportModal] = useState(false);
 
   // Fetch dashboard stats
   const fetchStats = async () => {
@@ -129,24 +148,10 @@ const StockManagement: React.FC = () => {
   }, []);
 
   // Export all products
-  const handleExportAll = async () => {
-    try {
-      const response = await api.get('/stock/export-excel', {
-        responseType: 'blob'
-      });
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `stok-raporu-${new Date().toISOString().split('T')[0]}.xlsx`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      toast.success('✅ Excel dosyası indirildi');
-    } catch (error) {
-      console.error('Export error:', error);
-      toast.error('❌ Dışa aktarma başarısız');
-    }
+  const handleExportAll = () => {
+    console.log('🚀 Opening Advanced Export Modal');
+    setShowAdvancedExportModal(true);
+    toast('📊 Gelişmiş Dışa Aktarma açılıyor...');
   };
 
   const tabs = [
@@ -482,6 +487,12 @@ const StockManagement: React.FC = () => {
         showNewProductModal={showNewProductModal}
         setShowNewProductModal={setShowNewProductModal}
         onProductAdded={fetchStats}
+      />
+
+      {/* Advanced Export Modal */}
+      <AdvancedExportModal
+        isOpen={showAdvancedExportModal}
+        onClose={() => setShowAdvancedExportModal(false)}
       />
     </div>
   );
@@ -1664,94 +1675,221 @@ const StockReportsTab = () => {
         <>
           {/* ABC Analysis */}
           {activeReport === 'abc' && reportData?.summary && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FluentCard className="p-6 border-l-4 border-green-500">
-                <h3 className="text-2xl font-bold text-green-600 mb-2">Kategori A</h3>
-                <p className="text-sm text-foreground-secondary mb-3">Yüksek değerli ürünler (%80)</p>
-                <div className="space-y-1">
-                  <p className="text-sm"><span className="font-semibold">{reportData.summary.A.count}</span> ürün</p>
-                  <p className="text-sm">₺{reportData.summary.A.totalValue.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p>
-                </div>
-              </FluentCard>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FluentCard className="p-6 border-l-4 border-green-500">
+                  <h3 className="text-2xl font-bold text-green-600 mb-2">Kategori A</h3>
+                  <p className="text-sm text-foreground-secondary mb-3">Yüksek değerli ürünler (%80)</p>
+                  <div className="space-y-1">
+                    <p className="text-sm"><span className="font-semibold">{reportData.summary.A.count}</span> ürün</p>
+                    <p className="text-sm">₺{reportData.summary.A.totalValue.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p>
+                  </div>
+                </FluentCard>
 
-              <FluentCard className="p-6 border-l-4 border-yellow-500">
-                <h3 className="text-2xl font-bold text-yellow-600 mb-2">Kategori B</h3>
-                <p className="text-sm text-foreground-secondary mb-3">Orta değerli ürünler (%15)</p>
-                <div className="space-y-1">
-                  <p className="text-sm"><span className="font-semibold">{reportData.summary.B.count}</span> ürün</p>
-                  <p className="text-sm">₺{reportData.summary.B.totalValue.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p>
-                </div>
-              </FluentCard>
+                <FluentCard className="p-6 border-l-4 border-yellow-500">
+                  <h3 className="text-2xl font-bold text-yellow-600 mb-2">Kategori B</h3>
+                  <p className="text-sm text-foreground-secondary mb-3">Orta değerli ürünler (%15)</p>
+                  <div className="space-y-1">
+                    <p className="text-sm"><span className="font-semibold">{reportData.summary.B.count}</span> ürün</p>
+                    <p className="text-sm">₺{reportData.summary.B.totalValue.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p>
+                  </div>
+                </FluentCard>
 
-              <FluentCard className="p-6 border-l-4 border-gray-500">
-                <h3 className="text-2xl font-bold text-gray-600 mb-2">Kategori C</h3>
-                <p className="text-sm text-foreground-secondary mb-3">Düşük değerli ürünler (%5)</p>
-                <div className="space-y-1">
-                  <p className="text-sm"><span className="font-semibold">{reportData.summary.C.count}</span> ürün</p>
-                  <p className="text-sm">₺{reportData.summary.C.totalValue.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p>
-                </div>
-              </FluentCard>
-            </div>
+                <FluentCard className="p-6 border-l-4 border-gray-500">
+                  <h3 className="text-2xl font-bold text-gray-600 mb-2">Kategori C</h3>
+                  <p className="text-sm text-foreground-secondary mb-3">Düşük değerli ürünler (%5)</p>
+                  <div className="space-y-1">
+                    <p className="text-sm"><span className="font-semibold">{reportData.summary.C.count}</span> ürün</p>
+                    <p className="text-sm">₺{reportData.summary.C.totalValue.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p>
+                  </div>
+                </FluentCard>
+              </div>
+
+              {/* ABC Charts */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Bar Chart */}
+                <FluentCard className="p-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-4">Kategori Bazında Değer Dağılımı</h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={[
+                      { category: 'A', value: reportData.summary.A.totalValue, count: reportData.summary.A.count },
+                      { category: 'B', value: reportData.summary.B.totalValue, count: reportData.summary.B.count },
+                      { category: 'C', value: reportData.summary.C.totalValue, count: reportData.summary.C.count },
+                    ]}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                      <XAxis dataKey="category" stroke="#888" />
+                      <YAxis stroke="#888" />
+                      <RechartsTooltip
+                        contentStyle={{ background: '#1e1e1e', border: '1px solid #333', borderRadius: '8px' }}
+                        labelStyle={{ color: '#fff' }}
+                        formatter={(value: any) => `₺${value.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}`}
+                      />
+                      <Legend />
+                      <Bar dataKey="value" fill="#3b82f6" name="Toplam Değer" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </FluentCard>
+
+                {/* Pie Chart */}
+                <FluentCard className="p-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-4">Ürün Sayısı Dağılımı</h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: 'Kategori A', value: reportData.summary.A.count },
+                          { name: 'Kategori B', value: reportData.summary.B.count },
+                          { name: 'Kategori C', value: reportData.summary.C.count },
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={100}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        <Cell fill="#10b981" />
+                        <Cell fill="#f59e0b" />
+                        <Cell fill="#6b7280" />
+                      </Pie>
+                      <RechartsTooltip
+                        contentStyle={{ background: '#1e1e1e', border: '1px solid #333', borderRadius: '8px' }}
+                        labelStyle={{ color: '#fff' }}
+                      />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </FluentCard>
+              </div>
+            </>
           )}
 
           {/* Aging Report */}
           {activeReport === 'aging' && reportData?.summary && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <FluentCard className="p-6 border-l-4 border-green-500">
-                <h3 className="text-xl font-bold text-green-600 mb-2">0-30 Gün</h3>
-                <div className="space-y-1">
-                  <p className="text-sm"><span className="font-semibold">{reportData.summary['0-30'].count}</span> ürün</p>
-                  <p className="text-sm">₺{reportData.summary['0-30'].value.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p>
-                </div>
-              </FluentCard>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <FluentCard className="p-6 border-l-4 border-green-500">
+                  <h3 className="text-xl font-bold text-green-600 mb-2">0-30 Gün</h3>
+                  <div className="space-y-1">
+                    <p className="text-sm"><span className="font-semibold">{reportData.summary['0-30'].count}</span> ürün</p>
+                    <p className="text-sm">₺{reportData.summary['0-30'].value.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p>
+                  </div>
+                </FluentCard>
 
-              <FluentCard className="p-6 border-l-4 border-yellow-500">
-                <h3 className="text-xl font-bold text-yellow-600 mb-2">31-60 Gün</h3>
-                <div className="space-y-1">
-                  <p className="text-sm"><span className="font-semibold">{reportData.summary['31-60'].count}</span> ürün</p>
-                  <p className="text-sm">₺{reportData.summary['31-60'].value.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p>
-                </div>
-              </FluentCard>
+                <FluentCard className="p-6 border-l-4 border-yellow-500">
+                  <h3 className="text-xl font-bold text-yellow-600 mb-2">31-60 Gün</h3>
+                  <div className="space-y-1">
+                    <p className="text-sm"><span className="font-semibold">{reportData.summary['31-60'].count}</span> ürün</p>
+                    <p className="text-sm">₺{reportData.summary['31-60'].value.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p>
+                  </div>
+                </FluentCard>
 
-              <FluentCard className="p-6 border-l-4 border-orange-500">
-                <h3 className="text-xl font-bold text-orange-600 mb-2">61-90 Gün</h3>
-                <div className="space-y-1">
-                  <p className="text-sm"><span className="font-semibold">{reportData.summary['61-90'].count}</span> ürün</p>
-                  <p className="text-sm">₺{reportData.summary['61-90'].value.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p>
-                </div>
-              </FluentCard>
+                <FluentCard className="p-6 border-l-4 border-orange-500">
+                  <h3 className="text-xl font-bold text-orange-600 mb-2">61-90 Gün</h3>
+                  <div className="space-y-1">
+                    <p className="text-sm"><span className="font-semibold">{reportData.summary['61-90'].count}</span> ürün</p>
+                    <p className="text-sm">₺{reportData.summary['61-90'].value.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p>
+                  </div>
+                </FluentCard>
 
-              <FluentCard className="p-6 border-l-4 border-red-500">
-                <h3 className="text-xl font-bold text-red-600 mb-2">90+ Gün</h3>
-                <div className="space-y-1">
-                  <p className="text-sm"><span className="font-semibold">{reportData.summary['90+'].count}</span> ürün</p>
-                  <p className="text-sm">₺{reportData.summary['90+'].value.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p>
-                </div>
+                <FluentCard className="p-6 border-l-4 border-red-500">
+                  <h3 className="text-xl font-bold text-red-600 mb-2">90+ Gün</h3>
+                  <div className="space-y-1">
+                    <p className="text-sm"><span className="font-semibold">{reportData.summary['90+'].count}</span> ürün</p>
+                    <p className="text-sm">₺{reportData.summary['90+'].value.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</p>
+                  </div>
+                </FluentCard>
+              </div>
+
+              {/* Aging Chart */}
+              <FluentCard className="p-6">
+                <h3 className="text-lg font-semibold text-foreground mb-4">Yaşlanma Analizi - Stok Değeri Dağılımı</h3>
+                <ResponsiveContainer width="100%" height={350}>
+                  <AreaChart data={[
+                    { period: '0-30', count: reportData.summary['0-30'].count, value: reportData.summary['0-30'].value },
+                    { period: '31-60', count: reportData.summary['31-60'].count, value: reportData.summary['31-60'].value },
+                    { period: '61-90', count: reportData.summary['61-90'].count, value: reportData.summary['61-90'].value },
+                    { period: '90+', count: reportData.summary['90+'].count, value: reportData.summary['90+'].value },
+                  ]}>
+                    <defs>
+                      <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                    <XAxis dataKey="period" stroke="#888" />
+                    <YAxis stroke="#888" />
+                    <RechartsTooltip
+                      contentStyle={{ background: '#1e1e1e', border: '1px solid #333', borderRadius: '8px' }}
+                      labelStyle={{ color: '#fff' }}
+                      formatter={(value: any, name: string) => {
+                        if (name === 'Değer') return `₺${value.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}`;
+                        return value;
+                      }}
+                    />
+                    <Legend />
+                    <Area type="monotone" dataKey="value" stroke="#3b82f6" fillOpacity={1} fill="url(#colorValue)" name="Değer" />
+                    <Area type="monotone" dataKey="count" stroke="#10b981" fill="#10b981" fillOpacity={0.3} name="Ürün Sayısı" />
+                  </AreaChart>
+                </ResponsiveContainer>
               </FluentCard>
-            </div>
+            </>
           )}
 
           {/* Turnover Rate */}
           {activeReport === 'turnover' && reportData?.summary && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FluentCard className="p-6 border-l-4 border-green-500">
-                <h3 className="text-2xl font-bold text-green-600 mb-2">Hızlı Devir</h3>
-                <p className="text-sm text-foreground-secondary mb-3">60+ gün/yıl</p>
-                <p className="text-lg font-semibold">{reportData.summary.fast} ürün</p>
-              </FluentCard>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FluentCard className="p-6 border-l-4 border-green-500">
+                  <h3 className="text-2xl font-bold text-green-600 mb-2">Hızlı Devir</h3>
+                  <p className="text-sm text-foreground-secondary mb-3">60+ gün/yıl</p>
+                  <p className="text-lg font-semibold">{reportData.summary.fast} ürün</p>
+                </FluentCard>
 
-              <FluentCard className="p-6 border-l-4 border-yellow-500">
-                <h3 className="text-2xl font-bold text-yellow-600 mb-2">Orta Devir</h3>
-                <p className="text-sm text-foreground-secondary mb-3">30-60 gün/yıl</p>
-                <p className="text-lg font-semibold">{reportData.summary.medium} ürün</p>
-              </FluentCard>
+                <FluentCard className="p-6 border-l-4 border-yellow-500">
+                  <h3 className="text-2xl font-bold text-yellow-600 mb-2">Orta Devir</h3>
+                  <p className="text-sm text-foreground-secondary mb-3">30-60 gün/yıl</p>
+                  <p className="text-lg font-semibold">{reportData.summary.medium} ürün</p>
+                </FluentCard>
 
-              <FluentCard className="p-6 border-l-4 border-red-500">
-                <h3 className="text-2xl font-bold text-red-600 mb-2">Yavaş Devir</h3>
-                <p className="text-sm text-foreground-secondary mb-3">{'<'}30 gün/yıl</p>
-                <p className="text-lg font-semibold">{reportData.summary.slow} ürün</p>
-              </FluentCard>
-            </div>
+                <FluentCard className="p-6 border-l-4 border-red-500">
+                  <h3 className="text-2xl font-bold text-red-600 mb-2">Yavaş Devir</h3>
+                  <p className="text-sm text-foreground-secondary mb-3">{'<'}30 gün/yıl</p>
+                  <p className="text-lg font-semibold">{reportData.summary.slow} ürün</p>
+                </FluentCard>
+              </div>
+
+              {/* Turnover Chart */}
+              {reportData?.products && Array.isArray(reportData.products) && reportData.products.length > 0 && (
+                <FluentCard className="p-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-4">Devir Hızı Analizi - En Yüksek 15 Ürün</h3>
+                  <ResponsiveContainer width="100%" height={400}>
+                    <LineChart data={reportData.products.slice(0, 15).map((p: any) => ({
+                      name: p.name.length > 20 ? p.name.substring(0, 20) + '...' : p.name,
+                      turnover: p.turnoverRate || 0,
+                      stock: p.stock || 0
+                    }))}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                      <XAxis dataKey="name" stroke="#888" angle={-45} textAnchor="end" height={100} />
+                      <YAxis stroke="#888" />
+                      <RechartsTooltip
+                        contentStyle={{ background: '#1e1e1e', border: '1px solid #333', borderRadius: '8px' }}
+                        labelStyle={{ color: '#fff' }}
+                        formatter={(value: any, name: string) => {
+                          if (name === 'Devir Hızı') return `${value} gün/yıl`;
+                          return value;
+                        }}
+                      />
+                      <Legend />
+                      <Line type="monotone" dataKey="turnover" stroke="#3b82f6" strokeWidth={2} name="Devir Hızı" activeDot={{ r: 8 }} />
+                      <Line type="monotone" dataKey="stock" stroke="#10b981" strokeWidth={2} name="Stok Miktarı" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </FluentCard>
+              )}
+            </>
           )}
         </>
       )}
