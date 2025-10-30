@@ -17,25 +17,33 @@ export const register = async (req: Request, res: Response) => {
     // Şifreyi hashle
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Kullanıcı oluştur
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        name,
-        role: role || 'CASHIER',
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        isActive: true,
-        createdAt: true,
-      },
+    // Tenant oluştur ve kullanıcıyı ADMIN olarak bağla, 7 günlük trial
+    const trialEnds = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const result = await prisma.$transaction(async (tx) => {
+      const tenant = await tx.tenant.create({ data: { name: email.split('@')[0] } });
+      const u = await tx.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          name,
+          role: 'ADMIN',
+          tenantId: tenant.id,
+          trialEndsAt: trialEnds
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          isActive: true,
+          createdAt: true,
+        },
+      });
+      await tx.license.create({ data: { tenantId: tenant.id, status: 'ACTIVE', plan: 'STANDARD', trial: true, trialEndsAt: trialEnds } });
+      return u;
     });
 
-    res.status(201).json({ message: 'Kullanıcı başarıyla oluşturuldu', user });
+    res.status(201).json({ message: 'Kullanıcı başarıyla oluşturuldu', user: result });
   } catch (error) {
     console.error('Register error:', error);
     res.status(500).json({ error: 'Kayıt işlemi başarısız' });

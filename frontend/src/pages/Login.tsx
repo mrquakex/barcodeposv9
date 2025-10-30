@@ -37,7 +37,8 @@ const Login: React.FC = () => {
       toast.success(t('login.welcomeBack') || 'Hoş geldiniz!');
       navigate('/dashboard');
     } catch (error: any) {
-      toast.error(error.response?.data?.message || t('login.loginError'));
+      const msg = error?.response?.data?.error || error?.response?.data?.message || 'Email veya şifre hatalı';
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }

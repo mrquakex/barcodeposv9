@@ -24,6 +24,7 @@ import settingsRoutes from './routes/settings.routes';
 import userRoutes from './routes/user.routes';
 import supplierRoutes from './routes/supplier.routes';
 import stockRoutes from './routes/stock.routes';
+import adminRoutes from './routes/admin.routes';
 import expenseRoutes from './routes/expense.routes';
 import financeRoutes from './routes/finance.routes';
 // import campaignRoutes from './routes/campaign.routes'; // Disabled: Campaign model removed from schema
@@ -181,6 +182,7 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/suppliers', supplierRoutes);
 app.use('/api/stock', stockRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/finance', financeRoutes);
 // app.use('/api/campaigns', campaignRoutes); // Disabled: Campaign model removed from schema
