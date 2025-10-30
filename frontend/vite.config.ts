@@ -33,7 +33,13 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     sourcemap: false,
-    minify: false,
+    minify: 'terser',
+    terserOptions: {
+      format: {
+        ascii_only: false,
+        comments: false,
+      },
+    },
     rollupOptions: {
       output: {
         manualChunks: undefined,
