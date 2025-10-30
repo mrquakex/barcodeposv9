@@ -34,6 +34,7 @@ const MobileSales: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [swipedSale, setSwipedSale] = useState<string | null>(null);
   const [viewingSale, setViewingSale] = useState<Sale | null>(null);
+  const [stats, setStats] = useState({ total: 0, count: 0, average: 0 });
   
   const touchStartX = useRef<number>(0);
 
@@ -80,6 +81,12 @@ const MobileSales: React.FC = () => {
       }
 
       setSales(salesData);
+      
+      // 🆕 Calculate stats
+      const total = salesData.reduce((sum: number, sale: Sale) => sum + sale.total, 0);
+      const count = salesData.length;
+      const average = count > 0 ? total / count : 0;
+      setStats({ total, count, average });
     } catch (error) {
       console.error('❌ Load sales error:', error);
       toast.error('Satışlar yüklenemedi');

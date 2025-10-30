@@ -636,3 +636,178 @@ export const resetAllStocksTo50 = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Stoklar güncellenemedi' });
   }
 };
+
+// ============================================
+//   PRODUCT DETAIL ENDPOINTS (ENTERPRISE)
+// ============================================
+
+export const getProductMovements = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    const movements = await prisma.stockMovement.findMany({
+      where: { productId: id },
+      include: {
+        user: {
+          select: { id: true, name: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100 // Last 100 movements
+    });
+
+    res.json({ movements });
+  } catch (error) {
+    console.error('Get product movements error:', error);
+    res.status(500).json({ error: 'Stok hareketleri alınamadı' });
+  }
+};
+
+export const getProductSales = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    const sales = await prisma.saleItem.findMany({
+      where: { productId: id },
+      include: {
+        sale: {
+          select: {
+            id: true,
+            saleNumber: true,
+            createdAt: true,
+            customer: {
+              select: { id: true, name: true }
+            }
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100 // Last 100 sales
+    });
+
+    res.json({ sales });
+  } catch (error) {
+    console.error('Get product sales error:', error);
+    res.status(500).json({ error: 'Satış geçmişi alınamadı' });
+  }
+};
+
+export const getProductPurchaseHistory = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    const purchaseOrders = await prisma.purchaseOrderItem.findMany({
+      where: { productId: id },
+      include: {
+        purchaseOrder: {
+          select: {
+            id: true,
+            orderNumber: true,
+            createdAt: true,
+            supplier: {
+              select: { id: true, name: true }
+            }
+          }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100 // Last 100 purchases
+    });
+
+    res.json({ purchaseOrders });
+  } catch (error) {
+    console.error('Get product purchase history error:', error);
+    res.status(500).json({ error: 'Satın alma geçmişi alınamadı' });
+  }
+};
+
+export const getProductVariants = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    // Since we don't have a ProductVariant model yet, return empty array
+    // This will be implemented in Phase 2
+    const variants: any[] = [];
+
+    res.json({ variants });
+  } catch (error) {
+    console.error('Get product variants error:', error);
+    res.status(500).json({ error: 'Varyantlar alınamadı' });
+  }
+};
+
+export const getProductImages = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    // Since we don't have a ProductImage model yet, return empty array
+    // This will be implemented in Phase 2
+    const images: any[] = [];
+
+    res.json({ images });
+  } catch (error) {
+    console.error('Get product images error:', error);
+    res.status(500).json({ error: 'Görseller alınamadı' });
+  }
+};
+
+export const getProductDocuments = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    
+    // Since we don't have a ProductDocument model yet, return empty array
+    // This will be implemented in Phase 2
+    const documents: any[] = [];
+
+    res.json({ documents });
+  } catch (error) {
+    console.error('Get product documents error:', error);
+    res.status(500).json({ error: 'Dökümanlar alınamadı' });
+  }
+};
+
+export const addProductStock = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { quantity, reason } = req.body;
+
+    if (!quantity || quantity <= 0) {
+      return res.status(400).json({ error: 'Geçersiz miktar' });
+    }
+
+    const product = await prisma.product.findUnique({ where: { id } });
+    if (!product) {
+      return res.status(404).json({ error: 'Ürün bulunamadı' });
+    }
+
+    const userId = (req as any).user?.id;
+
+    // Update product stock
+    const updatedProduct = await prisma.product.update({
+      where: { id },
+      data: { stock: product.stock + quantity }
+    });
+
+    // Create stock movement record
+    await prisma.stockMovement.create({
+      data: {
+        productId: id,
+        type: 'IN',
+        quantity,
+        previousStock: product.stock,
+        newStock: updatedProduct.stock,
+        notes: reason || 'Manuel stok ekleme',
+        userId
+      }
+    });
+
+    res.json({ 
+      success: true, 
+      product: updatedProduct,
+      message: 'Stok başarıyla eklendi'
+    });
+  } catch (error) {
+    console.error('Add product stock error:', error);
+    res.status(500).json({ error: 'Stok eklenemedi' });
+  }
+};

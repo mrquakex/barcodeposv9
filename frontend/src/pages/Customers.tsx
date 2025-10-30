@@ -488,10 +488,10 @@ const Customers: React.FC = () => {
               </div>
 
               <div className="flex gap-2 pt-3 border-t border-border">
-                <FluentButton
-                  appearance="subtle"
-                  size="small"
-                  className="flex-1"
+              <FluentButton
+                appearance="subtle"
+                size="small"
+                className="flex-1"
                   icon={<Eye className="w-3 h-3" />}
                   onClick={() => handleViewDetail(customer.id)}
                 >
@@ -500,9 +500,9 @@ const Customers: React.FC = () => {
                 <FluentButton
                   appearance="subtle"
                   size="small"
-                  icon={<Edit className="w-3 h-3" />}
-                  onClick={() => handleEdit(customer)}
-                >
+                icon={<Edit className="w-3 h-3" />}
+                onClick={() => handleEdit(customer)}
+              >
                   Düzenle
               </FluentButton>
               <FluentButton

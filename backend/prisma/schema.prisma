@@ -96,6 +96,7 @@ model Product {
   sellPrice   Float     @default(0) // Satış fiyatı
   stock       Int       @default(0)
   minStock    Int       @default(5)
+  maxStock    Int?
   unit        String    @default("Adet")
   taxRate     Float     @default(18)
   imageUrl    String?

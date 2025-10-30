@@ -299,7 +299,7 @@ const Returns: React.FC = () => {
                       onClick={() => handleDeleteReturn(ret.id)}
                     >
                       Sil
-                    </FluentButton>
+                </FluentButton>
                   )}
                 </div>
               </div>

@@ -1,0 +1,6 @@
+Type,Name,Content,TTL,Priority,Proxy
+A,mail,130.61.95.26,Auto,,false
+MX,@,mail.barcodepos.trade,Auto,10,
+TXT,@,"v=spf1 mx include:spf.brevo.com ~all",Auto,,
+TXT,_dmarc,"v=DMARC1; p=quarantine; rua=mailto:admin@barcodepos.trade",Auto,,
+

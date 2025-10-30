@@ -2699,6 +2699,325 @@ body.scanner-active .barcode-scanner-ui {
   color: #999;
 }
 
+/* 🆕 Comparison Widget */
+.comparison-widget-clean {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: white;
+  border: 2px solid #E5E5E5;
+  border-radius: 14px;
+  margin-top: 12px;
+}
+
+.dark .comparison-widget-clean {
+  background: #1A1A1A;
+  border-color: #2A2A2A;
+}
+
+.comparison-item {
+  text-align: center;
+  flex: 1;
+}
+
+.comparison-label {
+  font-size: 11px;
+  color: #666;
+  margin-bottom: 2px;
+  font-weight: 500;
+}
+
+.dark .comparison-label {
+  color: #999;
+}
+
+.comparison-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #000;
+}
+
+.dark .comparison-value {
+  color: #fff;
+}
+
+.comparison-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: #F5F5F5;
+  border-radius: 8px;
+}
+
+.dark .comparison-arrow {
+  background: #0A0A0A;
+}
+
+/* 🆕 Trend Chart */
+.trend-chart-clean {
+  background: white;
+  border: 2px solid #E5E5E5;
+  border-radius: 14px;
+  padding: 14px;
+  margin-top: 12px;
+}
+
+.dark .trend-chart-clean {
+  background: #1A1A1A;
+  border-color: #2A2A2A;
+}
+
+.trend-chart-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #000;
+  margin-bottom: 10px;
+}
+
+.dark .trend-chart-title {
+  color: #fff;
+}
+
+.chart-container-clean {
+  height: 80px;
+  width: 100%;
+}
+
+/* 🆕 Quick Widgets */
+.quick-widgets-clean {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.widget-card-clean {
+  background: white;
+  border: 2px solid #E5E5E5;
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.dark .widget-card-clean {
+  background: #1A1A1A;
+  border-color: #2A2A2A;
+}
+
+.widget-card-clean.alert-card {
+  border-color: #FFB020;
+}
+
+.dark .widget-card-clean.alert-card {
+  border-color: #FFB020;
+}
+
+.widget-header-clean {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.widget-title-clean {
+  font-size: 14px;
+  font-weight: 600;
+  color: #000;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dark .widget-title-clean {
+  color: #fff;
+}
+
+.widget-title-clean.alert {
+  color: #FFB020;
+}
+
+.widget-view-all-clean,
+.widget-toggle-clean {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: #F5F5F5;
+  border: none;
+  border-radius: 8px;
+  color: #000;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dark .widget-view-all-clean,
+.dark .widget-toggle-clean {
+  background: #0A0A0A;
+  color: #fff;
+}
+
+.widget-view-all-clean:active,
+.widget-toggle-clean:active {
+  transform: scale(0.95);
+}
+
+/* Recent Sales List */
+.recent-sales-list-clean {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sale-item-clean {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: #F9F9F9;
+  border-radius: 10px;
+  transition: all 0.2s;
+}
+
+.dark .sale-item-clean {
+  background: #0F0F0F;
+}
+
+.sale-item-clean:active {
+  transform: scale(0.98);
+}
+
+.sale-icon-clean {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: white;
+  border: 1px solid #E5E5E5;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.dark .sale-icon-clean {
+  background: #1A1A1A;
+  border-color: #2A2A2A;
+}
+
+.sale-info-clean {
+  flex: 1;
+}
+
+.sale-number-clean {
+  font-size: 13px;
+  font-weight: 600;
+  color: #000;
+}
+
+.dark .sale-number-clean {
+  color: #fff;
+}
+
+.sale-time-clean {
+  font-size: 11px;
+  color: #666;
+  margin-top: 2px;
+}
+
+.dark .sale-time-clean {
+  color: #999;
+}
+
+.sale-amount-clean {
+  font-size: 14px;
+  font-weight: 700;
+  color: #000;
+}
+
+.dark .sale-amount-clean {
+  color: #fff;
+}
+
+/* Critical Stock List */
+.critical-stock-list-clean {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.critical-item-clean {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: #FFF9E6;
+  border: 1px solid #FFB020;
+  border-radius: 10px;
+}
+
+.dark .critical-item-clean {
+  background: rgba(255, 176, 32, 0.1);
+  border-color: #FFB020;
+}
+
+.critical-icon-clean {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: white;
+  border: 1px solid #FFB020;
+  border-radius: 8px;
+  color: #FFB020;
+  flex-shrink: 0;
+}
+
+.dark .critical-icon-clean {
+  background: #1A1A1A;
+}
+
+.critical-info-clean {
+  flex: 1;
+}
+
+.critical-name-clean {
+  font-size: 13px;
+  font-weight: 600;
+  color: #000;
+}
+
+.dark .critical-name-clean {
+  color: #fff;
+}
+
+.critical-stock-clean {
+  font-size: 11px;
+  color: #FFB020;
+  margin-top: 2px;
+  font-weight: 600;
+}
+
+.critical-action-clean {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: #FFB020;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.critical-action-clean:active {
+  transform: scale(0.95);
+}
+
 /* Menu Grid */
 .menu-grid-clean {
   display: grid;

@@ -1,14 +1,38 @@
 import { Router } from 'express';
-import { getStockMovements, createStockMovement } from '../controllers/stock.controller';
-import { authenticate, authorize } from '../middleware/auth.middleware';
+import multer from 'multer';
+import {
+  getDashboardStats,
+  getStockAlerts,
+  getABCAnalysis,
+  getAgingReport,
+  getTurnoverRate,
+  importProductsFromExcel,
+  exportProductsToExcel,
+  bulkUpdateStock,
+  bulkUpdatePrices
+} from '../controllers/stock.controller';
+import { authenticate } from '../middleware/auth.middleware';
 
 const router = Router();
+const upload = multer({ storage: multer.memoryStorage() });
 
-router.use(authenticate);
+// 📊 Dashboard
+router.get('/dashboard-stats', authenticate, getDashboardStats);
 
-router.get('/movements', getStockMovements);
-router.post('/movements', authorize('ADMIN', 'MANAGER'), createStockMovement);
+// ⚠️ Uyarılar
+router.get('/alerts', authenticate, getStockAlerts);
+
+// 📈 Raporlar
+router.get('/abc-analysis', authenticate, getABCAnalysis);
+router.get('/aging-report', authenticate, getAgingReport);
+router.get('/turnover-rate', authenticate, getTurnoverRate);
+
+// 📥📤 Excel İşlemleri
+router.post('/import-excel', authenticate, upload.single('file'), importProductsFromExcel);
+router.get('/export-excel', authenticate, exportProductsToExcel);
+
+// ⚡ Toplu İşlemler
+router.post('/bulk-update', authenticate, bulkUpdateStock);
+router.post('/bulk-update-prices', authenticate, bulkUpdatePrices);
 
 export default router;
-
-

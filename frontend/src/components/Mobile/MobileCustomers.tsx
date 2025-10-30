@@ -4,7 +4,8 @@ import { Capacitor } from '@capacitor/core';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { 
   ArrowLeft, Plus, Search, Edit, Trash2, User, Mail, Phone, 
-  MapPin, DollarSign, X, Star, PhoneCall, MessageCircle
+  MapPin, DollarSign, X, Star, PhoneCall, MessageCircle, Filter,
+  TrendingUp, Receipt, FileText, CreditCard, CheckCircle
 } from 'lucide-react';
 import { api } from '../../lib/api';
 import { soundEffects } from '../../lib/sound-effects';
@@ -32,6 +33,16 @@ const MobileCustomers: React.FC = () => {
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', address: '' });
+  
+  // 🆕 New features
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [customerSales, setCustomerSales] = useState<any[]>([]);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [noteText, setNoteText] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'vip' | 'debt'>('all');
   
   const touchStartX = useRef<number>(0);
   const touchStartY = useRef<number>(0);
@@ -106,10 +117,76 @@ const MobileCustomers: React.FC = () => {
     }
   };
 
-  const handleCustomerClick = (customerId: string) => {
+  const handleCustomerClick = async (customerId: string) => {
     soundEffects.tap();
     hapticFeedback();
-    setLongPressCustomer(customerId);
+    
+    // 🆕 Open detail modal
+    const customer = customers.find(c => c.id === customerId);
+    if (customer) {
+      setSelectedCustomer(customer);
+      setShowDetailModal(true);
+      
+      // Load customer sales
+      try {
+        const salesRes = await api.get(`/sales?customerId=${customerId}`);
+        setCustomerSales(salesRes.data.sales || []);
+      } catch (error) {
+        console.log('Sales not available');
+      }
+    }
+  };
+
+  // 🆕 New handlers
+  const handleOpenPayment = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setPaymentAmount('');
+    setShowPaymentModal(true);
+    setShowDetailModal(false);
+    soundEffects.tap();
+  };
+
+  const handlePayDebt = async () => {
+    if (!selectedCustomer || !paymentAmount) return;
+    
+    try {
+      await api.post(`/customers/${selectedCustomer.id}/pay-debt`, {
+        amount: parseFloat(paymentAmount),
+      });
+      toast.success('Ödeme alındı');
+      soundEffects.cashRegister();
+      hapticFeedback(ImpactStyle.Medium);
+      loadCustomers();
+      setShowPaymentModal(false);
+      setPaymentAmount('');
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Ödeme alınamadı');
+    }
+  };
+
+  const handleOpenNote = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setNoteText('');
+    setShowNoteModal(true);
+    setShowDetailModal(false);
+    soundEffects.tap();
+  };
+
+  const handleSaveNote = async () => {
+    if (!selectedCustomer || !noteText.trim()) return;
+    
+    try {
+      await api.post(`/customers/${selectedCustomer.id}/notes`, {
+        note: noteText,
+      });
+      toast.success('Not eklendi');
+      soundEffects.tap();
+      hapticFeedback();
+      setShowNoteModal(false);
+      setNoteText('');
+    } catch (error) {
+      toast.error('Not eklenemedi');
+    }
   };
 
   // Actions
@@ -178,11 +255,25 @@ const MobileCustomers: React.FC = () => {
     }
   };
 
-  const filteredCustomers = customers.filter(customer =>
-    customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    customer.phone?.includes(searchQuery) ||
-    customer.email?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // 🆕 Filter logic
+  const filteredCustomers = customers
+    .filter(customer => {
+      // Search filter
+      const matchesSearch = customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        customer.phone?.includes(searchQuery) ||
+        customer.email?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      if (!matchesSearch) return false;
+
+      // Type filter
+      if (filterType === 'vip') {
+        return customer.totalSpent > 5000; // VIP threshold
+      } else if (filterType === 'debt') {
+        return customer.debt > 0;
+      }
+      
+      return true; // 'all'
+    });
 
   return (
     <div className="mobile-customers-ultra">
@@ -207,6 +298,30 @@ const MobileCustomers: React.FC = () => {
           onChange={(e) => setSearchQuery(e.target.value)}
           className="search-input-ultra"
         />
+      </div>
+
+      {/* 🆕 Filters */}
+      <div className="filter-chips-clean">
+        <button
+          onClick={() => { setFilterType('all'); hapticFeedback(); }}
+          className={`filter-chip-clean ${filterType === 'all' ? 'active' : ''}`}
+        >
+          Tümü ({customers.length})
+        </button>
+        <button
+          onClick={() => { setFilterType('vip'); hapticFeedback(); }}
+          className={`filter-chip-clean ${filterType === 'vip' ? 'active' : ''}`}
+        >
+          <Star className="w-3.5 h-3.5" />
+          VIP ({customers.filter(c => c.totalSpent > 5000).length})
+        </button>
+        <button
+          onClick={() => { setFilterType('debt'); hapticFeedback(); }}
+          className={`filter-chip-clean ${filterType === 'debt' ? 'active' : ''}`}
+        >
+          <DollarSign className="w-3.5 h-3.5" />
+          Borçlu ({customers.filter(c => c.debt > 0).length})
+        </button>
       </div>
 
       {/* Customer List */}
@@ -366,6 +481,191 @@ const MobileCustomers: React.FC = () => {
               </button>
               <button onClick={handleSave} className="save-btn-ultra" disabled={!formData.name}>
                 {editingCustomer ? 'Güncelle' : 'Ekle'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🆕 Detail Modal */}
+      {showDetailModal && selectedCustomer && (
+        <div className="modal-overlay-ultra" onClick={() => setShowDetailModal(false)}>
+          <div className="modal-ultra detail-modal-clean" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header-ultra">
+              <h3>{selectedCustomer.name}</h3>
+              <button onClick={() => setShowDetailModal(false)} className="close-btn-ultra">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="modal-body-ultra">
+              {/* Stats */}
+              <div className="customer-stats-clean">
+                <div className="stat-box-clean">
+                  <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-500" />
+                  <div>
+                    <p className="stat-label">Toplam Harcama</p>
+                    <p className="stat-value">₺{selectedCustomer.totalSpent.toFixed(0)}</p>
+                  </div>
+                </div>
+                {selectedCustomer.debt > 0 && (
+                  <div className="stat-box-clean alert">
+                    <DollarSign className="w-5 h-5" />
+                    <div>
+                      <p className="stat-label">Borç</p>
+                      <p className="stat-value">₺{selectedCustomer.debt.toFixed(0)}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Contact Info */}
+              {(selectedCustomer.phone || selectedCustomer.email) && (
+                <div className="contact-info-clean">
+                  {selectedCustomer.phone && (
+                    <div className="contact-item-clean">
+                      <Phone className="w-4 h-4" />
+                      <span>{selectedCustomer.phone}</span>
+                    </div>
+                  )}
+                  {selectedCustomer.email && (
+                    <div className="contact-item-clean">
+                      <Mail className="w-4 h-4" />
+                      <span>{selectedCustomer.email}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Sales History */}
+              {customerSales.length > 0 && (
+                <div className="sales-history-clean">
+                  <h4>Son Satışlar</h4>
+                  {customerSales.slice(0, 5).map((sale: any) => (
+                    <div key={sale.id} className="sale-item-clean">
+                      <Receipt className="w-4 h-4" />
+                      <div className="sale-info">
+                        <span className="sale-number">#{sale.saleNumber}</span>
+                        <span className="sale-date">
+                          {new Date(sale.createdAt).toLocaleDateString('tr-TR')}
+                        </span>
+                      </div>
+                      <span className="sale-total">₺{sale.total.toFixed(0)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="detail-actions-clean">
+                {selectedCustomer.debt > 0 && (
+                  <button 
+                    onClick={() => handleOpenPayment(selectedCustomer)}
+                    className="action-btn-clean primary"
+                  >
+                    <CreditCard className="w-5 h-5" />
+                    Borç Öde
+                  </button>
+                )}
+                <button 
+                  onClick={() => handleOpenNote(selectedCustomer)}
+                  className="action-btn-clean secondary"
+                >
+                  <FileText className="w-5 h-5" />
+                  Not Ekle
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🆕 Payment Modal */}
+      {showPaymentModal && selectedCustomer && (
+        <div className="modal-overlay-ultra" onClick={() => setShowPaymentModal(false)}>
+          <div className="modal-ultra payment-modal-clean" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header-ultra">
+              <h3>Borç Ödemesi</h3>
+              <button onClick={() => setShowPaymentModal(false)} className="close-btn-ultra">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="modal-body-ultra">
+              <div className="payment-info-clean">
+                <p className="customer-name">{selectedCustomer.name}</p>
+                <p className="debt-amount">Borç: ₺{selectedCustomer.debt.toFixed(2)}</p>
+              </div>
+              <div className="form-group-ultra">
+                <label>Ödeme Tutarı</label>
+                <input
+                  type="number"
+                  value={paymentAmount}
+                  onChange={(e) => setPaymentAmount(e.target.value)}
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0"
+                  max={selectedCustomer.debt}
+                  autoFocus
+                />
+              </div>
+              <div className="quick-amounts-clean">
+                <button onClick={() => setPaymentAmount((selectedCustomer.debt / 2).toFixed(2))}>
+                  Yarısı
+                </button>
+                <button onClick={() => setPaymentAmount(selectedCustomer.debt.toFixed(2))}>
+                  Tamamı
+                </button>
+              </div>
+            </div>
+            <div className="modal-footer-ultra">
+              <button onClick={() => setShowPaymentModal(false)} className="cancel-btn-ultra">
+                İptal
+              </button>
+              <button 
+                onClick={handlePayDebt} 
+                className="save-btn-ultra" 
+                disabled={!paymentAmount || parseFloat(paymentAmount) <= 0}
+              >
+                <CheckCircle className="w-5 h-5" />
+                Ödemeyi Al
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 🆕 Note Modal */}
+      {showNoteModal && selectedCustomer && (
+        <div className="modal-overlay-ultra" onClick={() => setShowNoteModal(false)}>
+          <div className="modal-ultra note-modal-clean" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header-ultra">
+              <h3>Not Ekle</h3>
+              <button onClick={() => setShowNoteModal(false)} className="close-btn-ultra">
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="modal-body-ultra">
+              <p className="customer-name-label">{selectedCustomer.name}</p>
+              <div className="form-group-ultra">
+                <textarea
+                  value={noteText}
+                  onChange={(e) => setNoteText(e.target.value)}
+                  placeholder="Müşteri hakkında not..."
+                  rows={5}
+                  autoFocus
+                />
+              </div>
+            </div>
+            <div className="modal-footer-ultra">
+              <button onClick={() => setShowNoteModal(false)} className="cancel-btn-ultra">
+                İptal
+              </button>
+              <button 
+                onClick={handleSaveNote} 
+                className="save-btn-ultra" 
+                disabled={!noteText.trim()}
+              >
+                <FileText className="w-5 h-5" />
+                Kaydet
               </button>
             </div>
           </div>

@@ -144,8 +144,8 @@ const StockCount: React.FC = () => {
           </FluentCard>
         ) : (
           filteredCounts.map((count) => (
-            <FluentCard key={count.id} depth="depth-4" hoverable className="p-4">
-              <div className="flex items-center gap-4">
+          <FluentCard key={count.id} depth="depth-4" hoverable className="p-4">
+            <div className="flex items-center gap-4">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
                   count.status === 'IN_PROGRESS'
                     ? 'bg-warning/10'
@@ -160,11 +160,11 @@ const StockCount: React.FC = () => {
                   ) : (
                     <XCircle className="w-6 h-6 text-error" />
                   )}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-1">
                     <h4 className="text-sm font-medium text-foreground">{count.countNumber}</h4>
-                    <FluentBadge
+                  <FluentBadge
                       appearance={
                         count.status === 'IN_PROGRESS'
                           ? 'warning'
@@ -172,34 +172,34 @@ const StockCount: React.FC = () => {
                           ? 'success'
                           : 'error'
                       }
-                      size="small"
-                    >
+                    size="small"
+                  >
                       {count.status === 'IN_PROGRESS'
                         ? 'Devam Ediyor'
                         : count.status === 'COMPLETED'
                         ? 'Tamamlandı'
                         : 'İptal'}
-                    </FluentBadge>
+                  </FluentBadge>
                     <FluentBadge appearance="default" size="small">
                       {count.type === 'FULL'
                         ? 'Tam Sayım'
                         : count.type === 'CATEGORY'
                         ? 'Kategori'
                         : 'Düşük Stok'}
-                    </FluentBadge>
-                  </div>
+                  </FluentBadge>
+                </div>
                   <div className="flex gap-4 text-xs text-foreground-secondary">
                     <span>{count._count?.items || 0} ürün</span>
                     <span>{count.user.name}</span>
-                    <span>
+                  <span>
                       {new Date(count.startedAt).toLocaleDateString('tr-TR', {
-                        month: 'short',
-                        day: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
                         year: 'numeric',
-                      })}
-                    </span>
-                  </div>
+                    })}
+                  </span>
                 </div>
+              </div>
                 <FluentButton
                   appearance="subtle"
                   size="small"
@@ -207,9 +207,9 @@ const StockCount: React.FC = () => {
                   onClick={() => handleView(count.id)}
                 >
                   Detay
-                </FluentButton>
-              </div>
-            </FluentCard>
+              </FluentButton>
+            </div>
+          </FluentCard>
           ))
         )}
       </div>

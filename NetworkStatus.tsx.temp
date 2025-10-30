@@ -1,0 +1,46 @@
+import React, { useEffect, useState } from "react";
+import { Network } from "@capacitor/network";
+import { Wifi, WifiOff } from "lucide-react";
+
+const NetworkStatus: React.FC = () => {
+  const [isOnline, setIsOnline] = useState(true);
+  const [connectionType, setConnectionType] = useState<string>("unknown");
+
+  useEffect(() => {
+    const checkStatus = async () => {
+      const status = await Network.getStatus();
+      setIsOnline(status.connected);
+      setConnectionType(status.connectionType);
+    };
+
+    checkStatus();
+
+    const handler = Network.addListener("networkStatusChange", (status) => {
+      setIsOnline(status.connected);
+      setConnectionType(status.connectionType);
+    });
+
+    return () => {
+      handler.remove();
+    };
+  }, []);
+
+  if (isOnline) {
+    return (
+      <div className="flex items-center gap-1.5 px-2 py-1 bg-success/10 text-success rounded-md text-xs">
+        <Wifi className="w-3.5 h-3.5" />
+        <span className="font-medium">Çevrimiçi</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1.5 px-2 py-1 bg-destructive/10 text-destructive rounded-md text-xs animate-pulse">
+      <WifiOff className="w-3.5 h-3.5" />
+      <span className="font-medium">Çevrimdışı</span>
+    </div>
+  );
+};
+
+export default NetworkStatus;
+

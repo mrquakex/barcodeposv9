@@ -296,9 +296,9 @@ const Suppliers: React.FC = () => {
           />
           <FluentInput
             label="Adres"
-            value={formData.address}
-            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-          />
+              value={formData.address}
+              onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+            />
           <div className="flex gap-2 pt-4">
             <FluentButton
               appearance="subtle"

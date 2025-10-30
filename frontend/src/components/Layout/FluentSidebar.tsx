@@ -5,7 +5,8 @@ import {
   LayoutDashboard, ShoppingCart, Package, Users, BarChart3, 
   Settings, ChevronRight, Search, Menu, X,
   FolderOpen, Building2, TrendingUp, ShoppingBag, FileText,
-  Banknote, Receipt, Wallet, UserCog, ClipboardList, Smartphone
+  Banknote, Receipt, Wallet, UserCog, ClipboardList, Smartphone,
+  AlertTriangle, ClipboardCheck, ArrowLeftRight, DollarSign, PieChart
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { cn } from '../../lib/utils';
@@ -57,9 +58,13 @@ const FluentSidebar: React.FC<FluentSidebarProps> = ({ isMobileOpen = false, onM
       children: [
         { icon: Package, label: t('nav.products'), path: '/products' },
         { icon: FolderOpen, label: t('nav.categories'), path: '/categories' },
-        { icon: TrendingUp, label: 'Stok Yönetimi', path: '/stock-management' },
         { icon: FileText, label: t('nav.purchaseOrders'), path: '/purchase-orders' },
         { icon: Building2, label: t('nav.suppliers'), path: '/suppliers' },
+        { icon: AlertTriangle, label: 'Stok Uyarıları', path: '/stock-alerts' },
+        { icon: TrendingUp, label: 'Stok Hareketleri', path: '/stock-movements' },
+        { icon: ClipboardCheck, label: 'Stok Sayımı', path: '/stock-count' },
+        { icon: ArrowLeftRight, label: 'Stok Transfer', path: '/stock-transfer' },
+        { icon: PieChart, label: 'Stok Değerleme (ABC)', path: '/stock-valuation' },
       ]
     },
     { icon: Users, label: t('nav.customers'), path: '/customers', roles: ['ADMIN', 'MANAGER'] },
@@ -104,7 +109,7 @@ const FluentSidebar: React.FC<FluentSidebarProps> = ({ isMobileOpen = false, onM
       ]
     : [
         ...baseMenuItems,
-        { icon: Smartphone, label: '📱 Mobil Uygulama', path: '/indir.html', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
+        { icon: Smartphone, label: 'Mobil Uygulama', path: '/download', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
         { icon: Settings, label: t('nav.settings'), path: '/settings', roles: ['ADMIN', 'MANAGER'] },
       ];
 

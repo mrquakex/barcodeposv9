@@ -4,7 +4,8 @@ import {
   ShoppingCart, Package, PlusCircle, Users, Building2, FileText,
   BarChart3, TrendingUp, PackageSearch, ClipboardList, DollarSign, 
   Receipt, UserCog, Grid3x3, Store, Coins, Bell, User, Sun, Moon,
-  ArrowUpCircle, ArrowDownCircle, Activity
+  ArrowUpCircle, ArrowDownCircle, Activity, TrendingDown, AlertTriangle,
+  ChevronRight, X
 } from 'lucide-react';
 import { useThemeStore } from '../../store/themeStore';
 import { useAuthStore } from '../../store/authStore';
@@ -14,6 +15,18 @@ import { Capacitor } from '@capacitor/core';
 import { BarcodeScanner } from '@capacitor-mlkit/barcode-scanning';
 import { api } from '../../lib/api';
 import toast from 'react-hot-toast';
+import { Line } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Tooltip,
+  Filler,
+} from 'chart.js';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Filler);
 
 interface MenuButton {
   icon: React.ElementType;
@@ -27,6 +40,10 @@ interface DashboardStats {
   todayTransactions: number;
   totalProducts: number;
   lowStockCount: number;
+  yesterdaySales: number;
+  last7DaysSales: number[];
+  criticalStockProducts: any[];
+  recentSales: any[];
 }
 
 const MobileDashboard: React.FC = () => {
@@ -38,9 +55,14 @@ const MobileDashboard: React.FC = () => {
     todaySales: 0,
     todayTransactions: 0,
     totalProducts: 0,
-    lowStockCount: 0
+    lowStockCount: 0,
+    yesterdaySales: 0,
+    last7DaysSales: [],
+    criticalStockProducts: [],
+    recentSales: [],
   });
   const [isLoadingStats, setIsLoadingStats] = useState(true);
+  const [showCriticalStock, setShowCriticalStock] = useState(false);
 
   // ⏰ Clock Timer
   useEffect(() => {
@@ -97,27 +119,64 @@ const MobileDashboard: React.FC = () => {
       const productsRes = await api.get('/products');
       const products = productsRes.data.products || [];
       const lowStock = products.filter((p: any) => p.stock < (p.minStock || 10));
+      const criticalStock = products.filter((p: any) => p.stock === 0).slice(0, 5);
       
-      // Load today's sales
+      // Load today's and yesterday's sales
       const today = new Date().toISOString().split('T')[0];
+      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
       let todaySales = 0;
       let todayTransactions = 0;
+      let yesterdaySales = 0;
+      let recentSales: any[] = [];
       
       try {
+        // Today's sales
         const salesRes = await api.get(`/sales?date=${today}`);
         const sales = salesRes.data.sales || [];
         todaySales = sales.reduce((sum: number, sale: any) => sum + (sale.total || 0), 0);
         todayTransactions = sales.length;
+        recentSales = sales.slice(0, 5);
+
+        // Yesterday's sales
+        const yesterdayRes = await api.get(`/sales?date=${yesterday}`);
+        const yesterdaySalesData = yesterdayRes.data.sales || [];
+        yesterdaySales = yesterdaySalesData.reduce((sum: number, sale: any) => sum + (sale.total || 0), 0);
       } catch (error) {
         console.log('Sales data not available');
       }
 
-      setStats({
+      // Load last 7 days sales for chart
+      const last7Days = Array.from({ length: 7 }, (_, i) => {
+        const date = new Date(Date.now() - (6 - i) * 86400000);
+        return date.toISOString().split('T')[0];
+      });
+
+      const last7DaysSales: number[] = [];
+      for (const date of last7Days) {
+        try {
+          const res = await api.get(`/sales?date=${date}`);
+          const dayTotal = (res.data.sales || []).reduce((sum: number, sale: any) => sum + (sale.total || 0), 0);
+          last7DaysSales.push(dayTotal);
+        } catch {
+          last7DaysSales.push(0);
+        }
+      }
+
+      const newStats = {
         todaySales,
         todayTransactions,
         totalProducts: products.length,
-        lowStockCount: lowStock.length
-      });
+        lowStockCount: lowStock.length,
+        yesterdaySales,
+        last7DaysSales,
+        criticalStockProducts: criticalStock,
+        recentSales,
+      };
+
+      setStats(newStats);
+      
+      // Cache for offline use
+      localStorage.setItem('cached_stats', JSON.stringify(newStats));
     } catch (error) {
       console.error('Failed to load stats:', error);
       // Use cached data if available
@@ -241,6 +300,158 @@ const MobileDashboard: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* 🆕 Comparison & Trend */}
+        {!isLoadingStats && stats.yesterdaySales > 0 && (
+          <div className="comparison-widget-clean">
+            <div className="comparison-item">
+              <p className="comparison-label">Dün</p>
+              <p className="comparison-value">₺{stats.yesterdaySales.toFixed(0)}</p>
+            </div>
+            <div className="comparison-arrow">
+              {stats.todaySales > stats.yesterdaySales ? (
+                <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-500" />
+              ) : stats.todaySales < stats.yesterdaySales ? (
+                <TrendingDown className="w-5 h-5 text-red-600 dark:text-red-500" />
+              ) : (
+                <Activity className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              )}
+            </div>
+            <div className="comparison-item">
+              <p className="comparison-label">Fark</p>
+              <p className={`comparison-value ${stats.todaySales > stats.yesterdaySales ? 'text-green-600 dark:text-green-500' : stats.todaySales < stats.yesterdaySales ? 'text-red-600 dark:text-red-500' : ''}`}>
+                {stats.todaySales > stats.yesterdaySales ? '+' : ''}
+                {(stats.todaySales - stats.yesterdaySales).toFixed(0)}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* 🆕 7-Day Trend Chart */}
+        {!isLoadingStats && stats.last7DaysSales.length > 0 && (
+          <div className="trend-chart-clean">
+            <p className="trend-chart-title">Son 7 Gün</p>
+            <div className="chart-container-clean">
+              <Line
+                data={{
+                  labels: ['', '', '', '', '', '', ''],
+                  datasets: [
+                    {
+                      data: stats.last7DaysSales,
+                      borderColor: theme === 'dark' ? '#fff' : '#000',
+                      backgroundColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+                      borderWidth: 2,
+                      fill: true,
+                      tension: 0.4,
+                      pointRadius: 0,
+                      pointHoverRadius: 4,
+                      pointBackgroundColor: theme === 'dark' ? '#fff' : '#000',
+                    },
+                  ],
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                      enabled: true,
+                      displayColors: false,
+                      backgroundColor: theme === 'dark' ? '#1A1A1A' : '#fff',
+                      titleColor: theme === 'dark' ? '#fff' : '#000',
+                      bodyColor: theme === 'dark' ? '#fff' : '#000',
+                      borderColor: theme === 'dark' ? '#2A2A2A' : '#E5E5E5',
+                      borderWidth: 1,
+                      callbacks: {
+                        label: (context) => `₺${context.parsed.y.toFixed(0)}`,
+                      },
+                    },
+                  },
+                  scales: {
+                    x: { display: false },
+                    y: { display: false },
+                  },
+                }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 🆕 Quick Widgets Row */}
+      <div className="quick-widgets-clean">
+        {/* Recent Sales */}
+        {!isLoadingStats && stats.recentSales.length > 0 && (
+          <div className="widget-card-clean">
+            <div className="widget-header-clean">
+              <h3 className="widget-title-clean">Son Satışlar</h3>
+              <button 
+                onClick={() => handleNavigation('/sales')}
+                className="widget-view-all-clean"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="recent-sales-list-clean">
+              {stats.recentSales.map((sale: any, index: number) => (
+                <div key={index} className="sale-item-clean">
+                  <div className="sale-icon-clean">
+                    <Receipt className="w-4 h-4" />
+                  </div>
+                  <div className="sale-info-clean">
+                    <p className="sale-number-clean">#{sale.saleNumber || `${index + 1}`}</p>
+                    <p className="sale-time-clean">
+                      {sale.createdAt ? new Date(sale.createdAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : 'Az önce'}
+                    </p>
+                  </div>
+                  <p className="sale-amount-clean">₺{sale.total?.toFixed(0) || '0'}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Critical Stock Alert */}
+        {!isLoadingStats && stats.criticalStockProducts.length > 0 && (
+          <div className="widget-card-clean alert-card">
+            <div className="widget-header-clean">
+              <h3 className="widget-title-clean alert">
+                <AlertTriangle className="w-4 h-4" />
+                Kritik Stok
+              </h3>
+              <button
+                onClick={() => {
+                  setShowCriticalStock(!showCriticalStock);
+                  soundEffects.tap();
+                }}
+                className="widget-toggle-clean"
+              >
+                {showCriticalStock ? <X className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+              </button>
+            </div>
+            {showCriticalStock && (
+              <div className="critical-stock-list-clean">
+                {stats.criticalStockProducts.map((product: any, index: number) => (
+                  <div key={index} className="critical-item-clean">
+                    <div className="critical-icon-clean">
+                      <Package className="w-4 h-4" />
+                    </div>
+                    <div className="critical-info-clean">
+                      <p className="critical-name-clean">{product.name}</p>
+                      <p className="critical-stock-clean">Stok: {product.stock}</p>
+                    </div>
+                    <button
+                      onClick={() => handleNavigation('/products')}
+                      className="critical-action-clean"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Menu Grid - Clean & Minimal */}

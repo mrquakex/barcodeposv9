@@ -315,7 +315,7 @@ const PurchaseOrders: React.FC = () => {
                       onClick={() => handleDeleteOrder(order.id)}
                     >
                       Sil
-                    </FluentButton>
+                </FluentButton>
                   )}
                 </div>
               </div>

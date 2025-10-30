@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Plus, Search, Edit, Trash2, Star, StarOff, Barcode, Package, Upload,
   Grid3x3, List, Filter, Download, Copy, MoreVertical, Eye, EyeOff,
   CheckSquare, Square, X, ChevronDown, ChevronUp, SlidersHorizontal, FileDown,
-  Printer, QrCode, Archive, RefreshCw, Tag, ArrowUpDown, AlertCircle, TrendingUp
+  Printer, QrCode, Archive, RefreshCw, Tag, ArrowUpDown, AlertCircle, TrendingUp,
+  ExternalLink
 } from 'lucide-react';
 import FluentButton from '../components/fluent/FluentButton';
 import FluentCard from '../components/fluent/FluentCard';
@@ -66,6 +68,7 @@ interface SavedFilter {
 
 const Products: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   
   // 💠 Basic States
   const [products, setProducts] = useState<Product[]>([]);
@@ -1022,6 +1025,15 @@ const Products: React.FC = () => {
 
                   <div className="flex gap-2 mt-4 pt-4 border-t border-border">
                     <FluentButton
+                      appearance="primary"
+                      size="small"
+                      className="flex-1"
+                      icon={<ExternalLink className="w-3 h-3" />}
+                      onClick={() => navigate(`/products/${product.id}`)}
+                    >
+                      Detay
+                    </FluentButton>
+                    <FluentButton
                       appearance="subtle"
                       size="small"
                       className="flex-1"
@@ -1233,20 +1245,27 @@ const Products: React.FC = () => {
                           <td className="px-4 py-3">
                             <div className="flex items-center justify-center gap-1">
                               <button
+                                onClick={() => navigate(`/products/${product.id}`)}
+                                className="p-1.5 hover:bg-primary/10 rounded transition-colors text-foreground-secondary hover:text-primary"
+                                title="Detay"
+                              >
+                                <ExternalLink className="w-4 h-4" />
+                              </button>
+                              <button
                                 onClick={() => handleEdit(product)}
                                 className="p-1.5 hover:bg-background rounded transition-colors text-foreground-secondary hover:text-primary"
                                 title="Düzenle"
                               >
-                          <Edit className="w-4 h-4" />
+                                <Edit className="w-4 h-4" />
                               </button>
                               <button
-                          onClick={() => handleDelete(product.id)}
+                                onClick={() => handleDelete(product.id)}
                                 className="p-1.5 hover:bg-destructive/10 rounded transition-colors text-foreground-secondary hover:text-destructive"
                                 title="Sil"
-                        >
+                              >
                                 <Trash2 className="w-4 h-4" />
                               </button>
-                      </div>
+                            </div>
                           </td>
                         )}
                       </tr>
