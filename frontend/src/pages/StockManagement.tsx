@@ -28,6 +28,7 @@ import {
 import FluentButton from '../components/fluent/FluentButton';
 import FluentCard from '../components/fluent/FluentCard';
 import { ContextMenu, useContextMenu, type ContextMenuItem } from '../components/ui/ContextMenu';
+import Pagination from '../components/ui/Pagination';
 import api from '../lib/api';
 
 interface DashboardStats {
@@ -47,6 +48,14 @@ const StockManagement: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Pagination States
+  const [catalogPage, setCatalogPage] = useState(1);
+  const [movementsPage, setMovementsPage] = useState(1);
+  const [countsPage, setCountsPage] = useState(1);
+  const [transfersPage, setTransfersPage] = useState(1);
+  const [alertsPage, setAlertsPage] = useState(1);
+  const itemsPerPage = 20; // Items per page for all tabs
 
   // Fetch dashboard stats
   const fetchStats = async () => {
@@ -287,10 +296,34 @@ const StockManagement: React.FC = () => {
 
         {/* Tab Content */}
         <div className="p-6">
-          {activeTab === 'catalog' && <ProductCatalogTab />}
-          {activeTab === 'movements' && <StockMovementsTab />}
-          {activeTab === 'count' && <StockCountTab />}
-          {activeTab === 'transfer' && <StockTransferTab />}
+          {activeTab === 'catalog' && (
+            <ProductCatalogTab 
+              currentPage={catalogPage}
+              onPageChange={setCatalogPage}
+              itemsPerPage={itemsPerPage}
+            />
+          )}
+          {activeTab === 'movements' && (
+            <StockMovementsTab
+              currentPage={movementsPage}
+              onPageChange={setMovementsPage}
+              itemsPerPage={itemsPerPage}
+            />
+          )}
+          {activeTab === 'count' && (
+            <StockCountTab
+              currentPage={countsPage}
+              onPageChange={setCountsPage}
+              itemsPerPage={itemsPerPage}
+            />
+          )}
+          {activeTab === 'transfer' && (
+            <StockTransferTab
+              currentPage={transfersPage}
+              onPageChange={setTransfersPage}
+              itemsPerPage={itemsPerPage}
+            />
+          )}
           {activeTab === 'alerts' && <StockAlertsTab />}
           {activeTab === 'reports' && <StockReportsTab />}
           {activeTab === 'bulk' && <BulkOperationsTab />}
@@ -318,7 +351,13 @@ interface Product {
   isActive: boolean;
 }
 
-const ProductCatalogTab = () => {
+interface ProductCatalogTabProps {
+  currentPage: number;
+  onPageChange: (page: number) => void;
+  itemsPerPage: number;
+}
+
+const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPageChange, itemsPerPage }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
@@ -329,6 +368,12 @@ const ProductCatalogTab = () => {
   // Context Menu
   const { contextMenu, handleContextMenu, closeContextMenu } = useContextMenu();
   const [contextProduct, setContextProduct] = useState<Product | null>(null);
+
+  // Reset to page 1 when search/filters change
+  useEffect(() => {
+    onPageChange(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, selectedCategory]);
 
   // Fetch products
   const fetchProducts = async () => {
@@ -353,6 +398,12 @@ const ProductCatalogTab = () => {
     fetchProducts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, selectedCategory]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(products.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedProducts = products.slice(startIndex, endIndex);
 
   // Context menu actions
   const handleEdit = (product: Product) => {
@@ -540,7 +591,7 @@ const ProductCatalogTab = () => {
               </tr>
             </thead>
             <tbody>
-              {products.map((product) => (
+              {paginatedProducts.map((product) => (
                 <motion.tr
                   key={product.id}
                   onContextMenu={(e) => onProductRightClick(e, product)}
@@ -590,7 +641,7 @@ const ProductCatalogTab = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {products.map((product) => (
+          {paginatedProducts.map((product) => (
             <motion.div
               key={product.id}
               onContextMenu={(e) => onProductRightClick(e, product)}
@@ -618,6 +669,18 @@ const ProductCatalogTab = () => {
         </div>
       )}
 
+      {/* Pagination */}
+      {products.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          itemsPerPage={itemsPerPage}
+          totalItems={products.length}
+          className="mt-6"
+        />
+      )}
+
       {/* Context Menu */}
       {contextProduct && (
         <ContextMenu
@@ -634,7 +697,13 @@ const ProductCatalogTab = () => {
 // TAB 2: STOCK MOVEMENTS
 // ============================================================================
 
-const StockMovementsTab = () => {
+interface StockMovementsTabProps {
+  currentPage: number;
+  onPageChange: (page: number) => void;
+  itemsPerPage: number;
+}
+
+const StockMovementsTab: React.FC<StockMovementsTabProps> = ({ currentPage, onPageChange, itemsPerPage }) => {
   const [movements, setMovements] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -654,6 +723,12 @@ const StockMovementsTab = () => {
     fetchMovements();
   }, []);
 
+  // Pagination logic
+  const totalPages = Math.ceil(movements.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedMovements = movements.slice(startIndex, endIndex);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -668,7 +743,7 @@ const StockMovementsTab = () => {
     <div className="space-y-6">
       {/* Timeline View */}
       <div className="space-y-3">
-        {movements.map((movement) => (
+        {paginatedMovements.map((movement) => (
           <motion.div
             key={movement.id}
             initial={{ opacity: 0, x: -20 }}
@@ -711,6 +786,17 @@ const StockMovementsTab = () => {
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {movements.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          itemsPerPage={itemsPerPage}
+          totalItems={movements.length}
+        />
+      )}
     </div>
   );
 };
@@ -719,7 +805,13 @@ const StockMovementsTab = () => {
 // TAB 3: STOCK COUNT
 // ============================================================================
 
-const StockCountTab = () => {
+interface StockCountTabProps {
+  currentPage: number;
+  onPageChange: (page: number) => void;
+  itemsPerPage: number;
+}
+
+const StockCountTab: React.FC<StockCountTabProps> = ({ currentPage, onPageChange, itemsPerPage }) => {
   const [counts, setCounts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -738,6 +830,12 @@ const StockCountTab = () => {
     };
     fetchCounts();
   }, []);
+
+  // Pagination logic
+  const totalPages = Math.ceil(counts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedCounts = counts.slice(startIndex, endIndex);
 
   if (loading) {
     return (
@@ -759,7 +857,7 @@ const StockCountTab = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {counts.map((count) => (
+        {paginatedCounts.map((count) => (
           <FluentCard key={count.id} className="p-5 hover:shadow-lg transition-shadow">
             <div className="flex items-center justify-between mb-3">
               <h4 className="font-semibold text-foreground">{count.name}</h4>
@@ -786,6 +884,18 @@ const StockCountTab = () => {
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {counts.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          itemsPerPage={itemsPerPage}
+          totalItems={counts.length}
+          className="mt-6"
+        />
+      )}
     </div>
   );
 };
@@ -794,7 +904,13 @@ const StockCountTab = () => {
 // TAB 4: STOCK TRANSFER
 // ============================================================================
 
-const StockTransferTab = () => {
+interface StockTransferTabProps {
+  currentPage: number;
+  onPageChange: (page: number) => void;
+  itemsPerPage: number;
+}
+
+const StockTransferTab: React.FC<StockTransferTabProps> = ({ currentPage, onPageChange, itemsPerPage }) => {
   const [transfers, setTransfers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -813,6 +929,12 @@ const StockTransferTab = () => {
     };
     fetchTransfers();
   }, []);
+
+  // Pagination logic
+  const totalPages = Math.ceil(transfers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedTransfers = transfers.slice(startIndex, endIndex);
 
   if (loading) {
     return (
@@ -834,7 +956,7 @@ const StockTransferTab = () => {
       </div>
 
       <div className="space-y-3">
-        {transfers.map((transfer) => (
+        {paginatedTransfers.map((transfer) => (
           <motion.div
             key={transfer.id}
             initial={{ opacity: 0 }}
@@ -865,6 +987,18 @@ const StockTransferTab = () => {
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {transfers.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          itemsPerPage={itemsPerPage}
+          totalItems={transfers.length}
+          className="mt-6"
+        />
+      )}
     </div>
   );
 };
