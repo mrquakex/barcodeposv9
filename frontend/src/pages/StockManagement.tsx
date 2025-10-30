@@ -471,7 +471,25 @@ const StockManagement: React.FC = () => {
             />
           </div>
           <div style={{ display: activeTab === 'alerts' ? 'block' : 'none' }}>
-            <StockAlertsTab />
+            <StockAlertsTab
+              onOpenDetail={(id: string) => {
+                setSelectedProductId(id);
+                setShowDetailModal(true);
+              }}
+              onOpenStockIncrease={(product: any) => {
+                setStockModalType('increase');
+                setStockProduct(product);
+                setShowStockModal(true);
+              }}
+              onOpenEdit={(product: any) => {
+                setEditingProduct(product);
+                setShowProductModal(true);
+              }}
+              onOpenPriceUpdate={(product: any) => {
+                setPriceProduct(product);
+                setShowPriceModal(true);
+              }}
+            />
           </div>
           <div style={{ display: activeTab === 'reports' ? 'block' : 'none' }}>
             <StockReportsTab />
@@ -494,6 +512,32 @@ const StockManagement: React.FC = () => {
         isOpen={showAdvancedExportModal}
         onClose={() => setShowAdvancedExportModal(false)}
       />
+
+      {/* Global Modals accessible from all tabs (including Alerts) */}
+      {showDetailModal && selectedProductId && (
+        <ProductDetailModal
+          isOpen={showDetailModal}
+          onClose={() => setShowDetailModal(false)}
+          productId={selectedProductId}
+        />
+      )}
+      {showStockModal && stockProduct && (
+        <StockAdjustmentModal
+          isOpen={showStockModal}
+          onClose={() => setShowStockModal(false)}
+          onSuccess={fetchStats}
+          product={{ id: stockProduct.id, name: stockProduct.name, stock: stockProduct.stock, unit: stockProduct.unit }}
+          type={stockModalType}
+        />
+      )}
+      {showPriceModal && priceProduct && (
+        <PriceUpdateModal
+          isOpen={showPriceModal}
+          onClose={() => setShowPriceModal(false)}
+          onSuccess={fetchStats}
+          product={{ id: priceProduct.id, name: priceProduct.name, buyPrice: priceProduct.buyPrice, sellPrice: priceProduct.sellPrice, taxRate: priceProduct.taxRate || 18 }}
+        />
+      )}
     </div>
   );
 };
@@ -1494,7 +1538,12 @@ const StockTransferTab: React.FC<StockTransferTabProps> = ({ currentPage, onPage
 // TAB 5: STOCK ALERTS
 // ============================================================================
 
-const StockAlertsTab = () => {
+const StockAlertsTab: React.FC<{
+  onOpenDetail: (id: string) => void;
+  onOpenStockIncrease: (product: any) => void;
+  onOpenEdit: (product: any) => void;
+  onOpenPriceUpdate: (product: any) => void;
+}> = ({ onOpenDetail, onOpenStockIncrease, onOpenEdit, onOpenPriceUpdate }) => {
   const [alerts, setAlerts] = useState<any>({ critical: [], overStock: [], inactive: [] });
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -1552,7 +1601,7 @@ const StockAlertsTab = () => {
         label: 'Stok Artır',
         icon: <Plus className="w-4 h-4" />,
         onClick: () => {
-          toast.success(`✅ ${product.name} için stok artırma özelliği aktif!`);
+          onOpenStockIncrease(product);
           closeContextMenu();
         }
       },
@@ -1561,7 +1610,7 @@ const StockAlertsTab = () => {
         label: 'Detayları Görüntüle',
         icon: <Eye className="w-4 h-4" />,
         onClick: () => {
-          toast(`📊 ${product.name} detayları gösteriliyor...`);
+          onOpenDetail(product.id);
           closeContextMenu();
         }
       },
@@ -1570,7 +1619,7 @@ const StockAlertsTab = () => {
         label: 'Düzenle',
         icon: <Edit className="w-4 h-4" />,
         onClick: () => {
-          toast(`✏️ ${product.name} düzenleme modal'ı açılıyor...`);
+          onOpenEdit(product);
           closeContextMenu();
         }
       },
@@ -1579,7 +1628,7 @@ const StockAlertsTab = () => {
         label: 'Fiyat Güncelle',
         icon: <DollarSign className="w-4 h-4" />,
         onClick: () => {
-          toast(`💰 ${product.name} fiyat güncelleme modal'ı açılıyor...`);
+          onOpenPriceUpdate(product);
           closeContextMenu();
         }
       },
@@ -1781,7 +1830,7 @@ const StockAlertsTab = () => {
                   icon={<Plus className="w-3 h-3" />}
                   onClick={(e) => {
                     e.stopPropagation();
-                    toast.success(`✅ ${product.name} için stok ekleme başlatıldı`);
+                    onOpenStockIncrease(product);
                   }}
                   className="w-full"
                 >
@@ -1857,7 +1906,7 @@ const StockAlertsTab = () => {
                           icon={<Plus className="w-3 h-3" />}
                           onClick={(e) => {
                             e.stopPropagation();
-                            toast.success(`✅ ${product.name} için stok ekleme başlatıldı`);
+                            onOpenStockIncrease(product);
                           }}
                         >
                           Stok Ekle
@@ -1869,7 +1918,7 @@ const StockAlertsTab = () => {
                         icon={<Eye className="w-3 h-3" />}
                         onClick={(e) => {
                           e.stopPropagation();
-                          toast(`📊 ${product.name} detayları gösteriliyor...`);
+                          onOpenDetail(product.id);
                         }}
                       >
                         Detay
