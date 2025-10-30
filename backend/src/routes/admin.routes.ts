@@ -118,7 +118,7 @@ router.get('/licenses', authenticate, requireSuperAdmin, async (req, res) => {
   try {
     const licenses = await prisma.license.findMany({
       include: { tenant: { select: { id: true, name: true, ownerUserId: true } } },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { startsAt: 'desc' }
     });
     res.json({ ok: true, licenses });
   } catch (e) {
