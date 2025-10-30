@@ -15,13 +15,13 @@ export const getDashboardStats = async (req: Request, res: Response) => {
     const totalValue = products.reduce((sum, p) => sum + (p.stock * p.buyPrice), 0);
 
     // Kritik stok sayısı (min stok altında)
-    const criticalStock = await prisma.product.count({
-      where: {
-        stock: {
-          lte: prisma.product.fields.minStock
-        }
-      }
+    // Prisma ile doğru kullanım için tüm ürünleri çekip filtrelemek zorundayız
+    const allProductsForCriticalCount = await prisma.product.findMany({
+      select: { stock: true, minStock: true }
     });
+    const criticalStock = allProductsForCriticalCount.filter(p => 
+      p.stock <= p.minStock || (p.stock <= 10 && p.minStock === 0)
+    ).length;
 
     // Son 7 günlük hareketler
     const sevenDaysAgo = new Date();

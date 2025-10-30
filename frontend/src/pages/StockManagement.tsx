@@ -687,16 +687,17 @@ const StockMovementsTab = () => {
             <div className="flex-1">
               <div className="flex items-center justify-between mb-1">
                 <h4 className="font-semibold text-foreground">
-                  {movement.product?.name || 'Ürün'}
+                  {movement.product?.name || 'Bilinmeyen Ürün'}
                 </h4>
                 <span className="text-sm text-foreground-secondary">
-                  {new Date(movement.createdAt).toLocaleString('tr-TR')}
+                  {movement.createdAt ? new Date(movement.createdAt).toLocaleString('tr-TR') : '-'}
                 </span>
               </div>
               <p className="text-sm text-foreground-secondary">
                 <span className={movement.type === 'IN' ? 'text-green-600' : 'text-red-600'}>
-                  {movement.type === 'IN' ? '+' : '-'}{movement.quantity} {movement.product?.unit}
+                  {movement.type === 'IN' ? '+' : '-'}{movement.quantity || 0} {movement.product?.unit || 'Adet'}
                 </span>
+                {movement.notes && ` • ${movement.notes}`}
                 {movement.note && ` • ${movement.note}`}
               </p>
             </div>
@@ -845,14 +846,14 @@ const StockTransferTab = () => {
             </div>
             <div className="flex-1">
               <h4 className="font-semibold text-foreground mb-1">
-                {transfer.fromBranch?.name} → {transfer.toBranch?.name}
+                {transfer.fromBranch?.name || 'Bilinmeyen'} → {transfer.toBranch?.name || 'Bilinmeyen'}
               </h4>
               <p className="text-sm text-foreground-secondary">
-                {transfer.product?.name} • {transfer.quantity} {transfer.product?.unit}
+                {transfer.product?.name || 'Bilinmeyen Ürün'} • {transfer.quantity || 0} {transfer.product?.unit || 'Adet'}
               </p>
             </div>
             <span className="text-sm text-foreground-secondary">
-              {new Date(transfer.createdAt).toLocaleDateString('tr-TR')}
+              {transfer.createdAt ? new Date(transfer.createdAt).toLocaleDateString('tr-TR') : '-'}
             </span>
           </motion.div>
         ))}
