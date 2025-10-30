@@ -594,9 +594,11 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
 
   // Context menu actions
   const handleEdit = (product: Product) => {
+    console.log('✏️ handleEdit called with product:', product);
     setEditingProduct(product);
     setShowProductModal(true);
     closeContextMenu();
+    toast.success(`✏️ ${product.name} düzenleme modal'ı açılıyor...`);
   };
 
   const handleDelete = async (product: Product) => {
