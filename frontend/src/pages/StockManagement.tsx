@@ -236,8 +236,16 @@ const StockManagement: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
-          <FluentCard className="p-5 hover:shadow-lg transition-shadow cursor-pointer">
+          <FluentCard 
+            className="p-5 hover:shadow-lg transition-shadow cursor-pointer"
+            onClick={() => {
+              setActiveTab('catalog');
+              toast.info('📦 Ürün Kataloğu açıldı');
+            }}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-foreground-secondary font-medium">Toplam Ürün</p>
@@ -257,8 +265,16 @@ const StockManagement: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
-          <FluentCard className="p-5 hover:shadow-lg transition-shadow cursor-pointer">
+          <FluentCard 
+            className="p-5 hover:shadow-lg transition-shadow cursor-pointer"
+            onClick={() => {
+              setActiveTab('reports');
+              toast.info('💰 Stok Raporları açıldı');
+            }}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-foreground-secondary font-medium">Toplam Değer</p>
@@ -278,8 +294,16 @@ const StockManagement: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
-          <FluentCard className="p-5 hover:shadow-lg transition-shadow cursor-pointer">
+          <FluentCard 
+            className="p-5 hover:shadow-lg transition-shadow cursor-pointer"
+            onClick={() => {
+              setActiveTab('alerts');
+              toast.warning('⚠️ Stok Uyarıları açıldı');
+            }}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-foreground-secondary font-medium">Kritik Stok</p>
@@ -299,8 +323,16 @@ const StockManagement: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.25 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
-          <FluentCard className="p-5 hover:shadow-lg transition-shadow cursor-pointer">
+          <FluentCard 
+            className="p-5 hover:shadow-lg transition-shadow cursor-pointer"
+            onClick={() => {
+              setActiveTab('movements');
+              toast.info('📈 Stok Hareketleri açıldı');
+            }}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-foreground-secondary font-medium">Giriş (7 Gün)</p>
@@ -320,8 +352,16 @@ const StockManagement: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
-          <FluentCard className="p-5 hover:shadow-lg transition-shadow cursor-pointer">
+          <FluentCard 
+            className="p-5 hover:shadow-lg transition-shadow cursor-pointer"
+            onClick={() => {
+              setActiveTab('movements');
+              toast.info('📉 Stok Hareketleri açıldı');
+            }}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-foreground-secondary font-medium">Çıkış (7 Gün)</p>
@@ -341,8 +381,16 @@ const StockManagement: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35 }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
         >
-          <FluentCard className="p-5 hover:shadow-lg transition-shadow cursor-pointer">
+          <FluentCard 
+            className="p-5 hover:shadow-lg transition-shadow cursor-pointer"
+            onClick={() => {
+              setActiveTab('reports');
+              toast.info('📊 Devir Hızı raporu açıldı');
+            }}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-foreground-secondary font-medium">Ort. Devir</p>
