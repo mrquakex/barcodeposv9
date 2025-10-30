@@ -29,7 +29,11 @@ import FluentButton from '../components/fluent/FluentButton';
 import FluentCard from '../components/fluent/FluentCard';
 import { ContextMenu, useContextMenu, type ContextMenuItem } from '../components/ui/ContextMenu';
 import Pagination from '../components/ui/Pagination';
+import ProductModal from '../components/modals/ProductModal';
+import StockAdjustmentModal from '../components/modals/StockAdjustmentModal';
+import PriceUpdateModal from '../components/modals/PriceUpdateModal';
 import api from '../lib/api';
+import toast from 'react-hot-toast';
 
 interface DashboardStats {
   totalProducts: number;
@@ -57,6 +61,9 @@ const StockManagement: React.FC = () => {
   const [alertsPage, setAlertsPage] = useState(1);
   const itemsPerPage = 20; // Items per page for all tabs
 
+  // Global modals (accessible from header)
+  const [showNewProductModal, setShowNewProductModal] = useState(false);
+
   // Fetch dashboard stats
   const fetchStats = async () => {
     try {
@@ -74,6 +81,27 @@ const StockManagement: React.FC = () => {
   useEffect(() => {
     fetchStats();
   }, []);
+
+  // Export all products
+  const handleExportAll = async () => {
+    try {
+      const response = await api.get('/stock/export-excel', {
+        responseType: 'blob'
+      });
+
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `stok-raporu-${new Date().toISOString().split('T')[0]}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('✅ Excel dosyası indirildi');
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('❌ Dışa aktarma başarısız');
+    }
+  };
 
   const tabs = [
     { id: 'catalog', label: 'Ürün Kataloğu', icon: Package },
@@ -124,12 +152,14 @@ const StockManagement: React.FC = () => {
           <FluentButton
             appearance="subtle"
             icon={<Download className="w-4 h-4" />}
+            onClick={handleExportAll}
           >
             Dışa Aktar
           </FluentButton>
           <FluentButton
             appearance="primary"
             icon={<Plus className="w-4 h-4" />}
+            onClick={() => setShowNewProductModal(true)}
           >
             Yeni Ürün
           </FluentButton>
@@ -329,7 +359,52 @@ const StockManagement: React.FC = () => {
           {activeTab === 'bulk' && <BulkOperationsTab />}
         </div>
       </FluentCard>
+
+      {/* Global Product Modal (for header "Yeni Ürün" button) */}
+      <ProductCatalogTabWrapper
+        showNewProductModal={showNewProductModal}
+        setShowNewProductModal={setShowNewProductModal}
+        onProductAdded={fetchStats}
+      />
     </div>
+  );
+};
+
+// Wrapper to access ProductCatalogTab's categories/suppliers for new product modal
+const ProductCatalogTabWrapper: React.FC<{
+  showNewProductModal: boolean;
+  setShowNewProductModal: (show: boolean) => void;
+  onProductAdded: () => void;
+}> = ({ showNewProductModal, setShowNewProductModal, onProductAdded }) => {
+  const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
+  const [suppliers, setSuppliers] = useState<Array<{ id: string; name: string }>>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [categoriesRes, suppliersRes] = await Promise.all([
+          api.get('/categories'),
+          api.get('/suppliers')
+        ]);
+        setCategories(categoriesRes.data.categories || categoriesRes.data || []);
+        setSuppliers(suppliersRes.data.suppliers || suppliersRes.data || []);
+      } catch (error) {
+        console.error('Fetch error:', error);
+      }
+    };
+    if (showNewProductModal) {
+      fetchData();
+    }
+  }, [showNewProductModal]);
+
+  return (
+    <ProductModal
+      isOpen={showNewProductModal}
+      onClose={() => setShowNewProductModal(false)}
+      onSuccess={onProductAdded}
+      categories={categories}
+      suppliers={suppliers}
+    />
   );
 };
 
@@ -359,6 +434,8 @@ interface ProductCatalogTabProps {
 
 const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPageChange, itemsPerPage }) => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
+  const [suppliers, setSuppliers] = useState<Array<{ id: string; name: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [searchTerm, setSearchTerm] = useState('');
@@ -368,6 +445,13 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
   // Context Menu
   const { contextMenu, handleContextMenu, closeContextMenu } = useContextMenu();
   const [contextProduct, setContextProduct] = useState<Product | null>(null);
+
+  // Modals
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [showStockModal, setShowStockModal] = useState(false);
+  const [showPriceModal, setShowPriceModal] = useState(false);
+  const [stockModalType, setStockModalType] = useState<'increase' | 'decrease'>('increase');
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   // Reset to page 1 when search/filters change
   useEffect(() => {
@@ -394,8 +478,23 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
     }
   };
 
+  // Fetch categories and suppliers
+  const fetchCategoriesAndSuppliers = async () => {
+    try {
+      const [categoriesRes, suppliersRes] = await Promise.all([
+        api.get('/categories'),
+        api.get('/suppliers')
+      ]);
+      setCategories(categoriesRes.data.categories || categoriesRes.data || []);
+      setSuppliers(suppliersRes.data.suppliers || suppliersRes.data || []);
+    } catch (error) {
+      console.error('Categories/Suppliers fetch error:', error);
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
+    fetchCategoriesAndSuppliers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm, selectedCategory]);
 
@@ -407,19 +506,23 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
 
   // Context menu actions
   const handleEdit = (product: Product) => {
-    console.log('Edit product:', product);
-    // TODO: Open edit modal
+    setEditingProduct(product);
+    setShowProductModal(true);
+    closeContextMenu();
   };
 
   const handleDelete = async (product: Product) => {
     if (window.confirm(`"${product.name}" ürününü silmek istediğinize emin misiniz?`)) {
       try {
         await api.delete(`/products/${product.id}`);
+        toast.success('✅ Ürün silindi');
         fetchProducts();
-      } catch (error) {
+      } catch (error: any) {
         console.error('Delete error:', error);
+        toast.error(error.response?.data?.error || 'Silme işlemi başarısız');
       }
     }
+    closeContextMenu();
   };
 
   const handleDuplicate = async (product: Product) => {
@@ -430,25 +533,32 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
         barcode: `${product.barcode}-COPY`,
         name: `${product.name} (Kopya)`
       });
+      toast.success('✅ Ürün kopyalandı');
       fetchProducts();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Duplicate error:', error);
+      toast.error(error.response?.data?.error || 'Kopyalama başarısız');
     }
+    closeContextMenu();
   };
 
   const handleStockAdjustment = (product: Product, type: 'increase' | 'decrease') => {
-    console.log(`Stock ${type} for:`, product);
-    // TODO: Open stock adjustment modal
+    setSelectedProduct(product);
+    setStockModalType(type);
+    setShowStockModal(true);
+    closeContextMenu();
   };
 
   const handlePriceUpdate = (product: Product) => {
-    console.log('Update price for:', product);
-    // TODO: Open price update modal
+    setSelectedProduct(product);
+    setShowPriceModal(true);
+    closeContextMenu();
   };
 
   const handleViewDetails = (product: Product) => {
     setSelectedProduct(product);
-    // TODO: Open product details modal
+    toast.info('Ürün detay modal\'ı yakında eklenecek');
+    closeContextMenu();
   };
 
   // Context menu items
@@ -688,6 +798,44 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
           position={contextMenu}
           onClose={closeContextMenu}
         />
+      )}
+
+      {/* Modals */}
+      <ProductModal
+        isOpen={showProductModal}
+        onClose={() => {
+          setShowProductModal(false);
+          setEditingProduct(null);
+        }}
+        onSuccess={fetchProducts}
+        product={editingProduct || undefined}
+        categories={categories}
+        suppliers={suppliers}
+      />
+
+      {selectedProduct && (
+        <>
+          <StockAdjustmentModal
+            isOpen={showStockModal}
+            onClose={() => {
+              setShowStockModal(false);
+              setSelectedProduct(null);
+            }}
+            onSuccess={fetchProducts}
+            product={selectedProduct}
+            type={stockModalType}
+          />
+
+          <PriceUpdateModal
+            isOpen={showPriceModal}
+            onClose={() => {
+              setShowPriceModal(false);
+              setSelectedProduct(null);
+            }}
+            onSuccess={fetchProducts}
+            product={selectedProduct}
+          />
+        </>
       )}
     </div>
   );
