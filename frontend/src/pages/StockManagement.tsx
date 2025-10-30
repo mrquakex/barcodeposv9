@@ -1866,11 +1866,14 @@ const StockReportsTab = () => {
                 <FluentCard className="p-6">
                   <h3 className="text-lg font-semibold text-foreground mb-4">Devir Hızı Analizi - En Yüksek 15 Ürün</h3>
                   <ResponsiveContainer width="100%" height={400}>
-                    <LineChart data={reportData.products.slice(0, 15).map((p: any) => ({
-                      name: p.name.length > 20 ? p.name.substring(0, 20) + '...' : p.name,
-                      turnover: p.turnoverRate || 0,
-                      stock: p.stock || 0
-                    }))}>
+                    <LineChart data={reportData.products.slice(0, 15).map((item: any) => {
+                      const productName = item?.product?.name || 'Bilinmeyen Ürün';
+                      return {
+                        name: productName.length > 20 ? productName.substring(0, 20) + '...' : productName,
+                        turnover: item?.turnoverRate || 0,
+                        stock: item?.currentStock || 0
+                      };
+                    })}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                       <XAxis dataKey="name" stroke="#888" angle={-45} textAnchor="end" height={100} />
                       <YAxis stroke="#888" />
