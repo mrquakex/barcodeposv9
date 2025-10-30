@@ -14,11 +14,11 @@ RUN npm install
 # Copy Prisma schema from main backend (we share the same DB)
 COPY backend/prisma ./prisma-temp/
 
-# Generate Prisma Client (Prisma CLI already in devDependencies)
-RUN npx prisma generate --schema=./prisma-temp/schema.prisma --generator client
-
-# Copy source code
+# Copy source code first (needed for build)
 COPY apps/corp-admin-backend/ ./
+
+# Generate Prisma Client (after copying package.json with dependencies)
+RUN npx prisma generate --schema=./prisma-temp/schema.prisma --generator client
 
 # Build TypeScript
 RUN npm run build
