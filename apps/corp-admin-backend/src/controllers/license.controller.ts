@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import prisma from '../../lib/prisma';
+import prisma from '../lib/prisma';
 import { CorpAuthRequest } from '../middleware/auth.middleware';
 import { createAuditLog } from '../lib/audit';
 
