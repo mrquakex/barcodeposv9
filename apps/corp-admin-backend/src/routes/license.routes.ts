@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { listLicenses, createLicense, updateLicense } from '../controllers/license.controller';
-import { authenticate, requireRole } from '../middleware/auth.middleware';
+import { listLicenses, createLicense, updateLicense } from '../controllers/license.controller.js';
+import { authenticate, requireRole } from '../middleware/auth.middleware.js';
 
 const router = Router();
 

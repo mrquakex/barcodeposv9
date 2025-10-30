@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import prisma from '../lib/prisma';
-import { CorpAuthRequest } from '../middleware/auth.middleware';
+import prisma from '../lib/prisma.js';
+import { CorpAuthRequest } from '../middleware/auth.middleware.js';
 
 export const login = async (req: Request, res: Response) => {
   try {

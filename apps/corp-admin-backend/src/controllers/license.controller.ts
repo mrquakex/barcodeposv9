@@ -1,7 +1,7 @@
 import { Response } from 'express';
-import prisma from '../lib/prisma';
-import { CorpAuthRequest } from '../middleware/auth.middleware';
-import { createAuditLog } from '../lib/audit';
+import prisma from '../lib/prisma.js';
+import { CorpAuthRequest } from '../middleware/auth.middleware.js';
+import { createAuditLog } from '../lib/audit.js';
 
 export const listLicenses = async (req: CorpAuthRequest, res: Response) => {
   try {
