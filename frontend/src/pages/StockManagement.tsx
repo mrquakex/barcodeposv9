@@ -243,7 +243,7 @@ const StockManagement: React.FC = () => {
             className="p-5 hover:shadow-lg transition-shadow cursor-pointer"
             onClick={() => {
               setActiveTab('catalog');
-              toast.info('📦 Ürün Kataloğu açıldı');
+              toast('📦 Ürün Kataloğu açıldı');
             }}
           >
             <div className="flex items-center justify-between">
@@ -272,7 +272,7 @@ const StockManagement: React.FC = () => {
             className="p-5 hover:shadow-lg transition-shadow cursor-pointer"
             onClick={() => {
               setActiveTab('reports');
-              toast.info('💰 Stok Raporları açıldı');
+              toast('💰 Stok Raporları açıldı');
             }}
           >
             <div className="flex items-center justify-between">
@@ -301,7 +301,7 @@ const StockManagement: React.FC = () => {
             className="p-5 hover:shadow-lg transition-shadow cursor-pointer"
             onClick={() => {
               setActiveTab('alerts');
-              toast.warning('⚠️ Stok Uyarıları açıldı');
+              toast('⚠️ Stok Uyarıları açıldı');
             }}
           >
             <div className="flex items-center justify-between">
@@ -330,7 +330,7 @@ const StockManagement: React.FC = () => {
             className="p-5 hover:shadow-lg transition-shadow cursor-pointer"
             onClick={() => {
               setActiveTab('movements');
-              toast.info('📈 Stok Hareketleri açıldı');
+              toast('📈 Stok Hareketleri açıldı');
             }}
           >
             <div className="flex items-center justify-between">
@@ -359,7 +359,7 @@ const StockManagement: React.FC = () => {
             className="p-5 hover:shadow-lg transition-shadow cursor-pointer"
             onClick={() => {
               setActiveTab('movements');
-              toast.info('📉 Stok Hareketleri açıldı');
+              toast('📉 Stok Hareketleri açıldı');
             }}
           >
             <div className="flex items-center justify-between">
@@ -388,7 +388,7 @@ const StockManagement: React.FC = () => {
             className="p-5 hover:shadow-lg transition-shadow cursor-pointer"
             onClick={() => {
               setActiveTab('reports');
-              toast.info('📊 Devir Hızı raporu açıldı');
+              toast('📊 Devir Hızı raporu açıldı');
             }}
           >
             <div className="flex items-center justify-between">
@@ -538,6 +538,7 @@ interface Product {
   unit: string;
   buyPrice: number;
   sellPrice: number;
+  taxRate: number;
   minStock: number;
   maxStock?: number;
   isActive: boolean;
@@ -672,7 +673,7 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
         toast.error(error.response?.data?.error || 'Silme işlemi başarısız');
       }
     } else {
-      toast.info('❌ Silme işlemi iptal edildi');
+      toast('❌ Silme işlemi iptal edildi');
     }
     closeContextMenu();
   };
@@ -799,7 +800,7 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
     console.log('🖱️ Right click on product:', product.name);
     handleContextMenu(e);
     setContextProduct(product);
-    toast.info(`🖱️ Sağ tık menüsü açıldı: ${product.name}`);
+    toast(`🖱️ Sağ tık menüsü açıldı: ${product.name}`);
   };
 
   if (loading) {
@@ -1164,7 +1165,7 @@ const StockMovementsTab: React.FC<StockMovementsTabProps> = ({ currentPage, onPa
         <FluentButton
           appearance="primary"
           icon={<Plus className="w-4 h-4" />}
-          onClick={() => toast.info('Ürün seçimi modal\'ı yakında eklenecek. Şimdilik Ürün Kataloğu\'ndan sağ tık ile stok işlemleri yapabilirsiniz.')}
+          onClick={() => toast('Ürün seçimi modal\'ı yakında eklenecek. Şimdilik Ürün Kataloğu\'ndan sağ tık ile stok işlemleri yapabilirsiniz.')}
         >
           Manuel Hareket Ekle
         </FluentButton>
@@ -1280,7 +1281,7 @@ const StockCountTab: React.FC<StockCountTabProps> = ({ currentPage, onPageChange
   };
 
   const handleCountClick = (count: any) => {
-    toast.info(`${count.name} sayımı detayları: Durum ${count.status === 'COMPLETED' ? 'Tamamlandı' : count.status === 'IN_PROGRESS' ? 'Devam Ediyor' : 'Beklemede'}. Detay modal'ı yakında eklenecek.`);
+    toast(`${count.name} sayımı detayları: Durum ${count.status === 'COMPLETED' ? 'Tamamlandı' : count.status === 'IN_PROGRESS' ? 'Devam Ediyor' : 'Beklemede'}. Detay modal'ı yakında eklenecek.`);
   };
 
   // Pagination logic
@@ -1393,11 +1394,11 @@ const StockTransferTab: React.FC<StockTransferTabProps> = ({ currentPage, onPage
   }, []);
 
   const handleNewTransfer = () => {
-    toast.info('Transfer modal\'ı: Şube seçimi, ürün ve miktar. Backend hazır ama modal UI geliştirme aşamasında. Alternatif: Şubeler arası envanter düzenlemesi manuel yapılabilir.');
+    toast('Transfer modal\'ı: Şube seçimi, ürün ve miktar. Backend hazır ama modal UI geliştirme aşamasında. Alternatif: Şubeler arası envanter düzenlemesi manuel yapılabilir.');
   };
 
   const handleTransferClick = (transfer: any) => {
-    toast.info(`Transfer detayları: ${transfer.fromBranch?.name || 'Bilinmeyen'} → ${transfer.toBranch?.name || 'Bilinmeyen'}. Detay modal'ı yakında eklenecek.`);
+    toast(`Transfer detayları: ${transfer.fromBranch?.name || 'Bilinmeyen'} → ${transfer.toBranch?.name || 'Bilinmeyen'}. Detay modal'ı yakında eklenecek.`);
   };
 
   // Pagination logic
@@ -1536,7 +1537,7 @@ const StockAlertsTab = () => {
                 appearance="primary"
                 size="small"
                 icon={<Plus className="w-3 h-3" />}
-                onClick={() => toast.info(`Stok giriş modal'ı ile ${product.name} için stok ekleyebilirsiniz. (Ürün Kataloğu > Sağ Tık > Stok Artır)`)}
+                onClick={() => toast(`Stok giriş modal'ı ile ${product.name} için stok ekleyebilirsiniz. (Ürün Kataloğu > Sağ Tık > Stok Artır)`)}
                 className="w-full"
               >
                 Stok Ekle
@@ -1939,11 +1940,9 @@ const BulkOperationsTab = () => {
                   className="hidden"
                   id="excel-drag-drop-upload"
                 />
-                <label htmlFor="excel-drag-drop-upload">
+                <label htmlFor="excel-drag-drop-upload" className="cursor-pointer">
                   <FluentButton
-                    as="span"
                     appearance="primary"
-                    className="cursor-pointer"
                   >
                     Dosya Seç
                   </FluentButton>
