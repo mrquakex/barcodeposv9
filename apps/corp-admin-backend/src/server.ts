@@ -2,9 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-import authRoutes from './routes/auth.routes';
-import tenantRoutes from './routes/tenant.routes';
-import licenseRoutes from './routes/license.routes';
+import authRoutes from './routes/auth.routes.js';
+import tenantRoutes from './routes/tenant.routes.js';
+import licenseRoutes from './routes/license.routes.js';
 
 const app = express();
 app.use(helmet());
