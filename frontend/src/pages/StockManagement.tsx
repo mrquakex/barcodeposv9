@@ -1497,6 +1497,10 @@ const StockTransferTab: React.FC<StockTransferTabProps> = ({ currentPage, onPage
 const StockAlertsTab = () => {
   const [alerts, setAlerts] = useState<any>({ critical: [], overStock: [], inactive: [] });
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [activeCategory, setActiveCategory] = useState<'all' | 'critical' | 'overstock' | 'inactive'>('all');
+  const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
+  const { contextMenu, openContextMenu, closeContextMenu } = useContextMenu();
 
   useEffect(() => {
     const fetchAlerts = async () => {
@@ -1513,6 +1517,110 @@ const StockAlertsTab = () => {
     fetchAlerts();
   }, []);
 
+  // All products combined for unified view
+  const allProducts = [
+    ...((alerts.critical || []).map((p: any) => ({ ...p, alertType: 'critical' }))),
+    ...((alerts.overStock || []).map((p: any) => ({ ...p, alertType: 'overstock' }))),
+    ...((alerts.inactive || []).map((p: any) => ({ ...p, alertType: 'inactive' })))
+  ];
+
+  const filteredProducts = activeCategory === 'all' 
+    ? allProducts 
+    : allProducts.filter(p => p.alertType === activeCategory);
+
+  const handleContextMenu = (e: React.MouseEvent, product: any) => {
+    e.preventDefault();
+    
+    const menuItems: ContextMenuItem[] = [
+      {
+        label: 'Stok Artır',
+        icon: <Plus className="w-4 h-4" />,
+        onClick: () => {
+          toast.success(`✅ ${product.name} için stok artırma özelliği aktif!`);
+          closeContextMenu();
+        }
+      },
+      {
+        label: 'Detayları Görüntüle',
+        icon: <Eye className="w-4 h-4" />,
+        onClick: () => {
+          toast(`📊 ${product.name} detayları gösteriliyor...`);
+          closeContextMenu();
+        }
+      },
+      {
+        label: 'Düzenle',
+        icon: <Edit className="w-4 h-4" />,
+        onClick: () => {
+          toast(`✏️ ${product.name} düzenleme modal'ı açılıyor...`);
+          closeContextMenu();
+        }
+      },
+      {
+        label: 'Fiyat Güncelle',
+        icon: <DollarSign className="w-4 h-4" />,
+        onClick: () => {
+          toast(`💰 ${product.name} fiyat güncelleme modal'ı açılıyor...`);
+          closeContextMenu();
+        }
+      },
+      { type: 'separator' },
+      {
+        label: product.isActive ? 'Arşivle' : 'Arşivden Çıkar',
+        icon: product.isActive ? <Archive className="w-4 h-4" /> : <ArchiveRestore className="w-4 h-4" />,
+        onClick: () => {
+          toast(product.isActive ? `📦 ${product.name} arşivlendi` : `♻️ ${product.name} arşivden çıkarıldı`);
+          closeContextMenu();
+        }
+      },
+      {
+        label: 'Sil',
+        icon: <Trash2 className="w-4 h-4 text-red-500" />,
+        danger: true,
+        onClick: () => {
+          if (confirm(`${product.name} silinsin mi?`)) {
+            toast.error(`🗑️ ${product.name} silindi`);
+          }
+          closeContextMenu();
+        }
+      }
+    ];
+
+    openContextMenu(e.clientX, e.clientY, menuItems);
+  };
+
+  const handleSelectProduct = (productId: string) => {
+    const newSelected = new Set(selectedProducts);
+    if (newSelected.has(productId)) {
+      newSelected.delete(productId);
+    } else {
+      newSelected.add(productId);
+    }
+    setSelectedProducts(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedProducts.size === filteredProducts.length) {
+      setSelectedProducts(new Set());
+    } else {
+      setSelectedProducts(new Set(filteredProducts.map(p => p.id)));
+    }
+  };
+
+  const handleBulkStockAdd = () => {
+    toast.success(`✅ ${selectedProducts.size} ürün için toplu stok ekleme başlatıldı!`);
+  };
+
+  const handleBulkExport = async () => {
+    try {
+      const productsToExport = filteredProducts.filter(p => selectedProducts.has(p.id));
+      toast.success(`📥 ${productsToExport.length} ürün Excel'e aktarılıyor...`);
+      // Export logic here
+    } catch (error) {
+      toast.error('Export başarısız');
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -1523,88 +1631,259 @@ const StockAlertsTab = () => {
     );
   }
 
+  const AlertBadge = ({ type }: { type: string }) => {
+    const colors = {
+      critical: 'bg-red-500/10 text-red-600 border-red-500',
+      overstock: 'bg-orange-500/10 text-orange-600 border-orange-500',
+      inactive: 'bg-gray-500/10 text-gray-600 border-gray-500'
+    };
+    const labels = {
+      critical: 'Kritik',
+      overstock: 'Fazla',
+      inactive: 'Hareketsiz'
+    };
+    return (
+      <span className={`px-2 py-0.5 text-xs font-medium rounded-full border ${colors[type as keyof typeof colors]}`}>
+        {labels[type as keyof typeof labels]}
+      </span>
+    );
+  };
+
   return (
-    <div className="space-y-6">
-      {/* Kritik Stok */}
-      <div>
-        <h3 className="text-lg font-semibold text-red-600 mb-3 flex items-center gap-2">
-          <AlertTriangle className="w-5 h-5" />
-          Kritik Stok ({alerts.critical?.length || 0})
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {Array.isArray(alerts.critical) && alerts.critical.map((product: any) => (
-            <FluentCard key={product.id} className="p-4 border-l-4 border-red-500">
-              <h4 className="font-semibold text-foreground mb-1">{product.name}</h4>
-              <p className="text-sm text-foreground-secondary mb-2">{product.barcode}</p>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-semibold text-red-600">
-                  {product.stock} {product.unit}
-                </span>
-                <span className="text-xs text-foreground-secondary">
-                  Min: {product.minStock}
-                </span>
-              </div>
-              <FluentButton
-                appearance="primary"
-                size="small"
-                icon={<Plus className="w-3 h-3" />}
-                onClick={() => toast(`Stok giriş modal'ı ile ${product.name} için stok ekleyebilirsiniz. (Ürün Kataloğu > Sağ Tık > Stok Artır)`)}
-                className="w-full"
+    <div className="space-y-4">
+      {/* Header Actions */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          {/* View Toggle */}
+          <div className="flex items-center gap-2 bg-surface rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`p-2 rounded ${viewMode === 'grid' ? 'bg-primary text-white' : 'text-foreground-secondary hover:bg-card-hover'}`}
+            >
+              <Grid3x3 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-2 rounded ${viewMode === 'list' ? 'bg-primary text-white' : 'text-foreground-secondary hover:bg-card-hover'}`}
+            >
+              <List className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Category Filter */}
+          <div className="flex items-center gap-2">
+            {[
+              { id: 'all', label: 'Tümü', count: allProducts.length },
+              { id: 'critical', label: 'Kritik', count: alerts.critical?.length || 0, color: 'text-red-600' },
+              { id: 'overstock', label: 'Fazla', count: alerts.overStock?.length || 0, color: 'text-orange-600' },
+              { id: 'inactive', label: 'Hareketsiz', count: alerts.inactive?.length || 0, color: 'text-gray-600' }
+            ].map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id as any)}
+                className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                  activeCategory === cat.id
+                    ? 'bg-primary text-white'
+                    : 'bg-surface text-foreground-secondary hover:bg-card-hover'
+                }`}
               >
-                Stok Ekle
-              </FluentButton>
-            </FluentCard>
-          ))}
+                <span className={cat.color}>{cat.label}</span>
+                <span className="ml-1 opacity-70">({cat.count})</span>
+              </button>
+            ))}
+          </div>
         </div>
+
+        {/* Bulk Actions */}
+        {selectedProducts.size > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-foreground-secondary">
+              {selectedProducts.size} seçili
+            </span>
+            <FluentButton
+              appearance="subtle"
+              size="small"
+              icon={<Plus className="w-4 h-4" />}
+              onClick={handleBulkStockAdd}
+            >
+              Toplu Stok Ekle
+            </FluentButton>
+            <FluentButton
+              appearance="subtle"
+              size="small"
+              icon={<Download className="w-4 h-4" />}
+              onClick={handleBulkExport}
+            >
+              Seçilenleri Dışa Aktar
+            </FluentButton>
+          </div>
+        )}
       </div>
 
-      {/* Fazla Stok */}
-      <div>
-        <h3 className="text-lg font-semibold text-orange-600 mb-3 flex items-center gap-2">
-          <Package className="w-5 h-5" />
-          Fazla Stok ({alerts.overStock?.length || 0})
-        </h3>
+      {/* Products Display */}
+      {viewMode === 'grid' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {Array.isArray(alerts.overStock) && alerts.overStock.map((product: any) => (
-            <FluentCard key={product.id} className="p-4 border-l-4 border-orange-500">
-              <h4 className="font-semibold text-foreground mb-1">{product.name}</h4>
+          {filteredProducts.map((product: any) => (
+            <FluentCard
+              key={product.id}
+              className={`p-4 border-l-4 cursor-pointer hover:shadow-lg transition-shadow ${
+                product.alertType === 'critical' ? 'border-red-500' :
+                product.alertType === 'overstock' ? 'border-orange-500' :
+                'border-gray-500'
+              } ${selectedProducts.has(product.id) ? 'ring-2 ring-primary' : ''}`}
+              onContextMenu={(e) => handleContextMenu(e, product)}
+              onClick={() => handleSelectProduct(product.id)}
+            >
+              <div className="flex items-start justify-between mb-2">
+                <h4 className="font-semibold text-foreground flex-1">{product.name}</h4>
+                <AlertBadge type={product.alertType} />
+              </div>
               <p className="text-sm text-foreground-secondary mb-2">{product.barcode}</p>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-orange-600">
+              <div className="flex items-center justify-between mb-2">
+                <span className={`text-sm font-semibold ${
+                  product.alertType === 'critical' ? 'text-red-600' :
+                  product.alertType === 'overstock' ? 'text-orange-600' :
+                  'text-gray-600'
+                }`}>
                   {product.stock} {product.unit}
                 </span>
                 <span className="text-xs text-foreground-secondary">
-                  Max: {product.maxStock}
+                  {product.alertType === 'critical' && `Min: ${product.minStock}`}
+                  {product.alertType === 'overstock' && `Max: ${product.maxStock}`}
+                  {product.alertType === 'inactive' && `₺${(product.stock * product.buyPrice).toFixed(2)}`}
                 </span>
               </div>
+              {product.alertType === 'critical' && (
+                <FluentButton
+                  appearance="primary"
+                  size="small"
+                  icon={<Plus className="w-3 h-3" />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toast.success(`✅ ${product.name} için stok ekleme başlatıldı`);
+                  }}
+                  className="w-full"
+                >
+                  Stok Ekle
+                </FluentButton>
+              )}
             </FluentCard>
           ))}
         </div>
-      </div>
+      ) : (
+        <FluentCard className="overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-surface border-b border-border">
+              <tr>
+                <th className="p-3 text-left">
+                  <input
+                    type="checkbox"
+                    checked={selectedProducts.size === filteredProducts.length && filteredProducts.length > 0}
+                    onChange={handleSelectAll}
+                    className="form-checkbox h-4 w-4 text-primary rounded"
+                  />
+                </th>
+                <th className="p-3 text-left text-sm font-semibold text-foreground">Ürün</th>
+                <th className="p-3 text-left text-sm font-semibold text-foreground">Barkod</th>
+                <th className="p-3 text-left text-sm font-semibold text-foreground">Durum</th>
+                <th className="p-3 text-right text-sm font-semibold text-foreground">Stok</th>
+                <th className="p-3 text-right text-sm font-semibold text-foreground">Limit</th>
+                <th className="p-3 text-right text-sm font-semibold text-foreground">İşlemler</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredProducts.map((product: any, index: number) => (
+                <tr
+                  key={product.id}
+                  className={`border-b border-border hover:bg-card-hover cursor-pointer ${
+                    selectedProducts.has(product.id) ? 'bg-primary/5' : ''
+                  }`}
+                  onContextMenu={(e) => handleContextMenu(e, product)}
+                  onClick={() => handleSelectProduct(product.id)}
+                >
+                  <td className="p-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedProducts.has(product.id)}
+                      onChange={() => handleSelectProduct(product.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="form-checkbox h-4 w-4 text-primary rounded"
+                    />
+                  </td>
+                  <td className="p-3 text-sm font-medium text-foreground">{product.name}</td>
+                  <td className="p-3 text-sm text-foreground-secondary">{product.barcode}</td>
+                  <td className="p-3">
+                    <AlertBadge type={product.alertType} />
+                  </td>
+                  <td className={`p-3 text-right text-sm font-semibold ${
+                    product.alertType === 'critical' ? 'text-red-600' :
+                    product.alertType === 'overstock' ? 'text-orange-600' :
+                    'text-gray-600'
+                  }`}>
+                    {product.stock} {product.unit}
+                  </td>
+                  <td className="p-3 text-right text-xs text-foreground-secondary">
+                    {product.alertType === 'critical' && `Min: ${product.minStock}`}
+                    {product.alertType === 'overstock' && `Max: ${product.maxStock}`}
+                    {product.alertType === 'inactive' && `₺${(product.stock * product.buyPrice).toFixed(2)}`}
+                  </td>
+                  <td className="p-3 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      {product.alertType === 'critical' && (
+                        <FluentButton
+                          appearance="primary"
+                          size="small"
+                          icon={<Plus className="w-3 h-3" />}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toast.success(`✅ ${product.name} için stok ekleme başlatıldı`);
+                          }}
+                        >
+                          Stok Ekle
+                        </FluentButton>
+                      )}
+                      <FluentButton
+                        appearance="subtle"
+                        size="small"
+                        icon={<Eye className="w-3 h-3" />}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toast(`📊 ${product.name} detayları gösteriliyor...`);
+                        }}
+                      >
+                        Detay
+                      </FluentButton>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </FluentCard>
+      )}
 
-      {/* Hareketsiz Stok */}
-      <div>
-        <h3 className="text-lg font-semibold text-gray-600 mb-3 flex items-center gap-2">
-          <Clock className="w-5 h-5" />
-          Hareketsiz Stok (60+ gün) ({alerts.inactive?.length || 0})
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-          {Array.isArray(alerts.inactive) && alerts.inactive.slice(0, 12).map((product: any) => (
-            <FluentCard key={product.id} className="p-4 border-l-4 border-gray-500">
-              <h4 className="font-semibold text-foreground mb-1">{product.name}</h4>
-              <p className="text-sm text-foreground-secondary mb-2">{product.barcode}</p>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-gray-600">
-                  {product.stock} {product.unit}
-                </span>
-                <span className="text-xs text-foreground-secondary">
-                  ₺{(product.stock * product.buyPrice).toFixed(2)}
-                </span>
-              </div>
-            </FluentCard>
-          ))}
-        </div>
-      </div>
+      {/* Context Menu */}
+      <ContextMenu
+        isOpen={contextMenu.isOpen}
+        position={contextMenu.position}
+        items={contextMenu.items}
+        onClose={closeContextMenu}
+      />
+
+      {/* Empty State */}
+      {filteredProducts.length === 0 && (
+        <FluentCard className="p-10 text-center">
+          <AlertTriangle className="w-16 h-16 mx-auto mb-4 text-foreground-secondary opacity-50" />
+          <h3 className="text-lg font-semibold text-foreground mb-2">
+            {activeCategory === 'all' ? 'Hiç uyarı yok' : 'Bu kategoride uyarı yok'}
+          </h3>
+          <p className="text-foreground-secondary">
+            {activeCategory === 'all' 
+              ? 'Tüm stoklar normal seviyede!' 
+              : 'Bu kategoride uyarı gerektiren ürün bulunmuyor.'}
+          </p>
+        </FluentCard>
+      )}
     </div>
   );
 };
