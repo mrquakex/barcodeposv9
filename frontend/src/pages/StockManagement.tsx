@@ -1686,7 +1686,13 @@ const StockAlertsTab: React.FC<{
   };
 
   const handleBulkStockAdd = () => {
-    toast.success(`✅ ${selectedProducts.size} ürün için toplu stok ekleme başlatıldı!`);
+    const productsToUpdate = filteredProducts.filter((p: any) => selectedProducts.has(p.id));
+    if (productsToUpdate.length === 0) {
+      toast.error('Lütfen ürün seçin');
+      return;
+    }
+    onOpenStockIncrease(productsToUpdate[0]);
+    toast(`🧩 Toplu işlem modu: İlk ürün için modal açıldı (${productsToUpdate.length} seçili)`);
   };
 
   const handleBulkExport = async () => {
