@@ -1500,7 +1500,8 @@ const StockAlertsTab = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [activeCategory, setActiveCategory] = useState<'all' | 'critical' | 'overstock' | 'inactive'>('all');
   const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
-  const { contextMenu, openContextMenu, closeContextMenu } = useContextMenu();
+  const { contextMenu, handleContextMenu: baseHandleContextMenu, closeContextMenu } = useContextMenu();
+  const [menuItems, setMenuItems] = useState<ContextMenuItem[]>([]);
 
   useEffect(() => {
     const fetchAlerts = async () => {
@@ -1531,8 +1532,9 @@ const StockAlertsTab = () => {
   const handleContextMenu = (e: React.MouseEvent, product: any) => {
     e.preventDefault();
     
-    const menuItems: ContextMenuItem[] = [
+    const items: ContextMenuItem[] = [
       {
+        id: 'stock-increase',
         label: 'Stok Artır',
         icon: <Plus className="w-4 h-4" />,
         onClick: () => {
@@ -1541,6 +1543,7 @@ const StockAlertsTab = () => {
         }
       },
       {
+        id: 'view-details',
         label: 'Detayları Görüntüle',
         icon: <Eye className="w-4 h-4" />,
         onClick: () => {
@@ -1549,6 +1552,7 @@ const StockAlertsTab = () => {
         }
       },
       {
+        id: 'edit',
         label: 'Düzenle',
         icon: <Edit className="w-4 h-4" />,
         onClick: () => {
@@ -1557,6 +1561,7 @@ const StockAlertsTab = () => {
         }
       },
       {
+        id: 'price-update',
         label: 'Fiyat Güncelle',
         icon: <DollarSign className="w-4 h-4" />,
         onClick: () => {
@@ -1564,8 +1569,9 @@ const StockAlertsTab = () => {
           closeContextMenu();
         }
       },
-      { type: 'separator' },
+      { id: 'sep-1', divider: true },
       {
+        id: 'archive',
         label: product.isActive ? 'Arşivle' : 'Arşivden Çıkar',
         icon: product.isActive ? <Archive className="w-4 h-4" /> : <ArchiveRestore className="w-4 h-4" />,
         onClick: () => {
@@ -1574,6 +1580,7 @@ const StockAlertsTab = () => {
         }
       },
       {
+        id: 'delete',
         label: 'Sil',
         icon: <Trash2 className="w-4 h-4 text-red-500" />,
         danger: true,
@@ -1585,8 +1592,8 @@ const StockAlertsTab = () => {
         }
       }
     ];
-
-    openContextMenu(e.clientX, e.clientY, menuItems);
+    setMenuItems(items);
+    baseHandleContextMenu(e);
   };
 
   const handleSelectProduct = (productId: string) => {
@@ -1864,9 +1871,8 @@ const StockAlertsTab = () => {
 
       {/* Context Menu */}
       <ContextMenu
-        isOpen={contextMenu.isOpen}
-        position={contextMenu.position}
-        items={contextMenu.items}
+        position={contextMenu}
+        items={menuItems}
         onClose={closeContextMenu}
       />
 
