@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// RENDER BACKEND URL
-const API_URL = import.meta.env.VITE_API_URL || 'https://api.barcodepos.trade/api';
+// ORACLE CLOUD BACKEND URL
+const API_URL = import.meta.env.VITE_API_URL || 'https://barcodepos.trade/api';
 
 export const api = axios.create({
   baseURL: API_URL,
