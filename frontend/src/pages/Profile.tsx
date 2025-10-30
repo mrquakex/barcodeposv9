@@ -52,11 +52,25 @@ const Profile: React.FC = () => {
     }
   };
 
+  // Trial badge calculation
+  const trialEnds = user?.trialEndsAt ? new Date(user.trialEndsAt) : null;
+  const now = new Date();
+  const trialActive = trialEnds ? trialEnds > now : false;
+  const remainingDays = trialActive
+    ? Math.max(0, Math.ceil((trialEnds!.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+    : 0;
+
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-2xl mx-auto">
       <div>
         <h1 className="fluent-title text-foreground">{t('profile.title')}</h1>
         <p className="fluent-body text-foreground-secondary mt-1">{t('profile.manageSettings') || 'Hesap ayarlarınızı yönetin'}</p>
+        {trialActive && (
+          <div className="mt-3 inline-flex items-center gap-2 rounded-full px-3 py-1 bg-primary/10 border border-primary/30">
+            <span className="text-xs font-semibold text-primary">Deneme Sürümü</span>
+            <span className="text-xs text-foreground-secondary">{remainingDays} gün kaldı</span>
+          </div>
+        )}
       </div>
 
       <FluentCard depth="depth-4" className="p-6">

@@ -28,6 +28,12 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    hmr: {
+      overlay: false, // Disable error overlay for better performance
+    },
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'recharts'], // Pre-bundle heavy deps
   },
   build: {
     outDir: 'dist',

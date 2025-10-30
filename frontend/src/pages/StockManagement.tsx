@@ -66,12 +66,15 @@ interface DashboardStats {
   activeStockCounts: number;
 }
 
+// Performance: Dev mode flag for console logs
+const IS_DEV = import.meta.env.DEV;
+
 const StockManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('catalog');
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [isRealTimeEnabled, setIsRealTimeEnabled] = useState(true);
+  const [isRealTimeEnabled, setIsRealTimeEnabled] = useState(false); // Default OFF for performance
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
   // Pagination States
@@ -94,7 +97,7 @@ const StockManagement: React.FC = () => {
       setStats(response.data);
       setLastUpdate(new Date());
     } catch (error) {
-      console.error('Stats fetch error:', error);
+      if (IS_DEV) console.error('Stats fetch error:', error);
     } finally {
       setRefreshing(false);
       setLoading(false);
@@ -105,13 +108,13 @@ const StockManagement: React.FC = () => {
     fetchStats();
   }, []);
 
-  // 🔴 REAL-TIME: Auto-refresh every 30 seconds
+  // 🔴 REAL-TIME: Auto-refresh every 60 seconds (reduced for performance)
   useEffect(() => {
     if (!isRealTimeEnabled) return;
     
     const interval = setInterval(() => {
       fetchStats();
-    }, 30000); // 30 seconds
+    }, 60000); // 60 seconds (increased from 30s for better performance)
 
     return () => clearInterval(interval);
   }, [isRealTimeEnabled]);
@@ -569,7 +572,7 @@ const ProductCatalogTabWrapper: React.FC<{
         setCategories(categoriesRes.data.categories || categoriesRes.data || []);
         setSuppliers(suppliersRes.data.suppliers || suppliersRes.data || []);
       } catch (error) {
-        console.error('Fetch error:', error);
+        if (IS_DEV) console.error('Fetch error:', error);
       }
     };
     if (showNewProductModal) {
@@ -677,7 +680,7 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
 
       setProducts(productsData);
     } catch (error) {
-      console.error('Products fetch error:', error);
+      if (IS_DEV) console.error('Products fetch error:', error);
       setProducts([]);
     } finally {
       setLoading(false);
@@ -752,7 +755,7 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
       toast.success('✅ Ürün kopyalandı');
       fetchProducts();
     } catch (error: any) {
-      console.error('Duplicate error:', error);
+      if (IS_DEV) console.error('Duplicate error:', error);
       toast.error(error.response?.data?.error || 'Kopyalama başarısız');
     }
     closeContextMenu();
@@ -785,8 +788,8 @@ const ProductCatalogTab: React.FC<ProductCatalogTabProps> = ({ currentPage, onPa
       });
       toast.success(newStatus ? '✅ Ürün aktif edildi' : '✅ Ürün arşivlendi');
       fetchProducts();
-    } catch (error: any) {
-      console.error('Archive error:', error);
+    } catch (error: belum) {
+      if (IS_DEV) console.error('Archive error:', error);
       toast.error(error.response?.data?.error || 'İşlem başarısız');
     }
     closeContextMenu();

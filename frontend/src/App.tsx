@@ -61,6 +61,7 @@ import ActivityLogs from './pages/ActivityLogs';
 import Profile from './pages/Profile';
 import UserManagement from './pages/UserManagement';
 import DownloadAPK from './pages/DownloadAPK';
+import SuperAdminPanel from './pages/SuperAdminPanel';
 
 const App: React.FC = () => {
   const { token } = useAuthStore();
@@ -176,6 +177,7 @@ const App: React.FC = () => {
           {!isNativeApp && <Route path="/profile" element={<Profile />} />}
           <Route path="/user-management" element={<UserManagement />} />
           {!isNativeApp && <Route path="/download" element={<DownloadAPK />} />}
+          {!isNativeApp && <Route path="/super-admin" element={<SuperAdminPanel />} />}
           {/* More pages will be added here */}
         </Route>
 

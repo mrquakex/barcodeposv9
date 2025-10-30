@@ -47,8 +47,10 @@ const FluentSidebar: React.FC<FluentSidebarProps> = ({ isMobileOpen = false, onM
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
-  // 📱 Base menu items
+  // 📱 Base menu items (Super Admin link at top if applicable)
+  const isSuperAdminAccount = (user?.isSuperAdmin ?? false) || (user?.email === 'superadmin@barcodepos.trade');
   const baseMenuItems: MenuItem[] = [
+    ...(isSuperAdminAccount ? [{ icon: Shield, label: 'Süper Admin', path: '/super-admin', roles: [] }] : []),
     { icon: LayoutDashboard, label: t('nav.dashboard'), path: '/dashboard', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
     { icon: ShoppingCart, label: t('nav.pos'), path: '/pos', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
     { 
@@ -102,7 +104,12 @@ const FluentSidebar: React.FC<FluentSidebarProps> = ({ isMobileOpen = false, onM
     },
   ];
 
-  // 📱 Add "Mobile App" link ONLY if NOT running as native app
+  // License/trial visibility
+  const trialEnds = user?.trialEndsAt ? new Date(user.trialEndsAt) : null;
+  const hasTrial = trialEnds ? trialEnds > new Date() : false;
+  const isLicensed = (user?.isSuperAdmin ?? false) || hasTrial; // If trial active or super admin, allow
+
+  // 📱 Add "Mobile App" link ONLY if NOT running as native app and user is licensed/trial
   const menuItems: MenuItem[] = Capacitor.isNativePlatform() 
     ? [
         ...baseMenuItems,
@@ -110,7 +117,7 @@ const FluentSidebar: React.FC<FluentSidebarProps> = ({ isMobileOpen = false, onM
       ]
     : [
         ...baseMenuItems,
-        { icon: Smartphone, label: 'Mobil Uygulama', path: '/download', roles: ['ADMIN', 'MANAGER', 'CASHIER'] },
+        ...(isLicensed ? [{ icon: Smartphone, label: 'Mobil Uygulama', path: '/download', roles: ['ADMIN', 'MANAGER', 'CASHIER'] }] : []),
         { icon: Settings, label: t('nav.settings'), path: '/settings', roles: ['ADMIN', 'MANAGER'] },
       ];
 
