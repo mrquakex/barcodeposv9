@@ -11,7 +11,15 @@ echo "================================================"
 # 1️⃣ Git Pull
 echo ""
 echo "📥 1/9 - Pulling latest code..."
-cd /home/ubuntu/barcodeposv9
+# Try both possible paths
+if [ -d "/home/opc/barcodeposv9" ]; then
+  cd /home/opc/barcodeposv9
+elif [ -d "/home/ubuntu/barcodeposv9" ]; then
+  cd /home/ubuntu/barcodeposv9
+else
+  echo "❌ Project directory not found!"
+  exit 1
+fi
 git pull origin main
 echo "✅ Code updated"
 
