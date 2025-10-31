@@ -1,27 +1,41 @@
 import React, { useState } from 'react';
-import { useLicenses } from '@/hooks/useLicenses';
+import { useUsers } from '@/hooks/useUsers';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Key, Search, Plus, Edit, RefreshCw, Loader2 } from 'lucide-react';
+import { Users, Search, Plus, Edit, RefreshCw, Loader2, Mail } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-const Licenses: React.FC = () => {
+const UsersPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const queryClient = useQueryClient();
   
-  const { data, isLoading, error, refetch } = useLicenses({
+  const { data, isLoading, error, refetch } = useUsers({
     page,
     limit: 20,
+    search: search || undefined,
   });
 
   const handleRefresh = () => {
-    queryClient.invalidateQueries({ queryKey: ['licenses'] });
-    toast.success('Lisans listesi yenilendi');
+    queryClient.invalidateQueries({ queryKey: ['users'] });
+    toast.success('Kullanıcı listesi yenilendi');
+  };
+
+  const getRoleBadge = (role: string) => {
+    switch (role) {
+      case 'ADMIN':
+        return <Badge variant="default">Admin</Badge>;
+      case 'MANAGER':
+        return <Badge variant="secondary">Yönetici</Badge>;
+      case 'CASHIER':
+        return <Badge variant="outline">Kasiyer</Badge>;
+      default:
+        return <Badge variant="secondary">{role}</Badge>;
+    }
   };
 
   if (isLoading) {
@@ -43,36 +57,19 @@ const Licenses: React.FC = () => {
     );
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'ACTIVE':
-        return <Badge variant="success">Aktif</Badge>;
-      case 'EXPIRED':
-        return <Badge variant="destructive">Süresi Dolmuş</Badge>;
-      case 'TRIAL':
-        return <Badge variant="warning">Deneme</Badge>;
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
-    }
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Lisanslar</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Kullanıcılar</h1>
           <p className="text-muted-foreground mt-2">
-            Tüm lisansları görüntüle ve yönet
+            Tüm sistem kullanıcılarını görüntüle ve yönet
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleRefresh}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Yenile
-          </Button>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Yeni Lisans
           </Button>
         </div>
       </div>
@@ -81,15 +78,15 @@ const Licenses: React.FC = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Lisans Listesi</CardTitle>
+              <CardTitle>Kullanıcı Listesi</CardTitle>
               <CardDescription>
-                {data?.pagination?.total || 0} lisans bulundu
+                {data?.pagination?.total || 0} kullanıcı bulundu
               </CardDescription>
             </div>
             <div className="relative w-64">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Lisans ara..."
+                placeholder="Kullanıcı ara..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
@@ -102,39 +99,45 @@ const Licenses: React.FC = () => {
             <table className="w-full">
               <thead>
                 <tr className="border-b">
+                  <th className="text-left py-3 px-4 font-medium text-sm">Kullanıcı</th>
+                  <th className="text-left py-3 px-4 font-medium text-sm">Email</th>
+                  <th className="text-left py-3 px-4 font-medium text-sm">Rol</th>
                   <th className="text-left py-3 px-4 font-medium text-sm">Tenant</th>
-                  <th className="text-left py-3 px-4 font-medium text-sm">Plan</th>
                   <th className="text-left py-3 px-4 font-medium text-sm">Durum</th>
-                  <th className="text-left py-3 px-4 font-medium text-sm">Başlangıç</th>
-                  <th className="text-left py-3 px-4 font-medium text-sm">Bitiş</th>
-                  <th className="text-left py-3 px-4 font-medium text-sm">Mobil</th>
+                  <th className="text-left py-3 px-4 font-medium text-sm">Oluşturulma</th>
                   <th className="text-left py-3 px-4 font-medium text-sm">İşlemler</th>
                 </tr>
               </thead>
               <tbody>
-                {data?.licenses?.map((license) => (
-                  <tr key={license.id} className="border-b hover:bg-muted/50">
-                    <td className="py-3 px-4 font-medium">
-                      {license.tenant?.name || license.tenantId}
+                {data?.users?.map((user) => (
+                  <tr key={user.id} className="border-b hover:bg-muted/50">
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium">{user.name}</span>
+                      </div>
                     </td>
                     <td className="py-3 px-4">
-                      <Badge variant="default">{license.plan}</Badge>
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">{user.email}</span>
+                      </div>
                     </td>
                     <td className="py-3 px-4">
-                      {getStatusBadge(license.status)}
+                      {getRoleBadge(user.role)}
                     </td>
                     <td className="py-3 px-4 text-sm text-muted-foreground">
-                      {formatDate(license.startsAt)}
-                    </td>
-                    <td className="py-3 px-4 text-sm text-muted-foreground">
-                      {license.expiresAt ? formatDate(license.expiresAt) : '-'}
+                      {user.tenant?.name || '-'}
                     </td>
                     <td className="py-3 px-4">
-                      {license.includesMobile ? (
-                        <Badge variant="success">Evet</Badge>
+                      {user.isActive ? (
+                        <Badge variant="success">Aktif</Badge>
                       ) : (
-                        <span className="text-sm text-muted-foreground">Hayır</span>
+                        <Badge variant="destructive">Pasif</Badge>
                       )}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-muted-foreground">
+                      {formatDate(user.createdAt)}
                     </td>
                     <td className="py-3 px-4">
                       <Button variant="ghost" size="icon">
@@ -178,4 +181,5 @@ const Licenses: React.FC = () => {
   );
 };
 
-export default Licenses;
+export default UsersPage;
+

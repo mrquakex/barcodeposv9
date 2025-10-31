@@ -5,6 +5,8 @@ import cookieParser from 'cookie-parser';
 import authRoutes from './routes/auth.routes.js';
 import tenantRoutes from './routes/tenant.routes.js';
 import licenseRoutes from './routes/license.routes.js';
+import usersRoutes from './routes/users.routes.js';
+import auditRoutes from './routes/audit.routes.js';
 
 const app = express();
 // CORS first
@@ -34,6 +36,8 @@ app.post('/test-json', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/tenants', tenantRoutes);
 app.use('/api/licenses', licenseRoutes);
+app.use('/api/users', usersRoutes);
+app.use('/api/audit-logs', auditRoutes);
 
 // Error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
