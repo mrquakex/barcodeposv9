@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 
 const AuditLogs: React.FC = () => {
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState('');
   const queryClient = useQueryClient();
   
   const { data, isLoading, error, refetch } = useAuditLogs({

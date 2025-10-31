@@ -42,7 +42,7 @@ class ErrorBoundary extends Component<Props, State> {
             <p className="text-muted-foreground">
               Üzgünüz, beklenmeyen bir hata meydana geldi. Lütfen sayfayı yenileyin veya ana sayfaya dönün.
             </p>
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <details className="text-left">
                 <summary className="cursor-pointer text-sm font-medium">
                   Hata detayları (geliştirme modu)
