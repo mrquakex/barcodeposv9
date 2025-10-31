@@ -1,5 +1,7 @@
 import bcrypt from 'bcryptjs';
-import prisma from '../dist/lib/prisma.js';
+import { PrismaClient } from '@prisma/client';
+
+const prisma = new PrismaClient();
 
 async function createAdmin() {
   const email = process.env.ADMIN_EMAIL || 'superadmin@barcodepos.trade';
@@ -28,6 +30,7 @@ async function createAdmin() {
   console.log('Admin created successfully:');
   console.log('Email:', admin.email);
   console.log('Role:', admin.role);
+  await prisma.$disconnect();
   process.exit(0);
 }
 

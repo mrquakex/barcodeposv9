@@ -1,17 +1,26 @@
 import React, { useState } from 'react';
-import { useLicenses } from '@/hooks/useLicenses';
+import { useLicenses, License } from '@/hooks/useLicenses';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Key, Search, Plus, Edit, RefreshCw, Loader2 } from 'lucide-react';
+import { Key, Search, Plus, Edit, RefreshCw, Loader2, Trash2, Download, AlertTriangle } from 'lucide-react';
+import { exportLicenses } from '@/lib/export';
 import { formatDate } from '@/lib/utils';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { LicenseCreateModal } from '@/components/modals/LicenseCreateModal';
+import { LicenseEditModal } from '@/components/modals/LicenseEditModal';
+import { DeleteConfirmDialog } from '@/components/modals/DeleteConfirmDialog';
+import api from '@/lib/api';
 
 const Licenses: React.FC = () => {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedLicense, setSelectedLicense] = useState<License | null>(null);
   const queryClient = useQueryClient();
   
   const { data, isLoading, error, refetch } = useLicenses({
@@ -19,9 +28,45 @@ const Licenses: React.FC = () => {
     limit: 20,
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await api.delete(`/licenses/${id}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success('Lisans başarıyla silindi');
+      queryClient.invalidateQueries({ queryKey: ['licenses'] });
+      setDeleteDialogOpen(false);
+      setSelectedLicense(null);
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || 'Lisans silinirken bir hata oluştu');
+    },
+  });
+
   const handleRefresh = () => {
     queryClient.invalidateQueries({ queryKey: ['licenses'] });
     toast.success('Lisans listesi yenilendi');
+  };
+
+  const handleCreateClick = () => {
+    setCreateModalOpen(true);
+  };
+
+  const handleEditClick = (license: License) => {
+    setSelectedLicense(license);
+    setEditModalOpen(true);
+  };
+
+  const handleDeleteClick = (license: License) => {
+    setSelectedLicense(license);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (selectedLicense) {
+      deleteMutation.mutate(selectedLicense.id);
+    }
   };
 
   if (isLoading) {
@@ -70,7 +115,18 @@ const Licenses: React.FC = () => {
             <RefreshCw className="h-4 w-4 mr-2" />
             Yenile
           </Button>
-          <Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              exportLicenses().catch((error) => {
+                toast.error(error.message || 'Export başarısız oldu');
+              });
+            }}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Dışa Aktar
+          </Button>
+          <Button onClick={handleCreateClick}>
             <Plus className="h-4 w-4 mr-2" />
             Yeni Lisans
           </Button>
@@ -126,8 +182,35 @@ const Licenses: React.FC = () => {
                     <td className="py-3 px-4 text-sm text-muted-foreground">
                       {formatDate(license.startsAt)}
                     </td>
-                    <td className="py-3 px-4 text-sm text-muted-foreground">
-                      {license.expiresAt ? formatDate(license.expiresAt) : '-'}
+                    <td className="py-3 px-4 text-sm">
+                      {license.expiresAt ? (
+                        <div className="flex items-center gap-2">
+                          <span className={(() => {
+                            const daysUntilExpiry = Math.ceil((new Date(license.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                            if (daysUntilExpiry < 0) return 'text-destructive';
+                            if (daysUntilExpiry <= 7) return 'text-orange-500';
+                            if (daysUntilExpiry <= 30) return 'text-yellow-500';
+                            return 'text-muted-foreground';
+                          })()}>
+                            {formatDate(license.expiresAt)}
+                          </span>
+                          {license.expiresAt && (() => {
+                            const daysUntilExpiry = Math.ceil((new Date(license.expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                            if (daysUntilExpiry < 0) {
+                              return <AlertTriangle className="h-4 w-4 text-destructive" title="Süresi dolmuş" />;
+                            }
+                            if (daysUntilExpiry <= 7) {
+                              return <AlertTriangle className="h-4 w-4 text-orange-500" title="Yakında sona eriyor" />;
+                            }
+                            if (daysUntilExpiry <= 30) {
+                              return <AlertTriangle className="h-4 w-4 text-yellow-500" title="30 gün içinde sona erecek" />;
+                            }
+                            return null;
+                          })()}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
                     </td>
                     <td className="py-3 px-4">
                       {license.includesMobile ? (
@@ -137,9 +220,22 @@ const Licenses: React.FC = () => {
                       )}
                     </td>
                     <td className="py-3 px-4">
-                      <Button variant="ghost" size="icon">
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => handleEditClick(license)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => handleDeleteClick(license)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -174,6 +270,27 @@ const Licenses: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      <LicenseCreateModal
+        open={createModalOpen}
+        onOpenChange={setCreateModalOpen}
+      />
+
+      <LicenseEditModal
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        license={selectedLicense}
+      />
+
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDeleteConfirm}
+        title="Lisansı Sil"
+        description="Bu lisansı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+        itemName={`${selectedLicense?.tenant?.name || selectedLicense?.tenantId} - ${selectedLicense?.plan}`}
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   );
 };

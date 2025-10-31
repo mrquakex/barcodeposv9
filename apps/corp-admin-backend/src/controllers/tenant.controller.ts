@@ -99,6 +99,42 @@ export const getTenant = async (req: CorpAuthRequest, res: Response) => {
   }
 };
 
+export const createTenant = async (req: CorpAuthRequest, res: Response) => {
+  try {
+    const { name, isActive } = req.body;
+
+    if (!name || name.trim().length < 3) {
+      return res.status(400).json({ error: 'Tenant name is required and must be at least 3 characters' });
+    }
+
+    const tenant = await prisma.tenant.create({
+      data: {
+        name: name.trim(),
+        isActive: isActive !== undefined ? isActive : true,
+      }
+    });
+
+    await createAuditLog({
+      adminId: req.adminId!,
+      action: 'CREATE',
+      resource: 'tenant',
+      resourceId: tenant.id,
+      details: JSON.stringify({ tenant }),
+      reason: req.body.reason,
+      ipAddress: req.ip,
+      userAgent: req.get('user-agent')
+    });
+
+    res.status(201).json({ tenant });
+  } catch (error: any) {
+    console.error('Create tenant error:', error);
+    if (error.code === 'P2002') {
+      return res.status(409).json({ error: 'Tenant with this name already exists' });
+    }
+    res.status(500).json({ error: 'Failed to create tenant' });
+  }
+};
+
 export const updateTenant = async (req: CorpAuthRequest, res: Response) => {
   try {
     const { id } = req.params;
@@ -109,10 +145,14 @@ export const updateTenant = async (req: CorpAuthRequest, res: Response) => {
       return res.status(404).json({ error: 'Tenant not found' });
     }
 
+    if (name && name.trim().length < 3) {
+      return res.status(400).json({ error: 'Tenant name must be at least 3 characters' });
+    }
+
     const tenant = await prisma.tenant.update({
       where: { id },
       data: {
-        ...(name && { name }),
+        ...(name && { name: name.trim() }),
         ...(isActive !== undefined && { isActive }),
         ...(ownerUserId !== undefined && { ownerUserId })
       }
@@ -133,6 +173,61 @@ export const updateTenant = async (req: CorpAuthRequest, res: Response) => {
   } catch (error) {
     console.error('Update tenant error:', error);
     res.status(500).json({ error: 'Failed to update tenant' });
+  }
+};
+
+export const deleteTenant = async (req: CorpAuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const tenant = await prisma.tenant.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: {
+            users: true,
+            products: true,
+            licenses: true
+          }
+        }
+      }
+    });
+
+    if (!tenant) {
+      return res.status(404).json({ error: 'Tenant not found' });
+    }
+
+    // Check if tenant has related data
+    if (tenant._count.users > 0 || tenant._count.products > 0 || tenant._count.licenses > 0) {
+      return res.status(400).json({
+        error: 'Cannot delete tenant with existing users, products, or licenses',
+        details: {
+          users: tenant._count.users,
+          products: tenant._count.products,
+          licenses: tenant._count.licenses
+        }
+      });
+    }
+
+    await prisma.tenant.delete({
+      where: { id }
+    });
+
+    await createAuditLog({
+      adminId: req.adminId!,
+      action: 'DELETE',
+      resource: 'tenant',
+      resourceId: id,
+      details: JSON.stringify({ tenant }),
+      reason: req.body.reason,
+      ipAddress: req.ip,
+      userAgent: req.get('user-agent')
+    });
+
+    res.json({ message: 'Tenant deleted successfully' });
+  } catch (error) {
+    console.error('Delete tenant error:', error);
+    res.status(500).json({ error: 'Failed to delete tenant' });
   }
 };
 

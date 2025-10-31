@@ -26,6 +26,6 @@ RUN npm run build
 # Expose port
 EXPOSE 4001
 
-# Start command
-CMD ["npm", "start"]
+# Start command - generate Prisma client and start server
+CMD ["sh", "-c", "npx prisma generate --schema=./prisma-temp/schema.prisma && npm start"]
 

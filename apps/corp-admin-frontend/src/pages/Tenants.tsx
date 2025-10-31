@@ -1,23 +1,51 @@
-import React, { useState } from 'react';
-import { useTenants } from '@/hooks/useTenants';
+import React, { useState, useMemo } from 'react';
+import { ColumnDef } from '@tanstack/react-table';
+import { useTenants, Tenant } from '@/hooks/useTenants';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Building2, Search, Plus, Eye, Edit, RefreshCw, Loader2 } from 'lucide-react';
+import { Building2, Plus, Edit, RefreshCw, Loader2, Trash2, Download, Eye } from 'lucide-react';
+import { exportTenants } from '@/lib/export';
+import { TenantDetailModal } from '@/components/modals/TenantDetailModal';
 import { formatDate } from '@/lib/utils';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { TenantCreateModal } from '@/components/modals/TenantCreateModal';
+import { TenantEditModal } from '@/components/modals/TenantEditModal';
+import { DeleteConfirmDialog } from '@/components/modals/DeleteConfirmDialog';
+import { DataTable } from '@/components/ui/data-table';
+import api from '@/lib/api';
 
 const Tenants: React.FC = () => {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
   const queryClient = useQueryClient();
   
   const { data, isLoading, error, refetch } = useTenants({
     page,
-    limit: 20,
+    limit: 100, // Fetch more data for client-side pagination in DataTable
     search: search || undefined,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await api.delete(`/tenants/${id}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success('Tenant başarıyla silindi');
+      queryClient.invalidateQueries({ queryKey: ['tenants'] });
+      setDeleteDialogOpen(false);
+      setSelectedTenant(null);
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || 'Tenant silinirken bir hata oluştu');
+    },
   });
 
   const handleRefresh = () => {
@@ -25,7 +53,124 @@ const Tenants: React.FC = () => {
     toast.success('Tenant listesi yenilendi');
   };
 
-  if (isLoading) {
+  const handleCreateClick = () => {
+    setCreateModalOpen(true);
+  };
+
+  const handleEditClick = (tenant: Tenant) => {
+    setSelectedTenant(tenant);
+    setEditModalOpen(true);
+  };
+
+  const handleDetailClick = (tenant: Tenant) => {
+    setSelectedTenant(tenant);
+    setDetailModalOpen(true);
+  };
+
+  const handleDeleteClick = (tenant: Tenant) => {
+    setSelectedTenant(tenant);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (selectedTenant) {
+      deleteMutation.mutate(selectedTenant.id);
+    }
+  };
+
+  const columns: ColumnDef<Tenant>[] = useMemo(
+    () => [
+      {
+        accessorKey: 'name',
+        header: 'Tenant',
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <Building2 className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium">{row.original.name}</span>
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'userCount',
+        header: 'Kullanıcı',
+        cell: ({ row }) => (
+          <span className="text-sm text-muted-foreground">{row.original.userCount}</span>
+        ),
+      },
+      {
+        accessorKey: 'productCount',
+        header: 'Ürün',
+        cell: ({ row }) => (
+          <span className="text-sm text-muted-foreground">{row.original.productCount}</span>
+        ),
+      },
+      {
+        accessorKey: 'activeLicense',
+        header: 'Lisans',
+        cell: ({ row }) => (
+          row.original.activeLicense ? (
+            <Badge variant="success">{row.original.activeLicense.plan}</Badge>
+          ) : (
+            <span className="text-sm text-muted-foreground">-</span>
+          )
+        ),
+      },
+      {
+        accessorKey: 'isActive',
+        header: 'Durum',
+        cell: ({ row }) => (
+          row.original.isActive ? (
+            <Badge variant="success">Aktif</Badge>
+          ) : (
+            <Badge variant="destructive">Pasif</Badge>
+          )
+        ),
+      },
+      {
+        accessorKey: 'createdAt',
+        header: 'Oluşturulma',
+        cell: ({ row }) => (
+          <span className="text-sm text-muted-foreground">
+            {formatDate(row.original.createdAt)}
+          </span>
+        ),
+      },
+      {
+        id: 'actions',
+        header: 'İşlemler',
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleDetailClick(row.original)}
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleEditClick(row.original)}
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => handleDeleteClick(row.original)}
+              disabled={row.original.userCount > 0 || row.original.productCount > 0 || row.original.licenseCount > 0}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        ),
+        enableSorting: false,
+      },
+    ],
+    []
+  );
+
+  if (isLoading && !data) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -58,7 +203,18 @@ const Tenants: React.FC = () => {
             <RefreshCw className="h-4 w-4 mr-2" />
             Yenile
           </Button>
-          <Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              exportTenants().catch((error) => {
+                toast.error(error.message || 'Export başarısız oldu');
+              });
+            }}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Dışa Aktar
+          </Button>
+          <Button onClick={handleCreateClick}>
             <Plus className="h-4 w-4 mr-2" />
             Yeni Tenant
           </Button>
@@ -74,106 +230,48 @@ const Tenants: React.FC = () => {
                 {data?.pagination?.total || 0} tenant bulundu
               </CardDescription>
             </div>
-            <div className="relative w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Tenant ara..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
-              />
-            </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-3 px-4 font-medium text-sm">Tenant</th>
-                  <th className="text-left py-3 px-4 font-medium text-sm">Kullanıcı</th>
-                  <th className="text-left py-3 px-4 font-medium text-sm">Ürün</th>
-                  <th className="text-left py-3 px-4 font-medium text-sm">Lisans</th>
-                  <th className="text-left py-3 px-4 font-medium text-sm">Durum</th>
-                  <th className="text-left py-3 px-4 font-medium text-sm">Oluşturulma</th>
-                  <th className="text-left py-3 px-4 font-medium text-sm">İşlemler</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data?.tenants?.map((tenant) => (
-                  <tr key={tenant.id} className="border-b hover:bg-muted/50">
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <Building2 className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{tenant.name}</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 text-sm text-muted-foreground">
-                      {tenant.userCount}
-                    </td>
-                    <td className="py-3 px-4 text-sm text-muted-foreground">
-                      {tenant.productCount}
-                    </td>
-                    <td className="py-3 px-4">
-                      {tenant.activeLicense ? (
-                        <Badge variant="success">{tenant.activeLicense.plan}</Badge>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">-</span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4">
-                      {tenant.isActive ? (
-                        <Badge variant="success">Aktif</Badge>
-                      ) : (
-                        <Badge variant="destructive">Pasif</Badge>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-sm text-muted-foreground">
-                      {formatDate(tenant.createdAt)}
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          
-          {data?.pagination && data.pagination.totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
-              <div className="text-sm text-muted-foreground">
-                Sayfa {data.pagination.page} / {data.pagination.totalPages}
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                >
-                  Önceki
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.min(data.pagination.totalPages, p + 1))}
-                  disabled={page === data.pagination.totalPages}
-                >
-                  Sonraki
-                </Button>
-              </div>
-            </div>
-          )}
+          <DataTable
+            columns={columns}
+            data={data?.tenants || []}
+            searchKey="name"
+            searchPlaceholder="Tenant ara..."
+            enableRowSelection={false}
+            enableColumnVisibility={true}
+            initialPageSize={20}
+          />
         </CardContent>
       </Card>
+
+      <TenantCreateModal
+        open={createModalOpen}
+        onOpenChange={setCreateModalOpen}
+      />
+
+      <TenantEditModal
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        tenant={selectedTenant}
+      />
+
+      <TenantDetailModal
+        open={detailModalOpen}
+        onOpenChange={setDetailModalOpen}
+        tenant={selectedTenant}
+        onEdit={handleEditClick}
+      />
+
+      <DeleteConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={handleDeleteConfirm}
+        title="Tenant'ı Sil"
+        description="Bu tenant'ı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+        itemName={selectedTenant?.name}
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   );
 };

@@ -1,9 +1,13 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Shield, Building2, Key, Users, Settings, BarChart3, FileText, Activity, CreditCard, Code, Webhook, FileBarChart } from 'lucide-react';
+import { Shield, Building2, Key, Users, Settings, BarChart3, FileText, Activity, CreditCard, Code, Webhook, FileBarChart, AlertTriangle, BookOpen, Bell, UserCog, Database, Plug, TrendingUp, Monitor } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+  onClose?: () => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
   const location = useLocation();
   const { admin } = useAuthStore();
 
@@ -13,13 +17,22 @@ const Sidebar: React.FC = () => {
     { icon: Key, label: 'Lisanslar', path: '/licenses' },
     { icon: Users, label: 'Kullanıcılar', path: '/users' },
     { icon: BarChart3, label: 'Analytics', path: '/analytics' },
+    { icon: TrendingUp, label: 'Gelişmiş Analytics', path: '/advanced-analytics' },
     { icon: FileText, label: 'Audit Logs', path: '/audit-logs' },
+    { icon: AlertTriangle, label: 'Güvenlik Denetimi', path: '/security-audit' },
+    { icon: Bell, label: 'Uyarılar', path: '/alerts' },
     { icon: Activity, label: 'Sistem Sağlığı', path: '/system-health' },
+    { icon: Monitor, label: 'Monitoring', path: '/monitoring' },
     { icon: CreditCard, label: 'Faturalandırma', path: '/billing' },
     { icon: Code, label: 'API Yönetimi', path: '/api-management' },
+    { icon: BookOpen, label: 'API Dokümantasyonu', path: '/api-docs' },
     { icon: Webhook, label: 'Webhooks', path: '/webhooks' },
     { icon: FileBarChart, label: 'Raporlar', path: '/reports' },
-    { icon: Settings, label: 'Ayarlar', path: '/settings' }
+    { icon: Settings, label: 'Ayarlar', path: '/settings' },
+    { icon: Shield, label: 'Rol Yönetimi', path: '/role-management' },
+    { icon: UserCog, label: 'Admin Yönetimi', path: '/admin-management' },
+    { icon: Database, label: 'Veri İşlemleri', path: '/data-operations' },
+    { icon: Plug, label: 'Entegrasyonlar', path: '/integrations' }
   ];
 
   return (

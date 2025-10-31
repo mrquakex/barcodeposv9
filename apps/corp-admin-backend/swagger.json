@@ -1,0 +1,175 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "BarcodePOS Control Plane API",
+    "version": "1.0.0",
+    "description": "Enterprise Control Plane API Documentation",
+    "contact": {
+      "name": "API Support",
+      "email": "support@barcodepos.trade"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://admin.barcodepos.trade/api",
+      "description": "Production Server"
+    },
+    {
+      "url": "http://localhost:4001/api",
+      "description": "Development Server"
+    }
+  ],
+  "tags": [
+    { "name": "Authentication", "description": "Authentication endpoints" },
+    { "name": "Tenants", "description": "Tenant management" },
+    { "name": "Licenses", "description": "License management" },
+    { "name": "Users", "description": "User management" },
+    { "name": "Dashboard", "description": "Dashboard statistics" },
+    { "name": "Analytics", "description": "Analytics and reporting" },
+    { "name": "Billing", "description": "Billing and invoices" },
+    { "name": "Security", "description": "Security and audit" },
+    { "name": "Settings", "description": "System settings" },
+    { "name": "API Management", "description": "API keys and webhooks" }
+  ],
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "tags": ["Authentication"],
+        "summary": "Admin login",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string", "format": "email" },
+                  "password": { "type": "string", "format": "password" }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": { "type": "string" },
+                    "admin": { "$ref": "#/components/schemas/Admin" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "description": "Invalid credentials" }
+        }
+      }
+    },
+    "/tenants": {
+      "get": {
+        "tags": ["Tenants"],
+        "summary": "List all tenants",
+        "security": [{"bearerAuth": []}],
+        "responses": {
+          "200": {
+            "description": "List of tenants",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tenants": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Tenant" }
+                    },
+                    "pagination": { "$ref": "#/components/schemas/Pagination" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Tenants"],
+        "summary": "Create a new tenant",
+        "security": [{"bearerAuth": []}],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TenantInput" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tenant created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tenant": { "$ref": "#/components/schemas/Tenant" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Admin": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "name": { "type": "string" },
+          "role": { "type": "string", "enum": ["CORP_ADMIN", "CORP_OPS", "CORP_SUPPORT"] }
+        }
+      },
+      "Tenant": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "isActive": { "type": "boolean" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "TenantInput": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "minLength": 3 },
+          "isActive": { "type": "boolean", "default": true }
+        }
+      },
+      "Pagination": {
+        "type": "object",
+        "properties": {
+          "page": { "type": "integer" },
+          "limit": { "type": "integer" },
+          "total": { "type": "integer" },
+          "totalPages": { "type": "integer" }
+        }
+      }
+    }
+  }
+}
+

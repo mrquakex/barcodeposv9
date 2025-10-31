@@ -1,13 +1,71 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, Receipt, Plus, Download } from 'lucide-react';
+import { CreditCard, Receipt, Plus, Download, Loader2 } from 'lucide-react';
 import { formatDate, formatCurrency } from '@/lib/utils';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import api from '@/lib/api';
+import { toast } from 'sonner';
 
 const Billing: React.FC = () => {
-  // Mock data
-  const invoices: any[] = [];
+  const queryClient = useQueryClient();
+
+  const { data: invoicesData, isLoading: invoicesLoading } = useQuery({
+    queryKey: ['billing', 'invoices'],
+    queryFn: async () => {
+      const response = await api.get('/billing/invoices');
+      return response.data;
+    },
+  });
+
+  const { data: paymentsData } = useQuery({
+    queryKey: ['billing', 'payments'],
+    queryFn: async () => {
+      const response = await api.get('/billing/payments');
+      return response.data;
+    },
+  });
+
+  const createInvoiceMutation = useMutation({
+    mutationFn: async (invoiceData: any) => {
+      const response = await api.post('/billing/invoices', invoiceData);
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success('Fatura oluşturuldu');
+      queryClient.invalidateQueries({ queryKey: ['billing'] });
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || 'Fatura oluşturulamadı');
+    },
+  });
+
+  const invoices = invoicesData?.invoices || [];
+  const payments = paymentsData?.payments || [];
+  const pendingInvoices = invoices.filter((inv: any) => inv.status === 'PENDING');
+  const totalRevenue = payments.reduce((sum: number, p: any) => sum + p.amount, 0);
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'APPROVED':
+        return <Badge variant="success">Onaylandı</Badge>;
+      case 'PENDING':
+        return <Badge variant="warning">Beklemede</Badge>;
+      case 'REJECTED':
+        return <Badge variant="destructive">Reddedildi</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  if (invoicesLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -18,7 +76,7 @@ const Billing: React.FC = () => {
             Fatura yönetimi ve ödeme geçmişi
           </p>
         </div>
-        <Button>
+        <Button onClick={() => {/* TODO: Open create invoice modal */}}>
           <Plus className="h-4 w-4 mr-2" />
           Yeni Fatura
         </Button>
@@ -27,12 +85,12 @@ const Billing: React.FC = () => {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Bu Ay Gelir</CardTitle>
+            <CardTitle className="text-sm font-medium">Toplam Gelir</CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(0)}</div>
-            <p className="text-xs text-muted-foreground mt-1">Son aydan %0 değişim</p>
+            <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
+            <p className="text-xs text-muted-foreground mt-1">Onaylanan ödemeler</p>
           </CardContent>
         </Card>
 
@@ -42,19 +100,19 @@ const Billing: React.FC = () => {
             <Receipt className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+            <div className="text-2xl font-bold">{pendingInvoices.length}</div>
             <p className="text-xs text-muted-foreground mt-1">Toplam bekleyen fatura</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Toplam Gelir</CardTitle>
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Toplam Fatura</CardTitle>
+            <Receipt className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(0)}</div>
-            <p className="text-xs text-muted-foreground mt-1">Tüm zamanlar</p>
+            <div className="text-2xl font-bold">{invoices.length}</div>
+            <p className="text-xs text-muted-foreground mt-1">Tüm faturalar</p>
           </CardContent>
         </Card>
       </div>
@@ -62,32 +120,45 @@ const Billing: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle>Faturalar</CardTitle>
-          <CardDescription>Fatura geçmişi ve durumları</CardDescription>
+          <CardDescription>Fatura listesi ve durumları</CardDescription>
         </CardHeader>
         <CardContent>
           {invoices.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
-              Henüz fatura yok
+              Henüz fatura oluşturulmamış
             </div>
           ) : (
-            <div className="space-y-4">
-              {invoices.map((invoice) => (
-                <div key={invoice.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <div className="font-medium">#{invoice.number}</div>
-                    <div className="text-sm text-muted-foreground">{formatDate(invoice.date)}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-bold">{formatCurrency(invoice.amount)}</div>
-                    <Badge variant={invoice.status === 'paid' ? 'success' : 'warning'}>
-                      {invoice.status}
-                    </Badge>
-                  </div>
-                  <Button variant="ghost" size="icon">
-                    <Download className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-3 px-4 font-medium text-sm">Tenant</th>
+                    <th className="text-left py-3 px-4 font-medium text-sm">Tutar</th>
+                    <th className="text-left py-3 px-4 font-medium text-sm">Durum</th>
+                    <th className="text-left py-3 px-4 font-medium text-sm">Oluşturulma</th>
+                    <th className="text-left py-3 px-4 font-medium text-sm">İşlemler</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {invoices.map((invoice: any) => (
+                    <tr key={invoice.id} className="border-b hover:bg-muted/50">
+                      <td className="py-3 px-4">{invoice.tenant?.name || invoice.tenantId}</td>
+                      <td className="py-3 px-4 font-medium">
+                        {formatCurrency(invoice.amount)} {invoice.currency}
+                      </td>
+                      <td className="py-3 px-4">{getStatusBadge(invoice.status)}</td>
+                      <td className="py-3 px-4 text-sm text-muted-foreground">
+                        {formatDate(invoice.createdAt)}
+                      </td>
+                      <td className="py-3 px-4">
+                        <Button variant="ghost" size="icon">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </CardContent>
@@ -97,4 +168,3 @@ const Billing: React.FC = () => {
 };
 
 export default Billing;
-

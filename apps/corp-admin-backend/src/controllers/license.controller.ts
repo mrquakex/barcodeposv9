@@ -132,3 +132,42 @@ export const updateLicense = async (req: CorpAuthRequest, res: Response) => {
   }
 };
 
+export const deleteLicense = async (req: CorpAuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const license = await prisma.license.findUnique({
+      where: { id },
+      include: {
+        tenant: {
+          select: { id: true, name: true }
+        }
+      }
+    });
+
+    if (!license) {
+      return res.status(404).json({ error: 'License not found' });
+    }
+
+    await prisma.license.delete({
+      where: { id }
+    });
+
+    await createAuditLog({
+      adminId: req.adminId!,
+      action: 'DELETE',
+      resource: 'license',
+      resourceId: id,
+      details: JSON.stringify({ license }),
+      reason: req.body.reason,
+      ipAddress: req.ip,
+      userAgent: req.get('user-agent')
+    });
+
+    res.json({ message: 'License deleted successfully' });
+  } catch (error) {
+    console.error('Delete license error:', error);
+    res.status(500).json({ error: 'Failed to delete license' });
+  }
+};
+
