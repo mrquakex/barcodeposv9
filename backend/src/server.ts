@@ -47,6 +47,7 @@ import reportsRoutes from './routes/reports.routes';
 import employeeRoutes from './routes/employee.routes';
 import customerDetailRoutes from './routes/customerDetail.routes';
 import testEmailRoutes from './routes/test-email.routes';
+import mfaRoutes from './routes/mfa.routes.js';
 import prisma from './lib/prisma';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -232,6 +233,7 @@ app.use('/api/returns', returnRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/employees', employeeRoutes);
 app.use('/api/test-email', testEmailRoutes);
+app.use('/api/mfa', mfaRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
