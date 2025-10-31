@@ -106,35 +106,63 @@ const allowedOrigins = [
   'https://barcodepos-frontend.onrender.com',
 ];
 
+// FRONTEND_URL environment variable'dan da ekle
+const frontendUrls = process.env.FRONTEND_URL?.split(',').map(url => url.trim()).filter(Boolean) || [];
+allowedOrigins.push(...frontendUrls);
+
+console.log('🌐 Allowed CORS Origins:', allowedOrigins);
+
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps, Postman, curl)
-    if (!origin) return callback(null, true);
-    
-    // Allow all origins in development
-    if (process.env.NODE_ENV !== 'production') {
+    if (!origin) {
+      console.log('✅ CORS: No origin, allowing');
       return callback(null, true);
     }
     
-    // Check if origin is in allowed list
+    // Allow all origins in development
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('✅ CORS: Development mode, allowing:', origin);
+      return callback(null, true);
+    }
+    
+    // Check exact match first
+    if (allowedOrigins.includes(origin)) {
+      console.log('✅ CORS: Exact match, allowing:', origin);
+      return callback(null, true);
+    }
+    
+    // Check if origin is in allowed list (startsWith)
     if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
+      console.log('✅ CORS: StartsWith match, allowing:', origin);
       return callback(null, true);
     }
     
     // Default: allow (fallback for backward compatibility)
+    console.log('⚠️ CORS: Fallback allow for:', origin);
     return callback(null, true);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With', 'Accept', 'Origin'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With', 'Accept', 'Origin', 'X-CSRF-Token'],
   exposedHeaders: ['Set-Cookie', 'Content-Length', 'Content-Type'],
   preflightContinue: false,
   optionsSuccessStatus: 204,
   maxAge: 86400 // 24 hours
 }));
 
-// Explicit OPTIONS handler for all routes
-app.options('*', cors());
+// Explicit OPTIONS handler for all routes - CORS middleware'den ÖNCE
+app.options('*', (req, res) => {
+  const origin = req.headers.origin;
+  if (origin && (allowedOrigins.includes(origin) || allowedOrigins.some(allowed => origin.startsWith(allowed)))) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie, X-Requested-With, Accept, Origin, X-CSRF-Token');
+    res.header('Access-Control-Max-Age', '86400');
+  }
+  res.sendStatus(204);
+});
 
 // Security & Performance Middleware (Helmet disabled for development)
 // app.use(helmet({
